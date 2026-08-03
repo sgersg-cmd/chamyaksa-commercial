@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상권분석 자동화 시스템 v2.1.0</title>
+    <title>상권분석 자동화 시스템 v2.3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,22 +17,133 @@
     <style>
         body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background-color: #f1f5f9; }
         .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03); }
+        .pdf-section-checkbox { accent-color: #2563eb; }
+        .optional-panel-transition { transition: opacity .18s ease, transform .18s ease; }
+        .number-input-compact::-webkit-inner-spin-button,
+        .number-input-compact::-webkit-outer-spin-button { opacity: 1; }
+        .basis-note { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 0.875rem 1rem; }
+        .basis-note strong { color: #0f172a; }
+        .source-chip { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 9999px; padding: 0.125rem 0.45rem; font-size: 10px; font-weight: 800; white-space: nowrap; }
+        .source-real { color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; }
+        .source-model { color: #b45309; background: #fffbeb; border: 1px solid #fde68a; }
+        .source-input { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; }
+
+        @page {
+            size: A4 portrait;
+            margin: 7mm 7mm 8mm;
+        }
         
         @media print {
-            .no-print { display: none !important; }
-            body { background-color: #ffffff; }
+            html, body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print, .print-excluded { display: none !important; }
             .print-padding { padding: 0 !important; margin: 0 !important; }
-            
-            .page-break-map { 
+            #report-zone { margin: 0 !important; padding: 0 !important; }
+            #report-card {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                zoom: 0.82;
+            }
+            #report-card > * + * { margin-top: 3mm !important; }
+            #report-card [data-print-section] {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            #report-card section,
+            #report-card .grid,
+            #report-card .overflow-x-auto {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            #report-card .print-keep-together,
+            #report-card .print-atomic,
+            #report-card h2,
+            #report-card h3,
+            #report-card h4,
+            #report-card tr {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-bottom: 2rem !important;
             }
+            #report-card h3,
+            #report-card h4 {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                margin-bottom: 2mm !important;
+            }
+            #report-card .p-8, #report-card .md\:p-10 { padding: 4mm !important; }
+            #report-card .p-6 { padding: 3.5mm !important; }
+            #report-card .p-5 { padding: 3mm !important; }
+            #report-card .p-4 { padding: 2.5mm !important; }
+            #report-card .gap-5 { gap: 3mm !important; }
+            #report-card .gap-4 { gap: 2.5mm !important; }
+            #report-card .gap-3 { gap: 2mm !important; }
+            #report-card .space-y-9 > :not([hidden]) ~ :not([hidden]) { margin-top: 3mm !important; }
+            #report-card .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 2.3mm !important; }
+            #report-card .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.8mm !important; }
+            #report-card .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.3mm !important; }
+            #report-card .print-metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+            #report-card #lbl-ai-summary-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+            /* Chrome 인쇄에서 CSS Grid 전체가 다음 페이지로 밀리며 큰 공백이 생기는 현상 방지 */
+            #report-card [data-print-section="market"],
+            #report-card .print-profit-grid,
+            #report-card .print-investment-grid,
+            #report-card [data-print-section="flow"] > .grid,
+            #report-card #lbl-ai-reason > .grid,
+            #report-card .footer-print-grid {
+                display: block !important;
+            }
+            #report-card [data-print-section="market"] > *,
+            #report-card .print-profit-grid > *,
+            #report-card .print-investment-grid > *,
+            #report-card [data-print-section="flow"] > .grid > *,
+            #report-card #lbl-ai-reason > .grid > *,
+            #report-card .footer-print-grid > * {
+                width: 100% !important;
+                margin-bottom: 2.2mm !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            #report-card table.min-w-\[760px\] { min-width: 0 !important; width: 100% !important; }
+            #report-card .basis-note { padding: 2.2mm 2.6mm !important; font-size: 9px !important; line-height: 1.45 !important; }
+            #report-card .card-shadow, #report-card .shadow-sm, #report-card .shadow-md, #report-card .shadow-inner { box-shadow: none !important; }
+            #report-card p, #report-card li { orphans: 2; widows: 2; }
+            #investment-input-panel { display: block !important; }
+            #investment-collapsed-summary { display: none !important; }
+            .page-break-map { margin-bottom: 0 !important; }
             #kakao-map { 
-                border: 2px solid #cbd5e1 !important; 
-                height: 380px !important; 
-                display: block !important; 
+                border: 1px solid #cbd5e1 !important; 
+                height: 165px !important;
+                min-height: 165px !important;
+                display: block !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
+            .overflow-x-auto { overflow: visible !important; }
+            table { page-break-inside: auto !important; break-inside: auto !important; }
+            thead { display: table-header-group !important; }
+            tfoot { display: table-footer-group !important; }
+            input[type="number"] {
+                box-shadow: none !important;
+                background: #ffffff !important;
+                border-color: #cbd5e1 !important;
+                color: #0f172a !important;
+            }
+            [data-print-section="briefing"] { page-break-inside: auto !important; break-inside: auto !important; }
+            #lbl-ai-summary-cards > div,
+            #lbl-ai-reason > div,
+            #lbl-ai-reason > .grid > div { page-break-inside: avoid !important; break-inside: avoid !important; }
         }
     </style>
 </head>
@@ -61,7 +172,10 @@
             NET_MARGIN_RATE: 0.45,
             COST_STAFF: 2500000,   
             COST_FULL_PHARM: 6000000,
-            COST_HALF_PHARM: 3000000
+            COST_HALF_PHARM: 3000000,
+            // API 키를 브라우저에 직접 넣지 말고, Firebase Functions/Cloud Run 등 서버 엔드포인트를 연결하십시오.
+            AI_BRIEFING_ENDPOINT: "",
+            AI_BRIEFING_TIMEOUT_MS: 15000
         };
     </script>
 
@@ -69,7 +183,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v2.1.0</span>
+                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v2.3.0</span>
                 상권분석 자동화 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Charmacist Hub Multi-Module</span>
@@ -95,7 +209,7 @@
                 </div>
                 <div class="md:col-span-3">
                     <button onclick="startAnalysisWithParsing()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 tracking-wide">
-                        <i class="fa-solidfa-magnifying-glass-location"></i> 상권분석 시작
+                        <i class="fa-solid fa-magnifying-glass-location"></i> 상권분석 시작
                     </button>
                 </div>
             </div>
@@ -111,21 +225,26 @@
         <div id="report-zone" class="hidden space-y-6">
             <div class="flex justify-between items-center no-print bg-slate-800 text-white p-3 rounded-xl shadow-sm">
                 <span id="lbl-data-status-bar" class="text-xs font-medium pl-2 text-slate-300"></span>
-                <button onclick="exportAndPrint()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-print"></i> PDF 다운로드
+                <button onclick="openPdfSelection()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-list-check"></i> PDF 항목 선택
                 </button>
             </div>
 
-            <div class="bg-white rounded-2xl border border-slate-200 p-8 md:p-10 space-y-9 bg-white card-shadow">
+            <div id="report-card" class="bg-white rounded-2xl border border-slate-200 p-8 md:p-10 space-y-9 bg-white card-shadow">
                 <!-- 면책 고지 -->
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 text-xs text-amber-900 leading-relaxed space-y-1 shadow-inner">
-                    <strong class="text-amber-800 text-sm block mb-1 flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> [필독] 상권분석 리포트 활용 안내 (Disclaimer)</strong>
-                    <p>1. 본 리포트는 정부 공공 데이터 및 주요 상권 분석 출처의 실시간 정보를 기반으로 교차 분석하여 생성된 종합 참고용 자료입니다.</p>
-                    <p>2. 본 자료는 해당 지역의 거시적 흐름을 파악하여 '실제 임장을 갈만한 가치가 있는 지역인가?'를 1차적으로 판가름하기 위한 필터링 도구로 기획되었습니다.</p>
-                    <p>3. 성공적인 개국을 위해서는 본 리포트를 토대로 반드시 해당 상권의 실제 현장 방문(임장), 요일별/시간별 유동인구 실사, 인근 병원의 실제 처방전 발행 성향을 확인하신 후 최종 계약을 결정하시기 바랍니다.</p>
+                <div data-print-section="disclaimer" class="bg-amber-50 border-2 border-amber-300 rounded-xl p-5 text-xs text-amber-950 leading-relaxed space-y-1.5 shadow-inner print-keep-together">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <strong class="text-amber-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> [필독] 상권분석 리포트 활용 및 책임 범위</strong>
+                        <span class="source-chip source-model self-start">의사결정 참고자료</span>
+                    </div>
+                    <p>1. 본 리포트는 <strong>개국 후보지의 1차 검토와 임장 우선순위 판단을 돕기 위한 참고자료</strong>이며, 감정평가·투자자문·수익보장·법률 또는 세무 의견이 아닙니다.</p>
+                    <p>2. 의료기관 정보 일부를 제외한 매출, 처방량, 배후 인구, 유동인구, 손익 등에는 시스템 추정값과 사용자 입력값이 포함됩니다. 공공데이터의 갱신 지연·누락·주소 범위 차이로 실제 현황과 차이가 발생할 수 있습니다.</p>
+                    <p>3. 최종 계약 전 반드시 현장 방문, 병원별 실제 외래·처방 흐름, 기존 약국 유입 동선, 권리금·보증금·임대차 조건, 주차 및 가시성을 별도로 확인해야 합니다.</p>
+                    <p>4. 본 자료만을 근거로 계약·투자·개국 여부를 결정해서는 안 되며, 최종 판단과 의사결정 책임은 이용자에게 있습니다.</p>
+                    <p class="mt-2 bg-white/70 border border-amber-300 rounded-lg p-2.5 font-bold text-amber-900">관계 법령이 허용하는 범위 내에서, 본 자료의 추정치·오류·누락 또는 단독 활용으로 발생한 손실에 대해 자료 제공자는 책임을 부담하지 않습니다.</p>
                 </div>
 
-                <div class="text-center border-b border-slate-200 pb-6">
+                <div data-print-section="header" class="text-center border-b border-slate-200 pb-6 print-keep-together">
                     <h2 class="text-2xl font-black text-slate-900 tracking-tight" id="report-title">상권 분석 리포트 []</h2>
                     <div class="text-xs text-slate-500 mt-3 font-semibold space-y-1">
                         <p id="report-sync-line" class="text-blue-600 font-bold"></p>
@@ -133,11 +252,11 @@
                 </div>
 
                 <!-- 1. 종합 평점 및 신뢰도 분석 가이드 -->
-                <section class="space-y-4">
-                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">1. 종합 입지 평점 및 분석 데이터 신뢰도 기준</h3>
+                <section data-print-section="summary" class="space-y-4">
+                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">1. 종합 입지 모형점수 및 데이터 신뢰도 기준</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
-                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">상권 입지 평점</p>
+                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">상권 입지 모형점수</p>
                             <p class="text-3xl font-black text-blue-600 mt-1" id="lbl-score">0 / 100 점</p>
                         </div>
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-center items-center">
@@ -145,7 +264,7 @@
                             <div id="lbl-grade-badge"></div>
                         </div>
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
-                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">분석 데이터 정확도</p>
+                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">종합 데이터 신뢰도</p>
                             <p class="text-2xl font-black text-emerald-600 mt-1" id="lbl-confidence">0%</p>
                         </div>
                     </div>
@@ -154,40 +273,46 @@
                         <div>
                             <p class="font-bold text-slate-800 mb-1.5"><i class="fa-solid fa-chart-bar text-blue-500"></i> [점수화 기준 및 해석]</p>
                             <ul class="list-disc pl-4 space-y-1 text-slate-600">
-                                <li><strong>80점 이상 (PREMIUM) :</strong> 인근 의사 인프라 수 대비 경쟁 약국 분할 파이가 매우 우수한 독점형 상권입니다.</li>
-                                <li><strong>60점 ~ 79점 (FIELD TRIP) :</strong> 평균 수준의 안정적 처방 유입이 발생하나, 상가 내 층간 유동 동선에 따른 변수가 있으므로 세밀한 임장이 필요합니다.</li>
-                                <li><strong>59점 이하 (DROP / OBSERVE) :</strong> 경쟁 과밀 구역이거나 매디컬 인프라 공급량이 부족하여 고정비 대비 리스크가 존재합니다.</li>
+                                <li><strong>80점 이상 (PREMIUM) :</strong> 의료 공급 대비 경쟁 분산 위험이 상대적으로 낮은 상권으로, 우선 임장 검토 대상입니다.</li>
+                                <li><strong>60점 ~ 79점 (FIELD TRIP) :</strong> 의료 공급과 경쟁 수준이 혼재된 상권으로, 동선·병원 처방 흐름을 현장에서 검증해야 합니다.</li>
+                                <li><strong>59점 이하 (DROP / OBSERVE) :</strong> 경쟁 과밀 또는 의료 공급 부족 가능성이 있어 추가 확인 전 계약 판단을 보류하는 구간입니다.</li>
                             </ul>
                         </div>
                         <div class="border-t border-slate-200 pt-2.5">
-                            <p class="font-bold text-slate-800 mb-1.5"><i class="fa-solid fa-calculator text-emerald-500"></i> [데이터 정확도 / 신뢰도 퍼센트 계량 판정 기준]</p>
+                            <p class="font-bold text-slate-800 mb-1.5"><i class="fa-solid fa-calculator text-emerald-500"></i> [종합 데이터 신뢰도 판정 기준]</p>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-slate-600">
                                 <div class="p-2.5 bg-white rounded-lg border border-slate-100" id="guide-high">
-                                    <span class="font-bold text-emerald-600 block mb-0.5">■ 90% 이상 : 정밀 고밀도 데이터</span>
-                                    심평원 원천 DB 동기화 성공. 리포트의 예측치를 신뢰하여 적극 수용 가능.
+                                    <span class="font-bold text-emerald-600 block mb-0.5">■ 80% 이상 : 실데이터 중심</span>
+                                    핵심 지표 대부분이 실제 API로 연동된 상태. 그래도 임장과 계약조건 확인은 필요합니다.
                                 </div>
                                 <div class="p-2.5 bg-white rounded-lg border border-slate-100" id="guide-mid">
-                                    <span class="font-bold text-blue-600 block mb-0.5">■ 50% ~ 89% : 보정형 표준 데이터</span>
-                                    일반 표준형 가중치 매칭 상태. 수치의 거시적 흐름을 참조하되 실사 동선 위주 검증 권장.
+                                    <span class="font-bold text-blue-600 block mb-0.5">■ 50% ~ 79% : 실데이터·추정 혼합형</span>
+                                    일부 핵심 지표는 실제 조회값이나 매출·인구·유동 지표에 추정값이 포함된 상태입니다.
                                 </div>
                                 <div class="p-2.5 bg-white rounded-lg border border-slate-100" id="guide-low">
-                                    <span class="font-bold text-amber-600 block mb-0.5">■ 49% 이하 : 추정형 동형 데이터</span>
+                                    <span class="font-bold text-amber-600 block mb-0.5">■ 49% 이하 : 추정 비중이 높은 데이터</span>
                                     데이터 미공급 공백 구역. 직접 현장 임장 및 유동인구 실측 조사를 필히 권장.
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="basis-note text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                        <p class="font-black text-slate-800"><i class="fa-solid fa-circle-question text-blue-500 mr-1"></i> 점수와 신뢰도는 왜 이렇게 계산하나요?</p>
+                        <p><strong>입지 모형점수</strong>는 기본점수에 핵심·안정·보조 진료과 의사 수의 공급 가중치를 더하고, 경쟁 약국 수에 따른 분산 위험을 차감한 뒤 의료기관 실데이터 조회 여부를 보정합니다. 세부 계산식은 분석 결과에 맞춰 아래 문구에 자동 표시됩니다.</p>
+                        <p id="lbl-score-formula" class="font-bold text-blue-800"></p>
+                        <p><strong>종합 데이터 신뢰도</strong>는 의료기관·주소 좌표의 실제 조회 여부와 매출·주거·유동인구 등 추정 모듈의 비중을 함께 반영합니다. 따라서 의료기관 API가 성공해도 전체 리포트를 90% 이상 실데이터로 표시하지 않습니다.</p>
+                    </div>
                 </section>
 
                 <!-- 1-2. 지도 인터페이스 -->
-                <section class="space-y-3 page-break-map">
+                <section data-print-section="map" class="space-y-3 page-break-map">
                     <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">1-2. 입지 분석 후보지 지형도</h3>
                     <div id="kakao-map" class="w-full h-80 rounded-2xl border border-slate-300 bg-slate-100 shadow-inner overflow-hidden shadow-md"></div>
                 </section>
 
                 <!-- 2. 배후 인프라 현황 (글자 크기 text-sm 및 정렬 버그 완전히 격리 교정 완료) -->
-                <section class="space-y-4">
-                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">2. 정량 데이터 기반 주변 메디컬 인프라 현황</h3>
+                <section data-print-section="medical" class="space-y-4">
+                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">2. 입력 주소 행정동 기준 메디컬 인프라 현황</h3>
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
                         <table class="w-full text-left border-collapse text-xs table-fixed">
                             <thead>
@@ -226,25 +351,30 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="basis-note text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                        <p class="font-black text-slate-800"><i class="fa-solid fa-database text-emerald-500 mr-1"></i> 집계 범위와 분류 근거</p>
+                        <p><span class="source-chip source-real">실데이터</span> 병원·의사·약국 수는 건강보험심사평가원 병원정보 API의 <strong>입력 주소 행정동 검색 결과</strong>를 사용합니다. 현재 버전은 정확한 300m 반경이 아니라 행정동 범위이므로 후보지와 거리가 먼 기관이 포함될 수 있습니다.</p>
+                        <p>진료과군은 API의 진료과목명이 있으면 해당 값을 우선 사용하고, 누락 시 의료기관명에 포함된 과목명을 보조적으로 판별합니다. 여러 과목을 함께 운영하는 의원은 실제 처방 비중과 다를 수 있어 임장 확인이 필요합니다.</p>
+                    </div>
                 </section>
 
-                <!-- 💡 [v2.1.0 데이터 고도화]: 요청하신 빌라/단독주택 가구 수 보정 지표 완벽 설계 탑재 -->
-                <section class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- 💡 [v2.3.0 데이터 고도화]: 요청하신 빌라/단독주택 가구 수 보정 지표 완벽 설계 탑재 -->
+                <section data-print-section="market" class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <!-- 매출 현황 -->
                     <div class="border border-slate-200 rounded-xl p-5 bg-white shadow-sm space-y-3">
                         <h4 class="font-extrabold text-xs text-blue-900 uppercase tracking-wider border-b pb-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-credit-card text-blue-500"></i> 상권 내 약국 매출 현황
+                            <i class="fa-solid fa-credit-card text-blue-500"></i> 모형 기반 약국 매출 잠재치 <span class="source-chip source-model ml-auto">추정모형</span>
                         </h4>
                         <div class="space-y-2 text-xs font-medium text-slate-600">
-                            <div class="flex justify-between border-b border-slate-100 pb-1.5"><span>인근 약국 월평균 총매출액</span><span id="stat-month-rev" class="font-bold text-slate-900">0000만 원</span></div>
-                            <div class="flex justify-between border-b border-slate-100 pb-1.5"><span>월평균 카드 결제 집계 건수</span><span id="stat-card-cnt" class="font-bold text-slate-900">0000건</span></div>
-                            <div class="flex justify-between"><span>결제 1회당 평균 지출 객단가</span><span id="stat-avg-cost" class="font-bold text-blue-600">00,000원</span></div>
+                            <div class="flex justify-between border-b border-slate-100 pb-1.5"><span>후보 약국 월매출 잠재치</span><span id="stat-month-rev" class="font-bold text-slate-900">0000만 원</span></div>
+                            <div class="flex justify-between border-b border-slate-100 pb-1.5"><span>월 환산 결제 예상 건수</span><span id="stat-card-cnt" class="font-bold text-slate-900">0000건</span></div>
+                            <div class="flex justify-between"><span>모형 적용 평균 객단가</span><span id="stat-avg-cost" class="font-bold text-blue-600">00,000원</span></div>
                         </div>
                     </div>
                     <!-- 300m 이내 종합 배후 주거지 분석 (빌라, 단독주택 추정치 합성 모듈 반영) -->
                     <div class="border border-slate-200 rounded-xl p-5 bg-white shadow-sm space-y-3">
                         <h4 class="font-extrabold text-xs text-emerald-900 uppercase tracking-wider border-b pb-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-building-user text-emerald-500"></i> 반경 300m 이내 배후 거주 인구 통계 (종합)
+                            <i class="fa-solid fa-building-user text-emerald-500"></i> 반경 300m 배후 거주 추정 모델 <span class="source-chip source-model ml-auto">API 미연동</span>
                         </h4>
                         <div class="space-y-2 text-xs font-medium text-slate-600">
                             <div class="flex justify-between border-b border-slate-100 pb-1.5"><span>인근 아파트 주거 단지 수</span><span id="stat-apt-cnt" class="font-bold text-slate-900">0개 단지</span></div>
@@ -255,176 +385,234 @@
                             <div class="flex justify-between font-bold text-emerald-600"><span>🎯 최종 유효 잠재 고객 규모</span><span id="stat-potential-cnt">약 0,000명</span></div>
                         </div>
                     </div>
-                </section>
-
-                <!-- 3. 예상 손익 계산서 -->
-                <section class="space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-l-4 border-blue-600 pl-2">
-                        <h3 class="text-sm font-extrabold text-blue-900 tracking-wide uppercase">3. 약국 운영 예상 손익 계산서</h3>
-                        <div class="flex items-center gap-1.5 no-print bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl">
-                            <label class="text-xs font-bold text-blue-900">📊 처방전당 기준 단가 세팅:</label>
-                            <input type="number" id="input-custom-cost" value="12000" oninput="reCalculateProfit()"
-                                   class="w-20 text-center font-bold text-xs bg-white border border-slate-300 rounded-lg py-1 text-blue-600 focus:outline-none">
-                            <span class="text-xs font-bold text-blue-900">원</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div class="border border-slate-200 rounded-xl p-5 space-y-3 card-shadow">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">월 매출 추정 구조</p>
-                            <div class="flex justify-between text-xs border-b border-slate-100 pb-2">
-                                <span class="text-slate-500 font-bold text-blue-900">내 약국 몫 예상 처방전 수 (경쟁 약국 수 분할 적용)</span>
-                                <span class="font-bold text-blue-600 text-sm" id="lbl-presc-count">0건 / 일</span>
-                            </div>
-                            <div class="flex justify-between text-xs border-b border-slate-100 pb-2">
-                                <span class="text-slate-500">적용된 건당 평균 조제료 단가</span>
-                                <span class="font-extrabold text-slate-800 text-sm" id="lbl-applied-cost">12,000원</span>
-                            </div>
-                            <div class="flex justify-between text-xs border-b border-slate-100 pb-2">
-                                <span class="text-slate-500">예상 월 조제 총수입 (월 25일 운영 기준)</span>
-                                <span class="font-bold text-slate-800 text-sm" id="lbl-month-presc-rev">0원</span>
-                            </div>
-                            <div class="flex justify-between text-xs pt-1">
-                                <span class="text-slate-500">예상 월 매약 매출액</span>
-                                <span class="font-bold text-slate-800 text-sm" id="lbl-month-otc-rev">0원</span>
-                            </div>
-                        </div>
-                        <div class="border border-slate-200 rounded-xl p-5 bg-slate-50/50 flex flex-col justify-center space-y-4 card-shadow">
-                            <div class="text-center">
-                                <p class="text-xs font-bold text-slate-400 tracking-wider uppercase">조제 + 매약 통합 목표 마진율</p>
-                                <p class="text-2xl font-black text-slate-800 mt-1">45%</p>
-                            </div>
-                            <div class="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md">
-                                <p class="text-[10px] font-bold text-blue-400 tracking-wider uppercase">모든 운영비를 제한 후 점주 약사님이 가져갈 순수익</p>
-                                <p class="text-2xl font-black text-white mt-1" id="lbl-net-profit">월 0원</p>
-                            </div>
-                        </div>
+                    <div class="md:col-span-2 basis-note text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                        <p class="font-black text-slate-800"><i class="fa-solid fa-function text-amber-500 mr-1"></i> 추정값 산출 근거</p>
+                        <p><strong>매출 잠재치</strong>는 지역 기본값에 진료과군별 의사 공급 기여분을 더하고 경쟁 약국 수에 따른 분산률을 차감한 내부 비교모형입니다. <strong>결제 예상 건수</strong>는 매출 잠재치를 평균 객단가 19,500원으로 나눈 환산값입니다.</p>
+                        <p><strong>배후 가구·인구</strong>는 주소별 결과가 매번 달라지지 않도록 고정형 주소 시드값과 아파트 단지당 480가구, 일반주택 65%, 가구당 2.4명, 유효 고객 35% 가정을 적용합니다. 실제 통계가 아니므로 약사님 전달 시 반드시 ‘추정모형’으로 설명해야 합니다.</p>
                     </div>
                 </section>
 
-                <!-- 4. 초기 투자 예산 및 고정 지출 -->
-                <section class="space-y-4">
-                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">4. 개설 초기 투자 예산 및 매월 고정 운영비 구조</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        
-                        <div class="space-y-2">
-                            <p class="text-xs font-bold text-slate-500 flex items-center gap-1 pl-1">
-                                <i class="fa-solid fa-wallet text-slate-400"></i> ① 개설 초기 시설 투자금 계획 (보증금/권리금 제외)
-                            </p>
-                            <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white p-4 space-y-3 shadow-inner">
-                                <div class="flex justify-between items-center text-xs border-b pb-2">
-                                    <span class="text-slate-600 font-medium">인테리어 시공 단가(평당)</span>
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" id="budget-interior-unit" value="350" oninput="reCalculateBudget()"
-                                               class="w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-blue-600 focus:outline-none">
-                                        <span class="text-slate-500 font-bold">만 원</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center text-xs text-slate-400 pl-2">
-                                    <span>↳ 실평수 반영 인테리어 총액</span>
-                                    <span id="lbl-total-interior-computed" class="font-semibold text-slate-600">0원</span>
-                                </div>
-                                <div class="flex justify-between items-center text-xs border-b pb-2 pt-1">
-                                    <span class="text-slate-600 font-medium">초기 의약품 초도 사입비</span>
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" id="budget-medicine" value="5000" oninput="reCalculateBudget()"
-                                               class="w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800 focus:outline-none">
-                                        <span class="text-slate-500 font-bold">만 원</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center text-xs border-b pb-2">
-                                    <span class="text-slate-600 font-medium">자동화 솔루션 기기(ATC) 및 전산</span>
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" id="budget-atc" value="2000" oninput="reCalculateBudget()"
-                                               class="w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800 focus:outline-none">
-                                        <span class="text-slate-500 font-bold">만 원</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center font-bold text-xs bg-blue-50 p-2.5 rounded-lg text-blue-900">
-                                    <span>최소 시설 필요 자금 합계</span>
-                                    <span id="calc-total-invest" class="text-sm font-black text-blue-700">0원</span>
-                                </div>
-                            </div>
+                <!-- 3. 진료과군별 예상 처방 및 손익 시뮬레이션 -->
+                <section data-print-section="profit" class="space-y-4">
+                    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3 border-l-4 border-blue-600 pl-3">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-blue-900 tracking-wide uppercase">3. 진료과군별 예상 처방 및 약국 운영 손익 시뮬레이션</h3>
+                            <p class="text-[11px] text-slate-500 mt-1">의사 수와 시스템 기본 가정값으로 자동 산출되며, 처방량·평균 단가는 분석 건마다 직접 수정할 수 있습니다.</p>
                         </div>
+                        <div class="no-print flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1.5 bg-blue-50 border border-blue-200 px-3 py-2 rounded-xl">
+                                <label for="input-market-share-rate" class="text-xs font-bold text-blue-900">신규 약국 예상 점유율</label>
+                                <input type="number" id="input-market-share-rate" value="33" min="0" max="100" step="0.1" oninput="reCalculateProfit()"
+                                       class="number-input-compact w-16 text-center font-black text-xs bg-white border border-slate-300 rounded-lg py-1 text-blue-600 focus:outline-none">
+                                <span class="text-xs font-bold text-blue-900">%</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
+                                <label for="input-operating-days" class="text-xs font-bold text-slate-700">월 운영일수</label>
+                                <input type="number" id="input-operating-days" value="25" min="1" max="31" oninput="reCalculateProfit()"
+                                       class="number-input-compact w-14 text-center font-black text-xs bg-white border border-slate-300 rounded-lg py-1 text-slate-800 focus:outline-none">
+                                <span class="text-xs font-bold text-slate-700">일</span>
+                            </div>
+                            <button type="button" onclick="resetPrescriptionModel()" class="px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white text-slate-600 hover:bg-slate-50">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> 기본값 재적용
+                            </button>
+                        </div>
+                    </div>
 
-                        <div class="space-y-2">
-                            <p class="text-xs font-bold text-slate-500 flex items-center gap-1 pl-1">
-                                <i class="fa-solid fa-circle-minus text-slate-400"></i> ② 매월 고정 운영 지출비 계산기
-                            </p>
-                            <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white p-4 space-y-3 shadow-inner">
-                                <div class="flex justify-between items-center text-xs border-b pb-2">
-                                    <div class="flex flex-col">
-                                        <span class="text-slate-600 font-bold">전산원 / 일반 직원 수</span>
-                                        <span class="text-[10px] text-slate-400">(1인당 월 250만 원)</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 no-print">
-                                        <button onclick="adjustStaff('staff', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button>
-                                        <span id="count-staff" class="w-6 text-center font-black text-slate-800">1</span>
-                                        <button onclick="adjustStaff('staff', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button>
-                                    </div>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white print-keep-together">
+                        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <p class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-sliders text-blue-500 mr-1"></i> 처방 모델 입력값</p>
+                            <p id="lbl-prescription-model-basis" class="text-[10px] text-slate-500 font-semibold">경쟁 약국 수를 기준으로 자동 점유율을 적용합니다.</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[760px] text-xs border-collapse table-fixed">
+                                <thead class="bg-white text-slate-500 font-bold border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3 text-left w-[27%]">진료과군</th>
+                                        <th class="p-3 text-center w-[11%]">의사 수</th>
+                                        <th class="p-3 text-center w-[21%]">의사 1인당 예상 처방<br><span class="text-[10px] font-medium">건 / 일</span></th>
+                                        <th class="p-3 text-center w-[21%]">평균 조제 수입<br><span class="text-[10px] font-medium">원 / 건</span></th>
+                                        <th class="p-3 text-right w-[20%]">신규 약국 예상 몫<br><span class="text-[10px] font-medium">건 / 일</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="p-3"><strong class="text-slate-900 block">핵심 처방과</strong><span class="text-[10px] text-slate-400">내과·이비인후과</span></td>
+                                        <td class="p-3 text-center font-black text-blue-700" id="rx-main-doctors">0명</td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-main-per-doctor" value="75" min="0" oninput="reCalculateProfit()" class="number-input-compact w-20 text-center font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-main-unit-fee" value="12000" min="0" step="500" oninput="reCalculateProfit()" class="number-input-compact w-24 text-right font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-blue-700"></td>
+                                        <td class="p-3 text-right font-black text-blue-700" id="rx-main-share">0건</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3"><strong class="text-slate-900 block">안정 처방과</strong><span class="text-[10px] text-slate-400">가정의학·소아·산부인과</span></td>
+                                        <td class="p-3 text-center font-black text-slate-700" id="rx-stable-doctors">0명</td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-stable-per-doctor" value="50" min="0" oninput="reCalculateProfit()" class="number-input-compact w-20 text-center font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-stable-unit-fee" value="11000" min="0" step="500" oninput="reCalculateProfit()" class="number-input-compact w-24 text-right font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
+                                        <td class="p-3 text-right font-black text-slate-700" id="rx-stable-share">0건</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3"><strong class="text-slate-900 block">보조 처방과</strong><span class="text-[10px] text-slate-400">치과·피부·안과 등</span></td>
+                                        <td class="p-3 text-center font-black text-slate-600" id="rx-support-doctors">0명</td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-support-per-doctor" value="35" min="0" oninput="reCalculateProfit()" class="number-input-compact w-20 text-center font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-support-unit-fee" value="9000" min="0" step="500" oninput="reCalculateProfit()" class="number-input-compact w-24 text-right font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
+                                        <td class="p-3 text-right font-black text-slate-600" id="rx-support-share">0건</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 print-metric-grid">
+                        <div class="print-card border border-slate-200 rounded-xl p-4 bg-slate-50">
+                            <p class="text-[10px] text-slate-400 font-bold">전체 처방 공급량</p>
+                            <p id="lbl-total-prescription-supply" class="text-lg font-black text-slate-800 mt-1">0건 / 일</p>
+                        </div>
+                        <div class="print-card border border-blue-200 rounded-xl p-4 bg-blue-50">
+                            <p class="text-[10px] text-blue-500 font-bold">내 약국 예상 처방</p>
+                            <p id="lbl-presc-count" class="text-lg font-black text-blue-700 mt-1">0건 / 일</p>
+                        </div>
+                        <div class="print-card border border-slate-200 rounded-xl p-4 bg-white">
+                            <p class="text-[10px] text-slate-400 font-bold">가중 평균 조제 수입</p>
+                            <p id="lbl-applied-cost" class="text-lg font-black text-slate-800 mt-1">0원</p>
+                        </div>
+                        <div class="print-card border border-emerald-200 rounded-xl p-4 bg-emerald-50">
+                            <p class="text-[10px] text-emerald-600 font-bold">월 예상 조제 수입</p>
+                            <p id="lbl-month-presc-rev" class="text-lg font-black text-emerald-700 mt-1">0원</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 print-profit-grid">
+                        <div class="print-card border border-slate-200 rounded-xl p-5 bg-white card-shadow space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <p class="text-xs font-black text-slate-800">월 매출 추정 구조</p>
+                                <span class="text-[10px] font-bold text-slate-400">월 운영일수 자동 반영</span>
+                            </div>
+                            <div class="flex justify-between text-xs"><span class="text-slate-500">예상 월 조제 수입</span><span id="lbl-month-presc-rev-detail" class="font-bold text-slate-800">0원</span></div>
+                            <div class="flex justify-between text-xs"><span class="text-slate-500">예상 월 매약 매출</span><span id="lbl-month-otc-rev" class="font-bold text-slate-800">0원</span></div>
+                            <div class="flex justify-between text-xs bg-slate-50 rounded-lg p-3"><span class="font-bold text-slate-700">예상 월 총매출</span><span id="lbl-month-total-rev" class="font-black text-blue-700">0원</span></div>
+                        </div>
+                        <div class="print-card border border-slate-800 rounded-xl p-5 bg-slate-900 text-white card-shadow space-y-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-[10px] font-bold text-blue-300 tracking-wider">고정비 반영 예상 순이익</p>
+                                    <p class="text-2xl font-black mt-1" id="lbl-net-profit">월 0원</p>
                                 </div>
-                                <div class="flex justify-between items-center text-xs border-b pb-2">
-                                    <div class="flex flex-col">
-                                        <span class="text-slate-600 font-bold">풀타임 근무 약사 수</span>
-                                        <span class="text-[10px] text-slate-400">(1인당 월 600만 원)</span>
+                                <span id="lbl-profit-basis" class="text-[10px] font-bold text-amber-300 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1">기본 가정 기준</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs border-t border-slate-700 pt-3">
+                                <div><span class="text-slate-400 block text-[10px]">손익분기 처방</span><strong id="lbl-break-even-prescriptions" class="text-white">0건 / 일</strong></div>
+                                <div><span class="text-slate-400 block text-[10px]">처방 안전마진</span><strong id="lbl-safety-margin-prescriptions" class="text-emerald-300">0건 / 일</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="basis-note text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                        <p class="font-black text-slate-800"><i class="fa-solid fa-calculator text-blue-500 mr-1"></i> 처방·손익 계산식</p>
+                        <p><strong>진료과군 전체 처방 공급량</strong> = 의사 수 × 의사 1인당 일 예상 처방건수. <strong>내 약국 예상 처방</strong> = 전체 공급량 × 신규 약국 예상 점유율입니다.</p>
+                        <p><strong>월 조제 수입</strong> = 진료과군별 내 약국 처방건수 × 진료과군별 평균 조제 수입 × 월 운영일수의 합계입니다. 평균 조제 수입과 처방건수는 기본값이 자동 입력되지만 분석 건마다 직접 수정할 수 있습니다.</p>
+                        <p><strong>예상 순이익</strong> = (월 조제 수입 + 월 매약 매출) × 통합 목표 마진율 45% - 월 고정비. <strong>손익분기 처방건수</strong>는 고정비를 충당하기 위해 추가로 필요한 조제 수입을 가중 평균 조제 수입과 운영일수로 나눠 계산합니다.</p>
+                    </div>
+                </section>
+
+                <!-- 4. 초기 투자 예산 및 고정 지출 (선택 입력) -->
+                <section data-print-section="investment" class="space-y-4">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-l-4 border-blue-600 pl-3">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="text-sm font-extrabold text-blue-900 tracking-wide uppercase">4. 개설 초기 투자 예산 및 매월 고정 운영비 구조</h3>
+                                <span class="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5">선택 입력</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">실제 비용 정보를 받지 못한 경우 기본 가정값으로만 계산하며, PDF 핵심 요약에서는 기본 제외됩니다.</p>
+                        </div>
+                        <div class="no-print flex flex-wrap items-center gap-2">
+                            <label class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 cursor-pointer">
+                                <input type="checkbox" id="input-costs-confirmed" onchange="onCostsConfirmedChanged()" class="accent-blue-600">
+                                실제 비용 정보 반영
+                            </label>
+                            <button type="button" id="btn-toggle-investment" onclick="toggleInvestmentPanel()" class="px-3 py-2 text-xs font-bold rounded-xl bg-slate-900 text-white hover:bg-slate-800">
+                                <i class="fa-solid fa-chevron-down mr-1"></i> 상세 입력 열기
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="investment-collapsed-summary" class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500"><i class="fa-solid fa-calculator"></i></div>
+                            <div>
+                                <p id="investment-collapsed-title" class="text-xs font-black text-slate-800">시스템 기본 가정값으로 손익을 계산 중입니다.</p>
+                                <p class="text-[11px] text-slate-500 mt-1">약사님에게 실제 임대료·인력·투자비를 받았을 때만 상세 입력을 열어 수정하면 됩니다.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-right shrink-0">
+                            <div class="bg-white border border-slate-200 rounded-lg px-3 py-2"><span class="text-[9px] text-slate-400 block">시설 투자 가정</span><strong id="lbl-investment-preview" class="text-xs text-blue-700">0원</strong></div>
+                            <div class="bg-white border border-slate-200 rounded-lg px-3 py-2"><span class="text-[9px] text-slate-400 block">월 고정비 가정</span><strong id="lbl-fixed-preview" class="text-xs text-red-600">0원</strong></div>
+                        </div>
+                    </div>
+
+                    <div id="investment-input-panel" class="hidden optional-panel-transition">
+                        <div class="flex items-center justify-between mb-3 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                            <p class="text-xs font-bold text-slate-600"><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> 입력값 상태</p>
+                            <span id="investment-status-badge" class="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">시스템 기본 가정</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 print-investment-grid">
+                            <div class="space-y-2 print-card">
+                                <p class="text-xs font-bold text-slate-500 flex items-center gap-1 pl-1"><i class="fa-solid fa-wallet text-slate-400"></i> ① 개설 초기 시설 투자금 계획 <span class="text-[10px] text-slate-400">(보증금·권리금 제외)</span></p>
+                                <div class="border border-slate-200 rounded-xl bg-white p-4 space-y-3 shadow-inner">
+                                    <div class="flex justify-between items-center text-xs border-b pb-2">
+                                        <span class="text-slate-600 font-medium">인테리어 시공 단가(평당)</span>
+                                        <div class="flex items-center gap-1"><input type="number" id="budget-interior-unit" value="350" oninput="markCostsEdited(); reCalculateBudget()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-blue-600"><span class="text-slate-500 font-bold">만 원</span></div>
                                     </div>
-                                    <div class="flex items-center gap-2 no-print">
-                                        <button onclick="adjustStaff('full-pharm', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button>
-                                        <span id="count-full-pharm" class="w-6 text-center font-black text-slate-800">1</span>
-                                        <button onclick="adjustStaff('full-pharm', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button>
+                                    <div class="flex justify-between items-center text-xs text-slate-400 pl-2"><span>↳ 실평수 반영 인테리어 총액</span><span id="lbl-total-interior-computed" class="font-semibold text-slate-600">0원</span></div>
+                                    <div class="flex justify-between items-center text-xs border-b pb-2 pt-1">
+                                        <span class="text-slate-600 font-medium">초기 의약품 초도 사입비</span>
+                                        <div class="flex items-center gap-1"><input type="number" id="budget-medicine" value="5000" oninput="markCostsEdited(); reCalculateBudget()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-500 font-bold">만 원</span></div>
                                     </div>
+                                    <div class="flex justify-between items-center text-xs border-b pb-2">
+                                        <span class="text-slate-600 font-medium">자동화 솔루션 기기(ATC) 및 전산</span>
+                                        <div class="flex items-center gap-1"><input type="number" id="budget-atc" value="2000" oninput="markCostsEdited(); reCalculateBudget()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-500 font-bold">만 원</span></div>
+                                    </div>
+                                    <div class="flex justify-between items-center font-bold text-xs bg-blue-50 p-2.5 rounded-lg text-blue-900"><span>최소 시설 필요 자금 합계</span><span id="calc-total-invest" class="text-sm font-black text-blue-700">0원</span></div>
                                 </div>
-                                <div class="flex justify-between items-center text-xs border-b pb-2">
-                                    <div class="flex flex-col">
-                                        <span class="text-slate-600 font-bold">하프타임 근무 약사 수</span>
-                                        <span class="text-[10px] text-slate-400">(1인당 월 300만 원)</span>
+                            </div>
+
+                            <div class="space-y-2 print-card">
+                                <p class="text-xs font-bold text-slate-500 flex items-center gap-1 pl-1"><i class="fa-solid fa-circle-minus text-slate-400"></i> ② 매월 고정 운영 지출비 계산기</p>
+                                <div class="border border-slate-200 rounded-xl bg-white p-4 space-y-3 shadow-inner">
+                                    <div class="flex justify-between items-center text-xs border-b pb-2">
+                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">전산원 / 일반 직원 수</span><span class="text-[10px] text-slate-400">1인당 월 250만 원</span></div>
+                                        <div class="flex items-center gap-2 no-print"><button onclick="adjustStaff('staff', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button><span id="count-staff" class="w-6 text-center font-black text-slate-800">1</span><button onclick="adjustStaff('staff', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button></div>
+                                        <span class="hidden print:inline font-black text-slate-800" id="count-staff-print"></span>
                                     </div>
-                                    <div class="flex items-center gap-2 no-print">
-                                        <button onclick="adjustStaff('half-pharm', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button>
-                                        <span id="count-half-pharm" class="w-6 text-center font-black text-slate-800">0</span>
-                                        <button onclick="adjustStaff('half-pharm', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button>
+                                    <div class="flex justify-between items-center text-xs border-b pb-2">
+                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">풀타임 근무 약사 수</span><span class="text-[10px] text-slate-400">1인당 월 600만 원</span></div>
+                                        <div class="flex items-center gap-2 no-print"><button onclick="adjustStaff('full-pharm', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button><span id="count-full-pharm" class="w-6 text-center font-black text-slate-800">1</span><button onclick="adjustStaff('full-pharm', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button></div>
+                                        <span class="hidden print:inline font-black text-slate-800" id="count-full-pharm-print"></span>
                                     </div>
-                                </div>
-                                <div class="flex justify-between items-center text-xs border-b pb-2">
-                                    <span class="text-slate-600 font-semibold">상가 임대료 월 단가</span>
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" id="fixed-rent-cost" value="350" oninput="reCalculateProfit()"
-                                               class="w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800 focus:outline-none">
-                                        <span class="text-slate-400 font-bold">만 원</span>
+                                    <div class="flex justify-between items-center text-xs border-b pb-2">
+                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">하프타임 근무 약사 수</span><span class="text-[10px] text-slate-400">1인당 월 300만 원</span></div>
+                                        <div class="flex items-center gap-2 no-print"><button onclick="adjustStaff('half-pharm', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button><span id="count-half-pharm" class="w-6 text-center font-black text-slate-800">0</span><button onclick="adjustStaff('half-pharm', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button></div>
+                                        <span class="hidden print:inline font-black text-slate-800" id="count-half-pharm-print"></span>
                                     </div>
-                                </div>
-                                <div class="flex justify-between items-center text-xs border-b pb-2">
-                                    <span class="text-slate-600 font-semibold">상가 건물 운영 관리비</span>
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" id="fixed-maintenance-cost" value="22" oninput="reCalculateProfit()"
-                                               class="w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800 focus:outline-none">
-                                        <span class="text-slate-400 font-bold">만 원</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center text-xs border-b pb-1">
-                                    <span class="text-slate-600 font-semibold">통신망 / 기본 소모품 / 공과금</span>
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" id="fixed-utility-cost" value="80" oninput="reCalculateProfit()"
-                                               class="w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800 focus:outline-none">
-                                        <span class="text-slate-400 font-bold">만 원</span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center font-bold text-xs bg-red-50 p-2.5 rounded-lg text-red-900">
-                                    <span>월 총 고정 운영비 합계 (BEP)</span>
-                                    <span id="calc-total-fixed-cost" class="text-sm font-black text-red-600">0원</span>
+                                    <div class="flex justify-between items-center text-xs border-b pb-2"><span class="text-slate-600 font-semibold">상가 임대료 월 단가</span><div class="flex items-center gap-1"><input type="number" id="fixed-rent-cost" value="350" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span></div></div>
+                                    <div class="flex justify-between items-center text-xs border-b pb-2"><span class="text-slate-600 font-semibold">상가 건물 운영 관리비</span><div class="flex items-center gap-1"><input type="number" id="fixed-maintenance-cost" value="22" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span></div></div>
+                                    <div class="flex justify-between items-center text-xs border-b pb-1"><span class="text-slate-600 font-semibold">통신망 / 기본 소모품 / 공과금</span><div class="flex items-center gap-1"><input type="number" id="fixed-utility-cost" value="80" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span></div></div>
+                                    <div class="flex justify-between items-center font-bold text-xs bg-red-50 p-2.5 rounded-lg text-red-900"><span>월 총 고정 운영비 합계 (BEP)</span><span id="calc-total-fixed-cost" class="text-sm font-black text-red-600">0원</span></div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="basis-note text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                        <p class="font-black text-slate-800"><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> 선택 입력 항목의 적용 기준</p>
+                        <p>초기 투자금은 <strong>평수 × 인테리어 평당 단가 + 초도 의약품 + ATC·전산비</strong>로 계산하며 보증금·권리금은 포함하지 않습니다. 월 고정비는 임대료·관리비·공과금과 직군별 인건비 기본단가를 합산합니다.</p>
+                        <p>약사님이 실제 비용을 제공하지 않은 경우 시스템 기본값은 손익 민감도를 보기 위한 가정값일 뿐입니다. 실제 정보를 입력한 뒤 <strong>‘실제 비용 정보 반영’</strong> 상태인지 확인해야 투자회수기간을 판단자료로 사용할 수 있습니다.</p>
                     </div>
                 </section>
 
                 <!-- 5. 주중/주말 배후 유동인구 가중치 추이 -->
-                <section class="space-y-3">
-                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">5. 주중 / 주말 배후 유동인구 입체 가중치 분석</h3>
+                <section data-print-section="flow" class="space-y-3">
+                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">5. 주중 / 주말 유동인구 추정 가중치 분석</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                         <div class="p-4 border border-slate-200 rounded-xl space-y-2.5 bg-white shadow-sm">
                             <p class="font-bold text-slate-800 flex items-center gap-1.5 border-b pb-1.5">
-                                <i class="fa-solid fa-calendar-days text-blue-500"></i> 요일별 인구밀도 분사
+                                <i class="fa-solid fa-calendar-days text-blue-500"></i> 요일별 유동 비중 추정
                             </p>
                             <div class="space-y-2">
                                 <div class="flex justify-between items-center">
@@ -462,7 +650,7 @@
                                     <i class="fa-solid fa-users text-purple-500"></i> 주요 유입 타겟 연령 구성
                                 </p>
                                 <p class="text-[11px] text-slate-600 leading-relaxed pt-1.5">
-                                    본 후보지 행정 영역의 주민등록 모수 대조 결과, 처방 유효 수요가 높은 <strong id="lbl-target-age" class="text-purple-600 font-bold">00대 및 00대</strong> 인구 비중이 상권 내 약 42%의 과밀 포지션을 형성하고 있습니다.
+                                    현재 지역유형 보정모형 결과, 처방 유효 수요가 높을 것으로 가정한 <strong id="lbl-target-age" class="text-purple-600 font-bold">00대 및 00대</strong> 연령대를 우선 타겟으로 제시합니다. 실제 연령별 인구 API 연동 전에는 참고용으로만 활용하십시오.
                                 </p>
                             </div>
                             <div class="bg-slate-900 text-white p-2 rounded-lg text-center font-bold text-[10px] tracking-wide shadow-sm mt-2">
@@ -470,31 +658,79 @@
                             </div>
                         </div>
                     </div>
+                    <div class="basis-note text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                        <p class="font-black text-slate-800"><i class="fa-solid fa-wave-square text-purple-500 mr-1"></i> 현재 가중치의 의미</p>
+                        <p><span class="source-chip source-model">추정모형</span> 현재 주중·주말, 시간대, 연령대 값은 서울 여부와 주거형 상권 기본 패턴을 적용한 보정치입니다. 실제 통신 유동인구 또는 SGIS·KOSIS 인구 API가 연동된 수치가 아닙니다.</p>
+                        <p>따라서 영업시간과 상품구성의 <strong>초기 가설</strong>을 세우는 용도로만 사용하고, 평일·토요일의 오전/점심/퇴근 시간대 현장 계수와 인근 병원 진료시간을 대조해야 합니다.</p>
+                    </div>
                 </section>
 
                 <!-- 6. 종합 브리핑 및 AI 제언 병합 구역 -->
-                <section class="space-y-4 bg-slate-900 text-slate-100 rounded-2xl p-6 card-shadow">
-                    <h3 class="text-xs font-bold text-blue-400 tracking-widest uppercase flex items-center gap-1.5">
-                        <i class="fa-solid fa-brain text-blue-500"></i> 6. 종합 브리핑 및 AI 인프라 매칭 판정 제언
-                    </h3>
+                <section data-print-section="briefing" class="space-y-4 bg-slate-900 text-slate-100 rounded-2xl p-6 card-shadow">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 class="text-xs font-bold text-blue-400 tracking-widest uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-brain text-blue-500"></i> 6. 종합 브리핑 및 AI 연동형 판단 제언
+                        </h3>
+                        <span id="lbl-ai-engine-mode" class="source-chip source-model self-start">규칙형 엔진</span>
+                    </div>
                     
                     <div class="text-xs border-b border-slate-800 pb-3 text-slate-300 leading-relaxed space-y-2">
                         <p class="font-bold text-white text-sm">📢 [기본 상권 브리핑]</p>
                         <p id="lbl-normal-reason"></p>
                     </div>
+                    <div id="lbl-ai-summary-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
                     <div class="text-xs text-slate-300 leading-relaxed space-y-3 pt-1" id="lbl-ai-reason"></div>
+                    <div id="lbl-external-ai-reason" class="hidden text-xs text-slate-200 leading-relaxed bg-blue-950/40 border border-blue-800/60 rounded-xl p-4"></div>
+                    <div class="text-[10px] text-slate-400 border-t border-slate-800 pt-3 leading-relaxed space-y-1">
+                        <p><strong class="text-slate-300">판단 방식:</strong> 현재는 입지점수, 진료과군별 처방, 경쟁강도, 손익분기점, 비용 확정 여부를 규칙형 엔진이 조합합니다. 서버의 AI 브리핑 엔드포인트를 설정하면 동일 데이터를 생성형 AI가 추가 해석합니다.</p>
+                        <p>본 제언 역시 참고용이며 실제 계약 전 병원별 처방 유입, 상가 동선, 권리금·임대차 조건을 별도로 확인해야 합니다.</p>
+                    </div>
                 </section>
 
-                <!-- 💡 [v2.1.0 디자인 전면 개편]: 요청하신 실시간 표시선 레이아웃 정비 및 이중 컬럼 푸터 완벽 배치 완료 -->
-                <div class="border-t-2 border-slate-200 my-6 pt-5">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] text-slate-400 font-bold gap-3">
-                        <div class="space-y-1 text-left leading-relaxed">
-                            <p id="report-print-time-footer" class="text-slate-500 font-black"></p>
-                            <p class="text-slate-400">📊 데이터 출처: 보건복지부 건강보험심사평가원 의료기관 개설대장 정보공개 데이터셋 ｜ 국토교통부 주택물류 공동주택 가구원수 지표 통계 ｜ 소상공인시장진흥공단 상권분석 약국 매출 신용카드 결제 모수 풀</p>
+                <!-- v2.3.0 리포트 푸터 정보 구조 개선 -->
+                <div data-print-section="footer" class="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
+                    <div class="px-5 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-black text-slate-900"><i class="fa-solid fa-shield-halved text-blue-600 mr-1"></i> 데이터 출처·적용 범위·확인사항</p>
+                            <p class="text-[10px] text-slate-500 mt-1">실데이터와 추정값을 구분해 확인한 뒤 전달하십시오.</p>
                         </div>
-                        <div class="sm:text-right whitespace-nowrap text-slate-500 font-extrabold self-end sm:self-center">
-                            © 2026 참약사 가맹기획본부 상권분석 시스템. All rights reserved.
+                        <div class="flex items-center gap-2">
+                            <span class="source-chip source-real">실데이터</span>
+                            <span class="source-chip source-model">추정모형</span>
+                            <span class="source-chip source-input">사용자 입력</span>
                         </div>
+                    </div>
+                    <div class="footer-print-grid grid grid-cols-1 md:grid-cols-3 gap-4 p-5 text-[10px]">
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 print-card">
+                            <p class="font-black text-slate-800 text-xs mb-2"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 정보</p>
+                            <div class="space-y-1.5 text-slate-500 leading-relaxed">
+                                <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
+                                <p id="report-footer-address"></p>
+                                <p id="report-footer-data-status"></p>
+                                <p>시스템 버전: <strong class="text-slate-700">v2.3.0</strong></p>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 print-card">
+                            <p class="font-black text-slate-800 text-xs mb-2"><i class="fa-solid fa-database text-emerald-500 mr-1"></i> 데이터 구성</p>
+                            <div class="space-y-2 text-slate-500 leading-relaxed">
+                                <p><span class="source-chip source-real mr-1">현재 연동</span> 심평원 병원정보 · 카카오 주소/좌표</p>
+                                <p><span class="source-chip source-model mr-1">현재 추정</span> 매출 · 배후 가구/인구 · 유동인구 · 처방량</p>
+                                <p><span class="source-chip source-input mr-1">직접 수정</span> 처방량·평균 조제수입·점유율·운영비</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 text-white rounded-xl p-4 print-card">
+                            <p class="font-black text-white text-xs mb-2"><i class="fa-solid fa-location-dot text-amber-300 mr-1"></i> 반드시 현장에서 확인</p>
+                            <ul class="list-disc pl-4 space-y-1.5 text-slate-300 leading-relaxed">
+                                <li>병원별 실제 외래·처방 흐름</li>
+                                <li>출입구·엘리베이터·주차 동선</li>
+                                <li>경쟁 약국의 운영시간과 강점</li>
+                                <li>권리금·보증금·임대차 조건</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
+                        <p>본 자료는 1차 검토용이며, 추정값을 실제 통계 또는 수익 보장값으로 해석해서는 안 됩니다.</p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v2.3.0</p>
                     </div>
                 </div>
 
@@ -502,8 +738,58 @@
         </div>
     </main>
 
+    <!-- PDF 출력 항목 선택 모달 -->
+    <div id="pdf-selection-modal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm no-print" onclick="handlePdfModalBackdrop(event)">
+        <div class="min-h-full flex items-center justify-center p-4">
+            <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="pdf-modal-title">
+                <div class="px-6 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 id="pdf-modal-title" class="text-base font-black text-slate-900">PDF에 포함할 항목 선택</h2>
+                        <p class="text-xs text-slate-500 mt-1">선택한 항목만 이어서 배열한 뒤 인쇄 창을 엽니다.</p>
+                    </div>
+                    <button type="button" onclick="closePdfSelection()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="닫기">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-2">
+                    <button type="button" onclick="applyPdfPreset('all')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white">전체 선택</button>
+                    <button type="button" onclick="applyPdfPreset('core')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-100 text-blue-800 border border-blue-200">핵심 요약</button>
+                    <button type="button" onclick="applyPdfPreset('none')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 border border-slate-300">전체 해제</button>
+                </div>
+
+                <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[58vh] overflow-y-auto">
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="header" checked><span><strong class="text-sm text-slate-800 block">리포트 제목·기준월</strong><small class="text-xs text-slate-500">분석 대상과 데이터 기준 정보</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-amber-300 bg-amber-50 cursor-not-allowed"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="disclaimer" checked disabled data-required="true"><span><strong class="text-sm text-amber-900 block">활용 안내·면책 고지 <em class="not-italic text-[10px]">(필수 포함)</em></strong><small class="text-xs text-amber-700">임장·책임 범위 안내는 제외할 수 없습니다.</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="summary" checked><span><strong class="text-sm text-slate-800 block">모형점수·신뢰도</strong><small class="text-xs text-slate-500">모형점수, 등급, 데이터 신뢰도</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><strong class="text-sm text-slate-800 block">후보지 지도</strong><small class="text-xs text-slate-500">개설 후보지 위치 지형도</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><strong class="text-sm text-slate-800 block">메디컬 인프라</strong><small class="text-xs text-slate-500">병원·의사·경쟁 약국 현황</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><strong class="text-sm text-slate-800 block">매출·배후 인구</strong><small class="text-xs text-slate-500">약국 매출 및 주거 수요</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="profit" checked><span><strong class="text-sm text-slate-800 block">예상 손익</strong><small class="text-xs text-slate-500">처방·매약 매출과 순이익</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="investment"><span><strong class="text-sm text-slate-800 block">초기 투자·고정비</strong><small class="text-xs text-slate-500">선택 입력값이 있을 때 포함</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="flow" checked><span><strong class="text-sm text-slate-800 block">유동인구·타겟</strong><small class="text-xs text-slate-500">요일·시간·연령대 분석</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="briefing" checked><span><strong class="text-sm text-slate-800 block">종합 브리핑·제언</strong><small class="text-xs text-slate-500">판단, 리스크, 임장 체크</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="footer" checked><span><strong class="text-sm text-slate-800 block">출처·인쇄 정보</strong><small class="text-xs text-slate-500">데이터 출처와 생성 시점</small></span></label>
+                </div>
+
+                <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 bg-white">
+                    <button type="button" onclick="closePdfSelection()" class="px-4 py-2 text-xs font-bold rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50">취소</button>
+                    <button type="button" onclick="confirmPdfExport()" class="px-5 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm"><i class="fa-solid fa-print mr-1"></i> 선택 항목 PDF 출력</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let GLOBAL_CALC_DATA = { mainMedical: 0, mainDoctors: 0, subMedical1: 0, subDoctors1: 0, isSeoul: false, monthOtcRevenue: 0, baseScore: 0, existingPharmacy: 0, isRealData: false, address: "" };
+        const SYSTEM_VERSION = "2.3.0";
+        const PRESCRIPTION_MODEL_DEFAULTS = {
+            main: { perDoctor: 75, unitFee: 12000 },
+            stable: { perDoctor: 50, unitFee: 11000 },
+            support: { perDoctor: 35, unitFee: 9000 }
+        };
+        let GLOBAL_CALC_DATA = { mainMedical: 0, mainDoctors: 0, subMedical1: 0, subDoctors1: 0, subMedical2: 0, subDoctors2: 0, isSeoul: false, monthOtcRevenue: 0, baseScore: 0, existingPharmacy: 0, isRealData: false, address: "", potentialCustomers: 0, residentCount: 0, computedMonthRev: 0 };
+        let GLOBAL_ANALYSIS_METRICS = { totalGross: 0, myShare: 0, prescRev: 0, totalRev: 0, totalFixedCost: 0, netProfit: 0, breakEvenPrescriptions: 0, safetyMarginPrescriptions: 0, totalInvestment: 0, paybackMonths: Infinity, weightedCost: 0, marketShareRate: 0, rent: 0, humanCost: 0, costsConfirmed: false, categoryResults: [] };
+        let PRE_PRINT_STATE = null;
 
         function onPyeongChanged() {
             const pyeong = parseFloat(document.getElementById('input-pyeong').value || 15);
@@ -536,6 +822,7 @@
 
             let current = parseInt(document.getElementById(elId).innerText || 0);
             document.getElementById(elId).innerText = Math.max(0, current + val);
+            markCostsEdited();
             reCalculateProfit();
         }
 
@@ -615,10 +902,15 @@
                     const gdrDoctCnt = items[i].getElementsByTagName("gdrDoctCnt")[0]?.textContent || "0";
                     const docCount = parseInt(dgsbNm) + parseInt(gdrDoctCnt) || 1;
                     const yadmNm = items[i].getElementsByTagName("yadmNm")[0]?.textContent || "";
+                    const subjectName = items[i].getElementsByTagName("dgsbjtCdNm")[0]?.textContent
+                        || items[i].getElementsByTagName("dgsbjtNm")[0]?.textContent
+                        || items[i].getElementsByTagName("dgsbjtCdName")[0]?.textContent
+                        || "";
+                    const classificationText = `${subjectName} ${yadmNm}`;
 
                     if(clCdNm.includes("약국")) { rx++; }
-                    else if(yadmNm.includes("내과") || yadmNm.includes("이비인후과")) { mm++; md += docCount; }
-                    else if(yadmNm.includes("소아") || yadmNm.includes("가정") || yadmNm.includes("산부인과")) { sm1++; sd1 += docCount; }
+                    else if(classificationText.includes("내과") || classificationText.includes("이비인후과")) { mm++; md += docCount; }
+                    else if(classificationText.includes("소아") || classificationText.includes("가정") || classificationText.includes("산부인과")) { sm1++; sd1 += docCount; }
                     else { sm2++; sd2 += docCount; }
                 }
 
@@ -629,37 +921,53 @@
 
         function renderFinalDashboard(address, mm, md, sm1, sd1, sm2, sd2, rx, isReal, kakaoCoordinateObj) {
             const isSeoul = address.includes("서울") || document.getElementById('input-address').value.includes("서울");
-            let baseScore = 52;
-            baseScore += (md * 12) - (rx * 8);
-            baseScore += isSeoul ? 6 : 1;
-            baseScore = Math.min(100, Math.max(20, baseScore));
+            const supplyPoints = Math.min(38, (md * 6) + (sd1 * 3) + (sd2 * 1));
+            const doctorBalance = (md + sd1 + sd2) / Math.max(1, rx + 1);
+            const balancePoints = Math.min(17, doctorBalance * 5);
+            const competitionPenalty = Math.min(35, rx * 7);
+            const dataAdjustment = isReal ? 5 : -5;
+            const baseScore = Math.min(100, Math.max(20, Math.round(35 + supplyPoints + balancePoints - competitionPenalty + dataAdjustment)));
 
             GLOBAL_CALC_DATA = {
                 address: address, mainMedical: mm, mainDoctors: md, subMedical1: sm1, subDoctors1: sd1,
                 subMedical2: sm2, subDoctors2: sd2, isSeoul: isSeoul, monthOtcRevenue: (isSeoul ? 15500000 : 9000000),
-                baseScore: baseScore, existingPharmacy: rx, isRealData: isReal
+                baseScore: baseScore, existingPharmacy: rx, isRealData: isReal,
+                supplyPoints, balancePoints, competitionPenalty, dataAdjustment
             };
 
             document.getElementById('report-title').innerText = `상권 분석 리포트 [${address}]`;
-            document.getElementById('report-sync-line').innerText = `※ 원천 데이터 기준월: 보건복지부 심사평가원 메디컬 인프라 마스터 (2026년 06월 기준 동기화)`;
+            document.getElementById('report-sync-line').innerText = `※ 의료기관 데이터 기준: 건강보험심사평가원 병원정보 API 조회 결과 · 기타 지표는 현재 추정 모델`;
 
             const now = new Date();
-            document.getElementById('report-print-time-footer').innerText = `🗓️ 리포트 인쇄 시점: 2026년 06월 16일 ${now.getHours()}시 ${now.getMinutes()}분`;
+            const generatedAt = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeStyle: 'short' }).format(now);
+            document.getElementById('report-print-time-footer').innerText = `생성 시점: ${generatedAt}`;
+            document.getElementById('report-footer-address').innerText = `분석 대상: ${document.getElementById('input-address').value.trim() || address}`;
+            document.getElementById('report-footer-data-status').innerText = `의료 데이터 상태: ${isReal ? '실데이터 조회 성공' : '추정형 대체값 적용'}`;
 
             document.getElementById('lbl-score').innerText = `${baseScore} / 100 점`;
-            const confidence = isReal ? 95 : 35;
+            // 의료기관·주소는 실데이터여도 매출·주거·유동 모듈이 추정이므로 전체 신뢰도를 보수적으로 표시
+            const confidence = isReal ? 68 : 30;
+            GLOBAL_CALC_DATA.confidence = confidence;
             document.getElementById('lbl-confidence').innerText = `${confidence}%`;
+            document.getElementById('lbl-score-formula').innerText = `35점 + 의료공급 ${supplyPoints.toFixed(1)}점 + 의사/약국 균형 ${balancePoints.toFixed(1)}점 - 경쟁위험 ${competitionPenalty.toFixed(1)}점 ${dataAdjustment >= 0 ? '+' : '-'} 데이터보정 ${Math.abs(dataAdjustment)}점 = ${baseScore}점`;
 
-            document.getElementById('guide-high').className = isReal ? "p-2.5 bg-emerald-50 rounded-lg border-2 border-emerald-400 font-medium" : "p-2.5 bg-white rounded-lg border border-slate-100 opacity-60";
-            document.getElementById('guide-low').className = !isReal ? "p-2.5 bg-amber-50 rounded-lg border-2 border-amber-400 font-medium" : "p-2.5 bg-white rounded-lg border border-slate-100 opacity-60";
+            const guideDefault = "p-2.5 bg-white rounded-lg border border-slate-100 opacity-60";
+            document.getElementById('guide-high').className = guideDefault;
+            document.getElementById('guide-mid').className = guideDefault;
+            document.getElementById('guide-low').className = guideDefault;
+            if (confidence >= 80) document.getElementById('guide-high').className = "p-2.5 bg-emerald-50 rounded-lg border-2 border-emerald-400 font-medium";
+            else if (confidence >= 50) document.getElementById('guide-mid').className = "p-2.5 bg-blue-50 rounded-lg border-2 border-blue-400 font-medium";
+            else document.getElementById('guide-low').className = "p-2.5 bg-amber-50 rounded-lg border-2 border-amber-400 font-medium";
 
             const statusBar = document.getElementById('lbl-data-status-bar');
-            statusBar.innerHTML = isReal ? `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> 데이터 상태: 정밀 고밀도 수집 성공` : `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 데이터 상태: 추정형 동형 가동 (임장 필수)`;
+            statusBar.innerHTML = isReal
+                ? `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> 의료기관 실데이터 조회 성공 · 매출/인구/유동 지표는 추정 포함`
+                : `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 의료기관 대체값 적용 · 전체 항목 임장 검증 필수`;
 
             const badgeEl = document.getElementById('lbl-grade-badge');
-            if(baseScore >= 80) { badgeEl.innerHTML = `<span class="bg-blue-100 text-blue-800 text-xs font-black px-4 py-2 rounded-xl border border-blue-300">PREMIUM (최우선 진입 권장)</span>`; }
-            else if(baseScore >= 60) { badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 text-xs font-black px-4 py-2 rounded-xl border border-emerald-300">FIELD TRIP (현장 임장 권장)</span>`; }
-            else { badgeEl.innerHTML = `<span class="bg-red-100 text-red-800 text-xs font-black px-4 py-2 rounded-xl border border-red-300">DROP / OBSERVE (보류 및 우회)</span>`; }
+            if(baseScore >= 80) { badgeEl.innerHTML = `<span class="bg-blue-100 text-blue-800 text-xs font-black px-4 py-2 rounded-xl border border-blue-300">PRIORITY REVIEW (우선 임장 검토)</span>`; }
+            else if(baseScore >= 60) { badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 text-xs font-black px-4 py-2 rounded-xl border border-emerald-300">FIELD TRIP (현장 검증 필요)</span>`; }
+            else { badgeEl.innerHTML = `<span class="bg-red-100 text-red-800 text-xs font-black px-4 py-2 rounded-xl border border-red-300">HOLD / OBSERVE (보류·추가 확인)</span>`; }
 
             document.getElementById('tbl-main-medical').innerText = `${mm} 개소`;
             document.getElementById('tbl-main-doctors').innerText = `${md} 명`;
@@ -669,17 +977,20 @@
             document.getElementById('tbl-sub-doctors-2').innerText = `${sd2} 명`;
             document.getElementById('tbl-existing-pharmacy').innerText = `${rx} 개소`;
 
-            const baseSales = isSeoul ? 62000000 : 41000000;
-            const computedMonthRev = Math.round((baseSales + (md * 4200000) - (rx * 2500000)) / 10000);
-            const computedCardCnt = Math.round((computedMonthRev * 10000) / 19500);
+            const baseSales = isSeoul ? 40000000 : 30000000;
+            const medicalContribution = (md * 4500000) + (sd1 * 2500000) + (sd2 * 1200000);
+            const competitionDiscountRate = Math.min(0.45, rx * 0.08);
+            const computedMonthRevenueWon = Math.max(10000000, Math.round((baseSales + medicalContribution) * (1 - competitionDiscountRate)));
+            const computedMonthRev = Math.round(computedMonthRevenueWon / 10000);
+            const computedCardCnt = Math.round(computedMonthRevenueWon / 19500);
             
             document.getElementById('stat-month-rev').innerText = `약 ${computedMonthRev.toLocaleString()}만 원`;
             document.getElementById('stat-card-cnt').innerText = `약 ${computedCardCnt.toLocaleString()}건 / 월`;
             document.getElementById('stat-avg-cost').innerText = `19,500원`;
 
-            // 💡 [v2.1.0 연산 수정]: 아파트 단지 외 빌라, 다세대 주택 배후 가구 가중치 합성식 전면 배치
-            const aptCount = Math.floor(Math.random() * 2) + 2; 
-            const totalHouseholds = (aptCount * 480) + Math.floor(Math.random() * 120);
+            // 💡 [v2.3.0 연산 수정]: 아파트 단지 외 빌라, 다세대 주택 배후 가구 가중치 합성식 전면 배치
+            const aptCount = seededEstimate(address, 2, 3, 11);
+            const totalHouseholds = (aptCount * 480) + seededEstimate(address, 0, 119, 29);
             
             // 아파트 세대수의 약 60~70% 수준을 인근 빌라 및 단독주택 공급 규모로 지수화 추정
             const villaHouseholds = Math.round(totalHouseholds * 0.65); 
@@ -687,6 +998,18 @@
             
             const residentCount = Math.round(combinedHouseholds * 2.4);
             const potentialCustomers = Math.round(residentCount * 0.35);
+            Object.assign(GLOBAL_CALC_DATA, {
+                aptCount,
+                totalHouseholds,
+                villaHouseholds,
+                residentCount,
+                potentialCustomers,
+                computedMonthRev,
+                computedCardCnt,
+                baseSales,
+                medicalContribution,
+                competitionDiscountRate
+            });
 
             document.getElementById('stat-apt-cnt').innerText = `${aptCount}개 단지 인접`;
             document.getElementById('stat-household-cnt').innerText = `${totalHouseholds.toLocaleString()} 가구`;
@@ -697,14 +1020,14 @@
             const weekdayVal = isSeoul ? 68 : 52; const weekendVal = 100 - weekdayVal;
             document.getElementById('bar-val-weekday').style.width = `${weekdayVal}%`;
             document.getElementById('bar-val-weekend').style.width = `${weekendVal}%`;
-            document.getElementById('lbl-val-weekday').innerText = `${weekdayVal}%`;
-            document.getElementById('lbl-val-weekend').innerText = `${weekendVal}%`;
+            document.getElementById('lbl-val-weekday').innerText = `약 ${weekdayVal}%`;
+            document.getElementById('lbl-val-weekend').innerText = `약 ${weekendVal}%`;
 
             const t1 = isSeoul ? 18 : 22; const t2 = isSeoul ? 28 : 24; const t3 = isSeoul ? 42 : 38; const t4 = 100 - (t1+t2+t3);
-            document.getElementById('td-time-1').innerText = `${t1}%`;
-            document.getElementById('td-time-2').innerText = `${t2}%`;
-            document.getElementById('td-time-3').innerText = `${t3}% (피크)`;
-            document.getElementById('td-time-4').innerText = `${t4}%`;
+            document.getElementById('td-time-1').innerText = `약 ${t1}%`;
+            document.getElementById('td-time-2').innerText = `약 ${t2}%`;
+            document.getElementById('td-time-3').innerText = `약 ${t3}% (추정 피크)`;
+            document.getElementById('td-time-4').innerText = `약 ${t4}%`;
 
             if(isSeoul) {
                 document.getElementById('lbl-target-age').innerText = "30대 직장인 및 60대 고령층";
@@ -714,9 +1037,12 @@
                 document.getElementById('lbl-target-bullseye').innerText = "소아 영양제 특화 마케팅 및 단골 주부층 친화 전단 배치";
             }
 
-            reCalculateProfit();
+            resetOptionalCostState();
+            initializePrescriptionModel();
             reCalculateBudget();
+            reCalculateProfit();
             generateMergedReportReason();
+            requestExternalAiBriefing();
 
             document.getElementById('loading-spinner').classList.add('hidden');
             document.getElementById('report-zone').classList.remove('hidden');
@@ -724,7 +1050,7 @@
             setTimeout(() => { drawKakaoMapCandidateOnly(address, kakaoCoordinateObj); }, 150);
         }
 
-        // 💡 [v2.1.0 디자인 튜닝]: 카카오 지도 마커 말풍선 넓이 확장 및 줄바꿈 해결 완료
+        // 💡 [v2.3.0 디자인 튜닝]: 카카오 지도 마커 말풍선 넓이 확장 및 줄바꿈 해결 완료
         function drawKakaoMapCandidateOnly(address, kakaoCoordinateObj) {
             try {
                 const mapContainer = document.getElementById('kakao-map'); if(!mapContainer) return;
@@ -759,33 +1085,142 @@
             } catch(e) { }
         }
 
+        function seededEstimate(text, min, max, salt = 0) {
+            let hash = 2166136261 + salt;
+            const source = String(text || 'default');
+            for (let i = 0; i < source.length; i++) {
+                hash ^= source.charCodeAt(i);
+                hash = Math.imul(hash, 16777619);
+            }
+            const ratio = (hash >>> 0) / 4294967295;
+            return Math.floor(min + ratio * (max - min + 1));
+        }
+
+        function initializePrescriptionModel() {
+            document.getElementById('rx-main-doctors').innerText = `${GLOBAL_CALC_DATA.mainDoctors}명`;
+            document.getElementById('rx-stable-doctors').innerText = `${GLOBAL_CALC_DATA.subDoctors1}명`;
+            document.getElementById('rx-support-doctors').innerText = `${GLOBAL_CALC_DATA.subDoctors2}명`;
+            resetPrescriptionModel(false);
+        }
+
+        function resetPrescriptionModel(recalculate = true) {
+            document.getElementById('rx-main-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.main.perDoctor;
+            document.getElementById('rx-main-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.main.unitFee;
+            document.getElementById('rx-stable-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.stable.perDoctor;
+            document.getElementById('rx-stable-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.stable.unitFee;
+            document.getElementById('rx-support-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.support.perDoctor;
+            document.getElementById('rx-support-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.support.unitFee;
+            const equalShare = 100 / Math.max(1, GLOBAL_CALC_DATA.existingPharmacy + 1);
+            document.getElementById('input-market-share-rate').value = equalShare.toFixed(1);
+            document.getElementById('input-operating-days').value = 25;
+            if (recalculate) reCalculateProfit();
+        }
+
+        function getPrescriptionModelRows() {
+            return [
+                {
+                    key: 'main', label: '핵심 처방과', doctors: GLOBAL_CALC_DATA.mainDoctors,
+                    perDoctor: parseFloat(document.getElementById('rx-main-per-doctor').value || 0),
+                    unitFee: parseFloat(document.getElementById('rx-main-unit-fee').value || 0),
+                    outputId: 'rx-main-share'
+                },
+                {
+                    key: 'stable', label: '안정 처방과', doctors: GLOBAL_CALC_DATA.subDoctors1,
+                    perDoctor: parseFloat(document.getElementById('rx-stable-per-doctor').value || 0),
+                    unitFee: parseFloat(document.getElementById('rx-stable-unit-fee').value || 0),
+                    outputId: 'rx-stable-share'
+                },
+                {
+                    key: 'support', label: '보조 처방과', doctors: GLOBAL_CALC_DATA.subDoctors2,
+                    perDoctor: parseFloat(document.getElementById('rx-support-per-doctor').value || 0),
+                    unitFee: parseFloat(document.getElementById('rx-support-unit-fee').value || 0),
+                    outputId: 'rx-support-share'
+                }
+            ];
+        }
+
         function reCalculateProfit() {
-            const customCost = parseFloat(document.getElementById('input-custom-cost').value || 12000);
-            document.getElementById('lbl-applied-cost').innerText = `${customCost.toLocaleString()}원`;
+            const marketShareRate = Math.min(100, Math.max(0, parseFloat(document.getElementById('input-market-share-rate').value || 0)));
+            const marketShare = marketShareRate / 100;
+            const operatingDays = Math.min(31, Math.max(1, parseInt(document.getElementById('input-operating-days').value || 25)));
+            const categoryResults = getPrescriptionModelRows().map(row => {
+                const totalSupply = row.doctors * row.perDoctor;
+                const myShare = totalSupply * marketShare;
+                const monthlyRevenue = myShare * row.unitFee * operatingDays;
+                document.getElementById(row.outputId).innerText = `${Math.round(myShare).toLocaleString()}건`;
+                return { ...row, totalSupply, myShare, monthlyRevenue };
+            });
 
-            const totalGross = (GLOBAL_CALC_DATA.mainDoctors * 75) + (GLOBAL_CALC_DATA.subDoctors1 * 50) + (GLOBAL_CALC_DATA.subDoctors2 * 35);
-            const myShare = Math.round(totalGross / (GLOBAL_CALC_DATA.existingPharmacy + 1));
-
-            const prescRev = myShare * customCost * 25;
+            const totalGross = categoryResults.reduce((sum, row) => sum + row.totalSupply, 0);
+            const myShare = categoryResults.reduce((sum, row) => sum + row.myShare, 0);
+            const prescRev = categoryResults.reduce((sum, row) => sum + row.monthlyRevenue, 0);
+            const weightedCost = myShare > 0 ? prescRev / (myShare * operatingDays) : 0;
             const totalRev = prescRev + GLOBAL_CALC_DATA.monthOtcRevenue;
 
             const staffCount = parseInt(document.getElementById('count-staff').innerText || 0);
             const fullPharmCount = parseInt(document.getElementById('count-full-pharm').innerText || 0);
             const halfPharmCount = parseInt(document.getElementById('count-half-pharm').innerText || 0);
-            
             const rent = parseFloat(document.getElementById('fixed-rent-cost').value || 0) * 10000;
             const maint = parseFloat(document.getElementById('fixed-maintenance-cost').value || 0) * 10000;
             const utility = parseFloat(document.getElementById('fixed-utility-cost').value || 0) * 10000;
-            
             const humanCost = (staffCount * CONFIG.COST_STAFF) + (fullPharmCount * CONFIG.COST_FULL_PHARM) + (halfPharmCount * CONFIG.COST_HALF_PHARM);
             const totalFixedCost = rent + maint + utility + humanCost;
-            const netProfit = Math.round((totalRev * 0.45) - totalFixedCost);
+            const netProfit = Math.round((totalRev * CONFIG.NET_MARGIN_RATE) - totalFixedCost);
+            const requiredTotalRevenue = totalFixedCost / CONFIG.NET_MARGIN_RATE;
+            const requiredPrescriptionRevenue = Math.max(0, requiredTotalRevenue - GLOBAL_CALC_DATA.monthOtcRevenue);
+            const breakEvenPrescriptions = weightedCost > 0 ? Math.ceil(requiredPrescriptionRevenue / weightedCost / operatingDays) : 0;
+            const roundedMyShare = Math.round(myShare);
+            const safetyMarginPrescriptions = roundedMyShare - breakEvenPrescriptions;
+            const costsConfirmed = document.getElementById('input-costs-confirmed').checked;
 
-            document.getElementById('lbl-presc-count').innerText = `약 ${myShare}건 / 일`;
+            Object.assign(GLOBAL_ANALYSIS_METRICS, {
+                totalGross,
+                myShare: roundedMyShare,
+                prescRev,
+                totalRev,
+                totalFixedCost,
+                netProfit,
+                breakEvenPrescriptions,
+                safetyMarginPrescriptions,
+                weightedCost,
+                marketShareRate,
+                operatingDays,
+                rent,
+                maint,
+                utility,
+                humanCost,
+                staffCount,
+                fullPharmCount,
+                halfPharmCount,
+                costsConfirmed,
+                categoryResults
+            });
+
+            document.getElementById('lbl-prescription-model-basis').innerText = `기존 약국 ${GLOBAL_CALC_DATA.existingPharmacy}개소 · 점유율 ${marketShareRate.toFixed(1)}% · 월 ${operatingDays}일 적용`;
+            document.getElementById('lbl-total-prescription-supply').innerText = `${Math.round(totalGross).toLocaleString()}건 / 일`;
+            document.getElementById('lbl-presc-count').innerText = `${roundedMyShare.toLocaleString()}건 / 일`;
+            document.getElementById('lbl-applied-cost').innerText = `${Math.round(weightedCost).toLocaleString()}원`;
             document.getElementById('lbl-month-presc-rev').innerText = `${Math.round(prescRev).toLocaleString()}원`;
+            document.getElementById('lbl-month-presc-rev-detail').innerText = `${Math.round(prescRev).toLocaleString()}원`;
             document.getElementById('lbl-month-otc-rev').innerText = `${Math.round(GLOBAL_CALC_DATA.monthOtcRevenue).toLocaleString()}원`;
-            document.getElementById('lbl-net-profit').innerText = `월 약 ${netProfit > 0 ? netProfit.toLocaleString() : 0}원`;
+            document.getElementById('lbl-month-total-rev').innerText = `${Math.round(totalRev).toLocaleString()}원`;
+            document.getElementById('lbl-net-profit').innerText = netProfit >= 0 ? `월 약 ${netProfit.toLocaleString()}원` : `월 약 -${Math.abs(netProfit).toLocaleString()}원`;
+            document.getElementById('lbl-break-even-prescriptions').innerText = `${breakEvenPrescriptions.toLocaleString()}건 / 일`;
+            document.getElementById('lbl-safety-margin-prescriptions').innerText = `${safetyMarginPrescriptions >= 0 ? '+' : ''}${safetyMarginPrescriptions.toLocaleString()}건 / 일`;
+            document.getElementById('lbl-safety-margin-prescriptions').className = safetyMarginPrescriptions >= 0 ? 'text-emerald-300' : 'text-red-300';
+            document.getElementById('lbl-profit-basis').innerText = costsConfirmed ? '실제 입력값 기준' : '기본 가정 기준';
+            document.getElementById('lbl-profit-basis').className = costsConfirmed
+                ? 'text-[10px] font-bold text-emerald-300 bg-slate-800 border border-emerald-800 rounded-lg px-2 py-1'
+                : 'text-[10px] font-bold text-amber-300 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1';
             document.getElementById('calc-total-fixed-cost').innerText = `${totalFixedCost.toLocaleString()}원`;
+            document.getElementById('lbl-fixed-preview').innerText = formatWonCompact(totalFixedCost);
+            document.getElementById('count-staff-print').innerText = `${staffCount}명`;
+            document.getElementById('count-full-pharm-print').innerText = `${fullPharmCount}명`;
+            document.getElementById('count-half-pharm-print').innerText = `${halfPharmCount}명`;
+
+            updatePaybackMetrics();
+            updateOptionalCostUi();
+            if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
         }
 
         function reCalculateBudget() {
@@ -793,50 +1228,358 @@
             const interiorUnit = parseFloat(document.getElementById('budget-interior-unit').value || 350);
             const medUnit = parseFloat(document.getElementById('budget-medicine').value || 5000);
             const atcUnit = parseFloat(document.getElementById('budget-atc').value || 2000);
-
             const interiorTotal = pyeong * interiorUnit * 10000;
-            document.getElementById('lbl-total-interior-computed').innerText = `${interiorTotal.toLocaleString()}원 (${pyeong}평 × ${interiorUnit}만원)`;
-
             const finalSum = interiorTotal + (medUnit * 10000) + (atcUnit * 10000);
+
+            document.getElementById('lbl-total-interior-computed').innerText = `${interiorTotal.toLocaleString()}원 (${pyeong}평 × ${interiorUnit}만원)`;
             document.getElementById('calc-total-invest').innerText = `${finalSum.toLocaleString()}원`;
+            document.getElementById('lbl-investment-preview').innerText = formatWonCompact(finalSum);
+            GLOBAL_ANALYSIS_METRICS.totalInvestment = finalSum;
+            updatePaybackMetrics();
+            updateOptionalCostUi();
+            if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
+        }
+
+        function toggleInvestmentPanel(forceOpen = null) {
+            const panel = document.getElementById('investment-input-panel');
+            const currentlyOpen = !panel.classList.contains('hidden');
+            const shouldOpen = forceOpen === null ? !currentlyOpen : Boolean(forceOpen);
+            panel.classList.toggle('hidden', !shouldOpen);
+            const button = document.getElementById('btn-toggle-investment');
+            button.innerHTML = shouldOpen
+                ? '<i class="fa-solid fa-chevron-up mr-1"></i> 상세 입력 닫기'
+                : '<i class="fa-solid fa-chevron-down mr-1"></i> 상세 입력 열기';
+        }
+
+        function markCostsEdited() {
+            const checkbox = document.getElementById('input-costs-confirmed');
+            if (!checkbox.checked) checkbox.checked = true;
+            updateOptionalCostUi();
+        }
+
+        function onCostsConfirmedChanged() {
+            if (document.getElementById('input-costs-confirmed').checked) toggleInvestmentPanel(true);
+            updateOptionalCostUi();
+            reCalculateProfit();
+        }
+
+        function resetOptionalCostState() {
+            document.getElementById('input-costs-confirmed').checked = false;
+            toggleInvestmentPanel(false);
+            updateOptionalCostUi();
+        }
+
+        function updateOptionalCostUi() {
+            const confirmed = document.getElementById('input-costs-confirmed').checked;
+            const badge = document.getElementById('investment-status-badge');
+            const title = document.getElementById('investment-collapsed-title');
+            if (confirmed) {
+                badge.innerText = '실제 입력값 반영';
+                badge.className = 'text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1';
+                title.innerText = '입력된 실제 비용 정보를 손익과 회수기간에 반영 중입니다.';
+            } else {
+                badge.innerText = '시스템 기본 가정';
+                badge.className = 'text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1';
+                title.innerText = '시스템 기본 가정값으로 손익을 계산 중입니다.';
+            }
+        }
+
+        function updatePaybackMetrics() {
+            const m = GLOBAL_ANALYSIS_METRICS;
+            m.paybackMonths = m.netProfit > 0 && m.totalInvestment > 0 ? m.totalInvestment / m.netProfit : Infinity;
+        }
+
+        function formatWonCompact(value) {
+            const abs = Math.abs(Math.round(value || 0));
+            if (abs >= 100000000) return `${(abs / 100000000).toFixed(abs % 100000000 === 0 ? 0 : 1)}억 원`;
+            if (abs >= 10000) return `${Math.round(abs / 10000).toLocaleString()}만 원`;
+            return `${abs.toLocaleString()}원`;
         }
 
         function generateMergedReportReason() {
             const d = GLOBAL_CALC_DATA;
-            const normalText = `본 지역은 처방 의원 총 ${d.mainMedical + d.subMedical1}개소에 진료 의사 수 ${d.mainDoctors + d.subDoctors1}명이 밀집된 메디컬 구역입니다. 경쟁 약국이 ${d.existingPharmacy}개소 선점 중인 상태이며, 일 평균 처방 조제 유입력과 고정 배후 인구의 이동 동선을 종합해 평점이 계산되었습니다.`;
+            const m = GLOBAL_ANALYSIS_METRICS;
+            const totalMedical = d.mainMedical + d.subMedical1 + d.subMedical2;
+            const totalDoctors = d.mainDoctors + d.subDoctors1 + d.subDoctors2;
+            const doctorShare = totalDoctors / Math.max(1, d.existingPharmacy + 1);
+            const paybackText = Number.isFinite(m.paybackMonths) ? `${Math.ceil(m.paybackMonths)}개월` : '회수 산출 불가';
+            const confidence = d.confidence || (d.isRealData ? 68 : 30);
+            const currentRentRatio = m.totalRev > 0 ? (m.rent / m.totalRev) * 100 : 0;
+            const requiredProfit36 = m.totalInvestment > 0 ? Math.ceil(m.totalInvestment / 36) : 0;
+            const profitGap36 = m.netProfit - requiredProfit36;
+            const topCategory = [...(m.categoryResults || [])].sort((a, b) => b.monthlyRevenue - a.monthlyRevenue)[0];
+
+            let decision = '보류 및 재검증';
+            let decisionClass = 'text-red-300';
+            let decisionReason = '현재 입력 조건으로는 손익 또는 데이터 신뢰도가 계약 판단을 충분히 뒷받침하지 못합니다.';
+            if (m.netProfit > 0 && m.safetyMarginPrescriptions >= 0 && d.baseScore >= 60) {
+                decision = d.isRealData && d.baseScore >= 80 && (!m.costsConfirmed || m.paybackMonths <= 36) ? '우선 검토' : '조건부 현장 검토';
+                decisionClass = decision === '우선 검토' ? 'text-emerald-300' : 'text-amber-300';
+                decisionReason = decision === '우선 검토'
+                    ? '처방 수요와 경쟁 분할 이후에도 손익 완충폭이 확인됩니다.'
+                    : '수치상 진입 가능성은 있으나 현장 동선과 실제 처방 유입 검증이 선행되어야 합니다.';
+            }
+
+            const normalText = `후보지 인근 의료기관은 ${totalMedical}개소, 진료 의사는 ${totalDoctors}명, 기존 약국은 ${d.existingPharmacy}개소로 집계되었습니다. 진료과군별 처방 가정과 신규 약국 점유율 ${m.marketShareRate.toFixed(1)}%를 적용한 예상 처방은 일 ${m.myShare}건이며, 손익분기 기준은 일 ${m.breakEvenPrescriptions}건입니다. 배후 유효 잠재 고객은 약 ${(d.potentialCustomers || 0).toLocaleString()}명으로 추정됩니다.`;
             document.getElementById('lbl-normal-reason').innerText = normalText;
 
-            let aiText = "";
-            if(d.isRealData) {
-                aiText += `<p><i class="fa-solid fa-microchip text-blue-400 mr-1"></i> <strong>[AI 매칭 데이터 판정]:</strong> 본 데이터는 정밀 고밀도 실데이터 상태입니다. 배후 메디컬 공급 총량과 기선점 약국 장벽 간의 처방 파이 계산 신뢰성이 대단히 높으므로 가맹 계약 협상 및 권리금 조율 시 정량적 우위 자료로 수용하십시오.</p>`;
-            } else {
-                aiText += `<p class="text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>[AI 추정 보정치 위험 안내]:</strong> 현재 데이터 미공유 구역 공백 리스크가 존재합니다. 인근 유사 표준 동형 상권의 평균치를 매칭한 수치이므로 본 리포트 계산서만 보고 계약을 섣불리 진행하시면 안 되며, <strong>반드시 현장 임장 실사를 최우선으로 진행하여 병원의 실제 처방전 수집 성향을 실측</strong>해야 합니다.</p>`;
+            document.getElementById('lbl-ai-summary-cards').innerHTML = `
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card">
+                    <p class="text-[10px] text-slate-400 font-bold tracking-wider">최종 판단</p>
+                    <p class="text-base font-black mt-1 ${decisionClass}">${decision}</p>
+                    <p class="text-[10px] text-slate-400 mt-1">입지점수 ${d.baseScore}점 · 신뢰도 ${confidence}%</p>
+                </div>
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card">
+                    <p class="text-[10px] text-slate-400 font-bold tracking-wider">손익 안전마진</p>
+                    <p class="text-base font-black mt-1 ${m.safetyMarginPrescriptions >= 0 ? 'text-emerald-300' : 'text-red-300'}">${m.safetyMarginPrescriptions >= 0 ? '+' : ''}${m.safetyMarginPrescriptions}건 / 일</p>
+                    <p class="text-[10px] text-slate-400 mt-1">예상 ${m.myShare}건 · BEP ${m.breakEvenPrescriptions}건</p>
+                </div>
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card">
+                    <p class="text-[10px] text-slate-400 font-bold tracking-wider">시설투자 회수</p>
+                    <p class="text-base font-black mt-1 ${!m.costsConfirmed ? 'text-slate-300' : m.paybackMonths <= 36 ? 'text-emerald-300' : m.paybackMonths <= 60 ? 'text-amber-300' : 'text-red-300'}">${m.costsConfirmed ? paybackText : '기본값 참고'}</p>
+                    <p class="text-[10px] text-slate-400 mt-1">${m.costsConfirmed ? '보증금·권리금 제외' : '실제 비용 미확정'}</p>
+                </div>`;
+
+            const strengths = [];
+            const risks = [];
+            if (doctorShare >= 2) strengths.push(`신규 약국 포함 약국 1개소당 의사 수가 약 ${doctorShare.toFixed(1)}명으로 의료 공급 여력이 있습니다.`);
+            else risks.push(`약국 1개소당 의사 수가 약 ${doctorShare.toFixed(1)}명으로 경쟁 분할 후 처방 여력이 낮을 수 있습니다.`);
+            if (topCategory) strengths.push(`${topCategory.label}가 월 조제 수입 기여도가 가장 높은 진료과군으로 추정됩니다.`);
+            if (m.safetyMarginPrescriptions >= 15) strengths.push(`예상 처방건수가 손익분기점보다 일 ${m.safetyMarginPrescriptions}건 높아 손익 완충폭이 있습니다.`);
+            else if (m.safetyMarginPrescriptions >= 0) risks.push(`손익분기점 초과 폭이 일 ${m.safetyMarginPrescriptions}건에 불과해 병원 휴진·이탈 시 수익 변동성이 큽니다.`);
+            else risks.push(`예상 처방건수가 손익분기점보다 일 ${Math.abs(m.safetyMarginPrescriptions)}건 부족합니다.`);
+            if (m.netProfit > 0) strengths.push(`현재 비용 가정 기준 월 추정 순이익은 약 ${formatWonCompact(m.netProfit)}입니다.`);
+            else risks.push(`현재 비용 가정 기준 월 약 ${formatWonCompact(m.netProfit)}의 적자가 예상됩니다.`);
+            if (!m.costsConfirmed) risks.push('초기 투자비와 고정비가 실제 정보로 확정되지 않아 순이익·회수기간은 참고값입니다.');
+            else if (Number.isFinite(m.paybackMonths) && m.paybackMonths <= 36) strengths.push(`시설투자금 회수기간이 약 ${Math.ceil(m.paybackMonths)}개월로 3년 이내입니다.`);
+            else if (Number.isFinite(m.paybackMonths)) risks.push(`시설투자금 회수기간이 약 ${Math.ceil(m.paybackMonths)}개월로 장기화될 수 있습니다.`);
+            else risks.push('현 손익에서는 시설투자금 회수가 어렵습니다.');
+            if (!d.isRealData) risks.push('현재 의료기관 데이터가 추정형으로 동작 중이므로 숫자를 계약 근거로 단독 사용하면 안 됩니다.');
+            if (currentRentRatio >= 10) risks.push(`임대료가 추정 총매출의 약 ${currentRentRatio.toFixed(1)}%로 고정비 부담이 높은 편입니다.`);
+            if ((d.potentialCustomers || 0) >= 1500) strengths.push(`배후 유효 잠재 고객이 약 ${(d.potentialCustomers || 0).toLocaleString()}명으로 매약·단골 고객 기반을 기대할 수 있습니다.`);
+
+            const strengthsHtml = (strengths.length ? strengths : ['현재 수치에서 명확한 우위 요인이 부족합니다.']).slice(0, 4).map(v => `<li>${v}</li>`).join('');
+            const risksHtml = (risks.length ? risks : ['수치상 중대 위험은 제한적이나 현장 동선 검증은 필요합니다.']).slice(0, 5).map(v => `<li>${v}</li>`).join('');
+            const checks = [
+                `핵심 병원 ${d.mainMedical}개소의 실제 외래 환자 수와 처방전의 약국별 분산 여부를 평일 최소 2개 시간대에 확인`,
+                `병원 출입구·엘리베이터·주차장에서 후보 점포까지의 이동 동선이 기존 약국보다 우위인지 확인`,
+                `기존 약국 ${d.existingPharmacy}개소의 영업시간, 조제 대기, 배달·주차, 일반약 경쟁력을 직접 비교`,
+                `진료과군별 예상 처방량과 평균 조제 수입을 실제 병원 구성에 맞게 다시 입력`,
+                `권리금·보증금까지 포함한 총투자금으로 회수기간을 재산출하고 임대차 갱신·중도해지 조건 확인`
+            ];
+
+            let target36 = '실제 투자비가 확정되면 3년 회수 목표를 자동 재계산합니다.';
+            if (m.costsConfirmed) {
+                target36 = profitGap36 >= 0
+                    ? `3년 회수 목표에 필요한 월 순이익 ${formatWonCompact(requiredProfit36)}를 현재 추정치가 약 ${formatWonCompact(profitGap36)} 초과합니다.`
+                    : `3년 회수 목표에 필요한 월 순이익보다 약 ${formatWonCompact(Math.abs(profitGap36))} 부족합니다.`;
             }
 
-            aiText += `<p class="pt-2"><i class="fa-solid fa-lightbulb text-emerald-400 mr-1"></i> <strong>[AI 최종 컨설팅 핵심 제언]:</strong> 의사 인프라당 처방력 대비 현재 설정된 직원 및 하프타임 약사 고정비 밸런싱이 최적화되었습니다. 만약 직접 임장 단계에서 주 동선 독점이 확인된다면 최종 개국 진입을 긍정적으로 검토하기에 적합한 손익 구조 패턴입니다.</p>`;
-            
-            document.getElementById('lbl-ai-reason').innerHTML = aiText;
+            document.getElementById('lbl-ai-reason').innerHTML = `
+                <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card">
+                    <p class="font-bold text-white"><i class="fa-solid fa-gavel text-blue-400 mr-1"></i> [의사결정 요약]</p>
+                    <p class="mt-1"><strong class="${decisionClass}">${decision}</strong> — ${decisionReason} ${target36}</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-emerald-950/30 border border-emerald-800/50 rounded-xl p-4 print-card">
+                        <p class="font-bold text-emerald-300 mb-2"><i class="fa-solid fa-circle-plus mr-1"></i> 긍정 요인</p>
+                        <ul class="list-disc pl-4 space-y-1.5">${strengthsHtml}</ul>
+                    </div>
+                    <div class="bg-red-950/25 border border-red-800/40 rounded-xl p-4 print-card">
+                        <p class="font-bold text-red-300 mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 핵심 리스크</p>
+                        <ul class="list-disc pl-4 space-y-1.5">${risksHtml}</ul>
+                    </div>
+                </div>
+                <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card">
+                    <p class="font-bold text-white mb-2"><i class="fa-solid fa-clipboard-check text-amber-300 mr-1"></i> 계약 전 임장 체크리스트</p>
+                    <ol class="list-decimal pl-4 space-y-1.5">${checks.map(v => `<li>${v}</li>`).join('')}</ol>
+                </div>`;
         }
 
-        async function exportAndPrint() {
-            if(db) {
-                try {
-                    const payload = {
-                        address: GLOBAL_CALC_DATA.address,
-                        score: GLOBAL_CALC_DATA.baseScore,
-                        isRealData: GLOBAL_CALC_DATA.isRealData,
-                        mainMedical: GLOBAL_CALC_DATA.mainMedical,
-                        mainDoctors: GLOBAL_CALC_DATA.mainDoctors,
-                        netProfitEstimate: document.getElementById('lbl-net-profit').innerText,
-                        totalInvestmentEstimate: document.getElementById('calc-total-invest').innerText,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    await db.collection("pharmacy_reports").add(payload);
-                    console.log("Firestore 클라우드 동기화 완료.");
-                } catch(e) { console.error("Firebase DB 저장 실패:", e); }
-            }
-            window.print();
+        function buildAiBriefingPayload() {
+            const d = GLOBAL_CALC_DATA;
+            const m = GLOBAL_ANALYSIS_METRICS;
+            return {
+                version: SYSTEM_VERSION,
+                address: document.getElementById('input-address').value.trim() || d.address,
+                dataQuality: { confidence: d.confidence || 0, medicalApiReal: d.isRealData },
+                score: d.baseScore,
+                medical: {
+                    main: { facilities: d.mainMedical, doctors: d.mainDoctors },
+                    stable: { facilities: d.subMedical1, doctors: d.subDoctors1 },
+                    support: { facilities: d.subMedical2, doctors: d.subDoctors2 },
+                    existingPharmacies: d.existingPharmacy
+                },
+                prescriptionModel: {
+                    marketShareRate: m.marketShareRate,
+                    operatingDays: m.operatingDays,
+                    expectedDailyPrescriptions: m.myShare,
+                    weightedUnitFee: Math.round(m.weightedCost),
+                    categories: m.categoryResults.map(row => ({ label: row.label, doctors: row.doctors, prescriptionsPerDoctor: row.perDoctor, unitFee: row.unitFee, expectedShare: Math.round(row.myShare) }))
+                },
+                finance: {
+                    monthlyPrescriptionRevenue: Math.round(m.prescRev),
+                    monthlyOtcRevenue: Math.round(d.monthOtcRevenue),
+                    monthlyTotalRevenue: Math.round(m.totalRev),
+                    monthlyFixedCost: Math.round(m.totalFixedCost),
+                    monthlyNetProfit: Math.round(m.netProfit),
+                    breakEvenDailyPrescriptions: m.breakEvenPrescriptions,
+                    safetyMarginDailyPrescriptions: m.safetyMarginPrescriptions,
+                    totalInvestment: Math.round(m.totalInvestment),
+                    costsConfirmed: m.costsConfirmed,
+                    paybackMonths: Number.isFinite(m.paybackMonths) ? Math.ceil(m.paybackMonths) : null
+                },
+                estimationNotice: '매출, 배후 인구, 유동인구는 현재 내부 추정모형이며 실제 통계가 아님',
+                requiredOutput: ['결론', '핵심 근거', '리스크', '임장 확인사항', '계약 전 조건']
+            };
         }
+
+        async function requestExternalAiBriefing() {
+            const endpoint = String(CONFIG.AI_BRIEFING_ENDPOINT || '').trim();
+            const box = document.getElementById('lbl-external-ai-reason');
+            const mode = document.getElementById('lbl-ai-engine-mode');
+            if (!endpoint) {
+                box.classList.add('hidden');
+                mode.innerText = '규칙형 엔진';
+                mode.className = 'source-chip source-model self-start';
+                return;
+            }
+
+            mode.innerText = 'AI 분석 요청 중';
+            mode.className = 'source-chip source-input self-start';
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), CONFIG.AI_BRIEFING_TIMEOUT_MS);
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildAiBriefingPayload()),
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error(`AI endpoint ${response.status}`);
+                const result = await response.json();
+                const text = result.briefing || result.output || result.text || '';
+                if (!text) throw new Error('AI briefing empty');
+                box.innerHTML = `<p class="font-black text-blue-200 mb-2"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> 생성형 AI 심층 브리핑</p><div class="whitespace-pre-line">${escapeHtml(text)}</div>`;
+                box.classList.remove('hidden');
+                mode.innerText = '생성형 AI 연동';
+                mode.className = 'source-chip source-real self-start';
+            } catch (error) {
+                console.warn('AI 브리핑 연동 실패, 규칙형 결과 유지:', error);
+                box.classList.add('hidden');
+                mode.innerText = '규칙형 엔진 (AI 실패)';
+                mode.className = 'source-chip source-model self-start';
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+        }
+
+        function openPdfSelection() {
+            document.getElementById('pdf-selection-modal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closePdfSelection() {
+            document.getElementById('pdf-selection-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function handlePdfModalBackdrop(event) {
+            if (event.target.id === 'pdf-selection-modal') closePdfSelection();
+        }
+
+        function applyPdfPreset(type) {
+            const core = new Set(['header', 'summary', 'medical', 'market', 'profit', 'briefing', 'footer']);
+            document.querySelectorAll('.pdf-section-checkbox').forEach(checkbox => {
+                if (checkbox.dataset.required === 'true') {
+                    checkbox.checked = true;
+                    return;
+                }
+                checkbox.checked = type === 'all' || (type === 'core' && core.has(checkbox.value));
+                if (type === 'none') checkbox.checked = false;
+            });
+        }
+
+        function getSelectedPdfSections() {
+            const selected = Array.from(document.querySelectorAll('.pdf-section-checkbox:checked')).map(el => el.value);
+            if (!selected.includes('disclaimer')) selected.unshift('disclaimer');
+            return selected;
+        }
+
+        function applyPrintSectionVisibility(selectedSections) {
+            const selected = new Set(selectedSections);
+            PRE_PRINT_STATE = {
+                investmentOpen: !document.getElementById('investment-input-panel').classList.contains('hidden')
+            };
+            document.querySelectorAll('[data-print-section]').forEach(element => {
+                element.classList.toggle('print-excluded', !selected.has(element.dataset.printSection));
+            });
+            if (selected.has('investment')) toggleInvestmentPanel(true);
+        }
+
+        function resetPrintSectionVisibility() {
+            document.querySelectorAll('.print-excluded').forEach(element => element.classList.remove('print-excluded'));
+            if (PRE_PRINT_STATE) toggleInvestmentPanel(PRE_PRINT_STATE.investmentOpen);
+            PRE_PRINT_STATE = null;
+        }
+
+        async function saveReportHistory(selectedSections) {
+            if (!db) return;
+            try {
+                const payload = {
+                    address: GLOBAL_CALC_DATA.address,
+                    score: GLOBAL_CALC_DATA.baseScore,
+                    isRealData: GLOBAL_CALC_DATA.isRealData,
+                    mainMedical: GLOBAL_CALC_DATA.mainMedical,
+                    mainDoctors: GLOBAL_CALC_DATA.mainDoctors,
+                    netProfitEstimate: document.getElementById('lbl-net-profit').innerText,
+                    totalInvestmentEstimate: document.getElementById('calc-total-invest').innerText,
+                    prescriptionModel: {
+                        marketShareRate: GLOBAL_ANALYSIS_METRICS.marketShareRate,
+                        operatingDays: GLOBAL_ANALYSIS_METRICS.operatingDays,
+                        weightedCost: GLOBAL_ANALYSIS_METRICS.weightedCost,
+                        expectedDailyPrescriptions: GLOBAL_ANALYSIS_METRICS.myShare,
+                        categoryResults: GLOBAL_ANALYSIS_METRICS.categoryResults.map(({ key, label, doctors, perDoctor, unitFee, myShare }) => ({ key, label, doctors, perDoctor, unitFee, myShare: Math.round(myShare) }))
+                    },
+                    costsConfirmed: GLOBAL_ANALYSIS_METRICS.costsConfirmed,
+                    systemVersion: SYSTEM_VERSION,
+                    selectedSections,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await db.collection('pharmacy_reports').add(payload);
+                console.log('Firestore 클라우드 동기화 완료.');
+            } catch(e) { console.error('Firebase DB 저장 실패:', e); }
+        }
+
+        async function confirmPdfExport() {
+            const selectedSections = getSelectedPdfSections();
+            if (selectedSections.length === 0) {
+                alert('PDF에 포함할 항목을 하나 이상 선택해 주세요.');
+                return;
+            }
+
+            applyPrintSectionVisibility(selectedSections);
+            closePdfSelection();
+            await saveReportHistory(selectedSections);
+
+            try { await document.fonts.ready; } catch(e) { }
+            document.body.offsetHeight; // 선택 항목 숨김 후 인쇄 레이아웃 강제 재계산
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => setTimeout(() => window.print(), 220));
+            });
+        }
+
+        // 기존 호출 호환용
+        function exportAndPrint() { openPdfSelection(); }
+
+        window.addEventListener('afterprint', resetPrintSectionVisibility);
+        window.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !document.getElementById('pdf-selection-modal').classList.contains('hidden')) closePdfSelection();
+        });
     </script>
 </body>
 </html>
