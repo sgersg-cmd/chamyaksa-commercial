@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v3.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v3.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -226,7 +226,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v3.0</span>
+                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v3.1</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -404,6 +404,8 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <div id="hira-basis-scope" class="text-[10px] text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-2.5">심평원 기본목록 집계 범위는 후보지 좌표 확인 후 표시됩니다.</div>
 
                     <div id="hira-detail-panel" class="border border-emerald-200 rounded-xl bg-emerald-50/30 overflow-hidden print-keep-together">
                         <div class="px-4 py-3 bg-white border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -858,7 +860,7 @@
                                 <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v3.0.0</strong></p>
+                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v3.1.0</strong></p>
                             </div>
                         </div>
                         <div class="bg-white border border-slate-200 rounded-xl p-4 print-card">
@@ -881,7 +883,7 @@
                     </div>
                     <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>본 자료는 약국 개설 후보지의 1차 검토용입니다. 서울시 공식 추정데이터·SGIS 지역통계·내부 추정모형을 특정 약국의 실제 처방·매출 또는 수익 보장값으로 해석해서는 안 됩니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v3.0.0</p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v3.1.0</p>
                     </div>
                 </div>
 
@@ -960,9 +962,9 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "3.0.0";
-        const VERSION_DISPLAY_SHORT = "v3.0";      // 화면 헤더 배지용 2자리 표기
-        const VERSION_DISPLAY_FULL = "v3.0.0";     // PDF·리포트 정보용 3자리 표기
+        const SYSTEM_VERSION = "3.1.0";
+        const VERSION_DISPLAY_SHORT = "v3.1";      // 화면 헤더 배지용 2자리 표기
+        const VERSION_DISPLAY_FULL = "v3.1.0";     // PDF·리포트 정보용 3자리 표기
 
         // [v3.0.0] 아래 함수들은 단일 정의만 존재하며, 뒤쪽 모듈 블록에서 대입 방식으로 정의됩니다.
         // 암묵적 전역 생성을 막기 위해 선언만 미리 둡니다.
@@ -1074,23 +1076,79 @@
             return Number(payload.data?.getElementsByTagName?.('totalCount')?.[0]?.textContent || 0);
         }
 
+        /* [v3.1.0] 심평원 기본목록 조회 정확도 개선
+           - 문제 1: emdongNm 단독 조회는 전국 동명 행정동을 모두 반환합니다.
+                     (예: "중앙동" → 전국 수십 곳) 최대 5페이지(500건) 컷에 걸려
+                     정작 후보지 지역 의료기관이 누락될 수 있었습니다.
+           - 문제 2: 좌표 필터가 상세조회 단계에만 있어, 상세조회 실패 시
+                     전국 합산값이 그대로 화면에 남았습니다.
+           - 조치 1: 카카오 시도명 → 심평원 sidoCd 를 붙여 조회 범위를 시도로 축소합니다.
+                     결과가 0건이면 sidoCd 없이 재조회해 기존 동작으로 폴백합니다.
+           - 조치 2: 기본목록 단계에서 후보지 좌표 기준 반경 필터를 먼저 적용합니다. */
+        const HIRA_SIDO_CODES = [
+            { keys: ['서울'], code: '110000' }, { keys: ['부산'], code: '210000' },
+            { keys: ['대구'], code: '220000' }, { keys: ['인천'], code: '230000' },
+            { keys: ['광주'], code: '240000' }, { keys: ['대전'], code: '250000' },
+            { keys: ['울산'], code: '260000' }, { keys: ['세종'], code: '410000' },
+            { keys: ['경기'], code: '310000' }, { keys: ['강원'], code: '320000' },
+            { keys: ['충북', '충청북'], code: '330000' }, { keys: ['충남', '충청남'], code: '340000' },
+            { keys: ['전북', '전라북'], code: '350000' }, { keys: ['전남', '전라남'], code: '360000' },
+            { keys: ['경북', '경상북'], code: '370000' }, { keys: ['경남', '경상남'], code: '380000' },
+            { keys: ['제주'], code: '390000' }
+        ];
+        const HIRA_BASIS_RADIUS_M = 500;
+
+        function resolveHiraSidoCd() {
+            const meta = (GLOBAL_SITE_CONTEXT && (GLOBAL_SITE_CONTEXT.seoulRegionMeta || GLOBAL_SITE_CONTEXT.sgisRegionMeta)) || {};
+            const region1 = String(meta.region1 || '');
+            const raw = region1 || String(document.getElementById('input-address')?.value || '');
+            const hit = HIRA_SIDO_CODES.find(entry => entry.keys.some(key => raw.includes(key)));
+            return hit ? hit.code : '';
+        }
+
+        function buildHiraBasisUrl(cleanDong, pageNo, rowsPerPage, sidoCd) {
+            const url = new URL('https://apis.data.go.kr/B551182/hospInfoServicev2/getHospBasisList');
+            url.searchParams.set('serviceKey', CONFIG.PUBLIC_DATA_KEY);
+            url.searchParams.set('pageNo', String(pageNo));
+            url.searchParams.set('numOfRows', String(rowsPerPage));
+            url.searchParams.set('emdongNm', cleanDong);
+            if (sidoCd) url.searchParams.set('sidoCd', sidoCd);
+            url.searchParams.set('_type', 'json');
+            return url.toString();
+        }
+
+        async function fetchHiraBasisPages(cleanDong, sidoCd) {
+            const rowsPerPage = 100;
+            const firstPayload = await fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, 1, rowsPerPage, sidoCd));
+            const items = getPayloadItems(firstPayload);
+            const totalCount = getPayloadTotalCount(firstPayload);
+            const totalPages = Math.min(5, Math.max(1, Math.ceil(totalCount / rowsPerPage)));
+            if (totalPages > 1) {
+                const pagePayloads = await Promise.all(Array.from({ length: totalPages - 1 }, (_, index) =>
+                    fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, index + 2, rowsPerPage, sidoCd)).catch(() => null)
+                ));
+                pagePayloads.filter(Boolean).forEach(payload => { items.push(...getPayloadItems(payload)); });
+            }
+            return { items, totalCount, truncated: Math.ceil(totalCount / rowsPerPage) > totalPages };
+        }
+
         async function executeHiraFetch(cleanDong, kakaoCoordinateObj) {
             try {
-                const rowsPerPage = 100;
-                const firstUrl = `https://apis.data.go.kr/B551182/hospInfoServicev2/getHospBasisList?serviceKey=${CONFIG.PUBLIC_DATA_KEY}&pageNo=1&numOfRows=${rowsPerPage}&emdongNm=${encodeURIComponent(cleanDong)}&_type=json`;
-                const firstPayload = await fetchPublicApiPayload(firstUrl);
-                let allItems = getPayloadItems(firstPayload);
-                const totalCount = getPayloadTotalCount(firstPayload);
-                const totalPages = Math.min(5, Math.max(1, Math.ceil(totalCount / rowsPerPage)));
-                if (totalPages > 1) {
-                    const pagePayloads = await Promise.all(Array.from({ length: totalPages - 1 }, (_, index) => {
-                        const pageNo = index + 2;
-                        const url = `https://apis.data.go.kr/B551182/hospInfoServicev2/getHospBasisList?serviceKey=${CONFIG.PUBLIC_DATA_KEY}&pageNo=${pageNo}&numOfRows=${rowsPerPage}&emdongNm=${encodeURIComponent(cleanDong)}&_type=json`;
-                        return fetchPublicApiPayload(url).catch(() => null);
-                    }));
-                    pagePayloads.filter(Boolean).forEach(payload => { allItems.push(...getPayloadItems(payload)); });
+                const sidoCd = resolveHiraSidoCd();
+                let result = await fetchHiraBasisPages(cleanDong, sidoCd);
+                let appliedSidoCd = sidoCd;
+                if (sidoCd && !result.items.length) {
+                    // 시도코드가 맞지 않는 경우를 대비한 폴백 (기존 v3.0.0 동작)
+                    console.warn('심평원 sidoCd 필터 결과 0건 → 시도 필터 없이 재조회합니다.', sidoCd);
+                    result = await fetchHiraBasisPages(cleanDong, '');
+                    appliedSidoCd = '';
                 }
-                parseRealDataItems(cleanDong, allItems, kakaoCoordinateObj);
+                Object.assign(GLOBAL_CALC_DATA, {
+                    hiraBasisSidoCd: appliedSidoCd,
+                    hiraBasisTotalCount: result.totalCount,
+                    hiraBasisTruncated: result.truncated
+                });
+                parseRealDataItems(cleanDong, result.items, kakaoCoordinateObj);
             } catch(e) {
                 console.error('심평원 병원 기본목록 조회 실패:', e);
                 // v2.10.1: API 실패 시 임의 추정 의료기관 수를 주입하지 않고 미확인 상태로 렌더링합니다.
@@ -1134,9 +1192,37 @@
             return 'support';
         }
 
+        /* [v3.1.0] 기본목록 단계 반경 필터
+           심평원 응답의 XPos/YPos(경위도)를 이용해 후보지 반경 밖 기관을 먼저 제외합니다.
+           좌표가 없는 기관은 위치를 확인할 수 없으므로 집계에서 제외하고 건수만 표기합니다. */
+        function filterHiraFacilitiesByRadius(facilities, kakaoCoordinateObj, radius) {
+            const lat = Number(kakaoCoordinateObj?.y);
+            const lng = Number(kakaoCoordinateObj?.x);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                return { list: facilities, applied: false, outOfRange: 0, noCoordinate: 0 };
+            }
+            let outOfRange = 0, noCoordinate = 0;
+            const list = facilities.filter(item => {
+                if (!Number.isFinite(item.x) || !Number.isFinite(item.y)) { noCoordinate += 1; return false; }
+                item.distanceFromTarget = haversineDistanceMeters(lat, lng, item.y, item.x);
+                if (item.distanceFromTarget > radius) { outOfRange += 1; return false; }
+                return true;
+            }).sort((a, b) => (a.distanceFromTarget || 0) - (b.distanceFromTarget || 0));
+            return { list, applied: true, outOfRange, noCoordinate };
+        }
+
         function parseRealDataItems(address, rows, kakaoCoordinateObj) {
             try {
-                const facilities = (rows || []).map(normalizeHiraFacility).filter(item => item.name || item.ykiho);
+                const rawFacilities = (rows || []).map(normalizeHiraFacility).filter(item => item.name || item.ykiho);
+                const filtered = filterHiraFacilitiesByRadius(rawFacilities, kakaoCoordinateObj, HIRA_BASIS_RADIUS_M);
+                const facilities = filtered.list;
+                Object.assign(GLOBAL_CALC_DATA, {
+                    hiraBasisRadiusApplied: filtered.applied,
+                    hiraBasisRadius: HIRA_BASIS_RADIUS_M,
+                    hiraBasisFetched: rawFacilities.length,
+                    hiraBasisOutOfRange: filtered.outOfRange,
+                    hiraBasisNoCoordinate: filtered.noCoordinate
+                });
                 let mm = 0, md = 0, sm1 = 0, sd1 = 0, sm2 = 0, sd2 = 0, rx = 0;
                 facilities.forEach(item => {
                     if (item.isPharmacy) { rx += 1; return; }
@@ -1214,6 +1300,7 @@
 
             resetNearbyRadiusUi();
             resetHiraDetailUi();
+            renderHiraBasisScope(isReal);
 
             const badgeEl = document.getElementById('lbl-grade-badge');
             if(!isReal) { badgeEl.innerHTML = `<span class="bg-slate-200 text-slate-700 text-xs font-black px-4 py-2 rounded-xl border border-slate-400">DATA UNAVAILABLE (의료데이터 조회 실패)</span>`; }
@@ -1286,6 +1373,23 @@
             
             setTimeout(() => { drawKakaoMapCandidateOnly(address, kakaoCoordinateObj); }, 150);
             setTimeout(() => { loadHiraDetailedSubjects(kakaoCoordinateObj); }, 250);
+        }
+
+        // [v3.1.0] 심평원 기본목록의 실제 집계 범위를 화면에 명시합니다.
+        function renderHiraBasisScope(isReal) {
+            const el = document.getElementById('hira-basis-scope');
+            if (!el) return;
+            const d = GLOBAL_CALC_DATA;
+            if (!isReal) {
+                el.innerHTML = '<strong class="text-amber-700">집계 범위:</strong> 심평원 기본목록을 조회하지 못해 의료기관 집계를 표시하지 않습니다.';
+                return;
+            }
+            const sido = d.hiraBasisSidoCd ? '시도 필터 적용' : '시도 필터 미적용(전국 동명 행정동 포함 가능)';
+            if (d.hiraBasisRadiusApplied) {
+                el.innerHTML = `<strong class="text-blue-800">집계 범위:</strong> 심평원 <strong>${sido}</strong> 조회 ${Number(d.hiraBasisFetched || 0).toLocaleString()}건 중 <strong>후보지 반경 ${d.hiraBasisRadius}m</strong> 이내 기관만 집계했습니다. (반경 밖 ${Number(d.hiraBasisOutOfRange || 0).toLocaleString()}건 제외 · 좌표 미제공 ${Number(d.hiraBasisNoCoordinate || 0).toLocaleString()}건 제외)${d.hiraBasisTruncated ? ' <span class="text-amber-700">조회 건수가 많아 상위 500건까지만 확인했습니다.</span>' : ''}`;
+            } else {
+                el.innerHTML = `<strong class="text-amber-700">집계 범위:</strong> 후보지 좌표를 확인하지 못해 <strong>반경 필터를 적용하지 못했습니다.</strong> 현재 값은 ${sido} 상태의 <strong>행정동명 기준 조회 결과</strong>이며 후보지 반경 수치가 아닙니다. 주소를 도로명 또는 지번으로 다시 입력해 주세요.`;
+            }
         }
 
         function resetHiraDetailUi() {
@@ -1756,7 +1860,7 @@
                     paybackMonths: Number.isFinite(m.paybackMonths) ? Math.ceil(m.paybackMonths) : null
                 },
                 dataSources: {
-                    medicalFacilities: d.isRealData ? '건강보험심사평가원 병원정보 API 실데이터' : '조회 실패 (값 미제공)',
+                    medicalFacilities: d.isRealData ? `건강보험심사평가원 병원정보 API 실데이터 (${d.hiraBasisRadiusApplied ? `후보지 반경 ${d.hiraBasisRadius}m 필터 적용` : '반경 필터 미적용 · 행정동명 기준'}${d.hiraBasisSidoCd ? ' · 시도 필터 적용' : ''})` : '조회 실패 (값 미제공)',
                     medicalSubjects: d.hiraDetailReal ? '심평원 의료기관별상세정보 실데이터' : '기관명 기반 보정분류',
                     nearbyPlaces: d.nearbySearchReal ? '카카오 지도 카테고리 검색 실데이터' : '미적용',
                     population: d.sgisReal ? `SGIS ${d.sgisYear || ''}년 ${d.sgisScopeLevel || ''} 실데이터` : '조회 실패 (값 미제공)',
@@ -1936,9 +2040,13 @@
         const V25_AGGREGATE_DETAIL = aggregateDetailedMedicalData;
 
         function normalizeBuildingAddress(value) {
+            // [v3.1.0] 한글 앞뒤에서 \b(워드 바운더리)가 정상 동작하지 않아 층·호·동 표기가 제거되지 않던 문제를 수정합니다.
             return String(value || '')
                 .replace(/\([^)]*\)/g, ' ')
-                .replace(/\b(지하\s*\d+층|\d+층|\d+호|[A-Za-z]?동\s*\d*호?)\b/g, ' ')
+                .replace(/지하\s*\d+\s*층/g, ' ')
+                .replace(/(?:^|[\s,])[Bb]?\d+\s*층/g, ' ')
+                .replace(/(?:^|[\s,])\d+\s*호(?![가-힣])/g, ' ')
+                .replace(/(?:^|[\s,])[A-Za-z]?\d+\s*동(?![가-힣])/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim()
                 .toLowerCase();
@@ -2892,13 +3000,28 @@
             }) || null;
         }
 
+        /* [v3.1.0] 최신 기준분기 판정 개선
+           기존에는 1행의 STDR_YYQU_CD를 최신 분기로 사용했습니다.
+           서울 열린데이터광장은 정렬을 보장하지 않아 과거 분기를 잡을 수 있었습니다.
+           이제 목록의 앞/중간/끝 표본을 읽어 가장 큰 분기코드를 최신으로 사용합니다. */
         async function getSeoulLatestQuarter(service) {
-            const cacheKey = `seoul-latest-quarter-v280:${service}`;
+            const cacheKey = `seoul-latest-quarter-v310:${service}`;
             const cached = seoulCacheRead(cacheKey);
             if (cached) return cached;
             const first = await seoulFetchService(service, 1, 1);
-            const quarter = String(first.rows?.[0]?.STDR_YYQU_CD || '');
-            if (!quarter) throw new Error(`${service} 최신 기준분기를 확인하지 못했습니다.`);
+            const total = Math.max(1, first.total);
+            const samplePositions = [...new Set([1, Math.max(1, Math.floor(total / 2)), total])];
+            const samples = await Promise.all(samplePositions.map(position =>
+                position === 1
+                    ? Promise.resolve(first)
+                    : seoulFetchService(service, position, position).catch(() => null)
+            ));
+            const quarters = samples
+                .filter(Boolean)
+                .map(sample => String(sample.rows?.[0]?.STDR_YYQU_CD || ''))
+                .filter(value => /^\d{5}$/.test(value));
+            if (!quarters.length) throw new Error(`${service} 최신 기준분기를 확인하지 못했습니다.`);
+            const quarter = quarters.sort((a, b) => Number(b) - Number(a))[0];
             seoulCacheWrite(cacheKey, quarter);
             return quarter;
         }
