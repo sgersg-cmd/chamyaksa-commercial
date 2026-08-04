@@ -1,0 +1,63 @@
+name: SGIS 인구통계 수집
+
+# SGIS 인구주택총조사 통계는 연 1회 갱신됩니다.
+# 정기 실행은 매년 1회이며, 필요할 때 Actions 탭에서 수동 실행할 수 있습니다.
+on:
+  schedule:
+    - cron: '0 18 20 3 *'   # UTC 18:00 = 매년 3월 21일 새벽 3시 (KST)
+  workflow_dispatch:
+    inputs:
+      stat_year:
+        description: '기준연도 (비우면 2024)'
+        required: false
+        default: '2024'
+      limit_sido:
+        description: '시험 실행용 시도코드 (예: 11 = 서울만). 비우면 전국 수집'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: SGIS 통계 수집
+        env:
+          SGIS_CONSUMER_KEY: ${{ secrets.SGIS_CONSUMER_KEY }}
+          SGIS_CONSUMER_SECRET: ${{ secrets.SGIS_CONSUMER_SECRET }}
+          SGIS_STAT_YEAR: ${{ inputs.stat_year || '2024' }}
+          SGIS_LIMIT_SIDO: ${{ inputs.limit_sido || '' }}
+        run: node scripts/fetch-sgis-data.mjs
+
+      - name: 변경분 확인
+        id: diff
+        run: |
+          if git diff --quiet -- data/sgis; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "변경 없음 - 커밋을 건너뜁니다."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            node -e "const d=require('./data/sgis/index.json');console.log('기준연도',d.year,'| 시도',d.sidos.length,'| 부분수집',d.partial);"
+          fi
+
+      - name: 커밋 및 푸시
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          YEAR=$(node -e "console.log(require('./data/sgis/index.json').year)")
+          git add data/sgis
+          git commit -m "chore(data): SGIS 인구통계 갱신 (${YEAR}년 기준)"
+          git push
