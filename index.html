@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v3.1</title>
+    <title>약국 개설 전용 상권분석 시스템 v4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -15,7 +15,10 @@
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=c4428bbe90244befd058e5fd4fb8773f&libraries=services"></script>
 
     <!-- SGIS JavaScript 인증: 브라우저 공개용 서비스 ID만 사용하며 보안 Key는 포함하지 않습니다. -->
-    <script id="sgis-auth-script" type="text/javascript" src="https://sgisapi.mods.go.kr/OpenAPI3/auth/javascriptAuth?consumer_key=ef71dad322b141b5adb8"></script>
+    <!-- [v4.1.0] SGIS JavaScript 인증 스크립트를 제거했습니다.
+         이 스크립트는 320KB 지도 SDK만 내려줄 뿐 통계 Data API 토큰을 제공하지 않아
+         배후 인구 조회에 아무 역할도 하지 못했습니다. (초기 로딩만 느리게 만들었습니다)
+         인구 통계는 GitHub Actions가 수집한 data/sgis/*.json 을 사용합니다. -->
     
     <style>
         body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background-color: #f1f5f9; }
@@ -203,12 +206,18 @@
             HIRA_DETAIL_MAX_FACILITIES: 40,
             HIRA_DETAIL_CONCURRENCY: 5,
             HIRA_DETAIL_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
-            SGIS_SERVICE_ID: "ef71dad322b141b5adb8",
-            SGIS_BASE_URL: "https://sgisapi.mods.go.kr/OpenAPI3",
+            // [v4.1.0] SGIS 서비스 ID·보안 Key는 더 이상 브라우저에 두지 않습니다.
+            //          GitHub Actions가 수집해 커밋한 정적 통계만 읽습니다.
+            SGIS_STATIC_BASE: "data/sgis",
+            SGIS_STATIC_TIMEOUT_MS: 8000,
             SGIS_STAT_YEAR: 2024,
             SGIS_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
             SEOUL_OPEN_DATA_KEY: "697650445573676535395445424b49",
             SEOUL_OPEN_API_BASE: "http://openapi.seoul.go.kr:8088",
+            // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
+            //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
+            SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
+            SEOUL_STATIC_TIMEOUT_MS: 8000,
             SEOUL_COMMERCIAL_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
             SEOUL_COMMERCIAL_PAGE_SIZE: 1000,
             BUILDING_LEDGER_BASE_URL: "https://apis.data.go.kr/1613000/BldRgstHubService",
@@ -226,7 +235,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v3.1</span>
+                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v4.1</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -297,19 +306,22 @@
 
                 <!-- 1. 종합 평점 및 신뢰도 분석 가이드 -->
                 <section data-print-section="summary" class="space-y-4">
-                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">1. 종합 입지 모형점수 및 데이터 신뢰도 기준</h3>
+                    <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">1. 종합 입지 모형점수 및 데이터 연동률</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
                             <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">상권 입지 모형점수</p>
-                            <p class="text-3xl font-black text-blue-600 mt-1" id="lbl-score">0 / 100 점</p>
+                            <p class="text-xl font-black text-blue-600 mt-1" id="lbl-score">0 / 100 점</p>
+                            <p class="text-[9px] text-slate-400 mt-1 leading-tight">후보지 간 우선순위 비교용 상대 지표입니다. 3~5점 차이는 의미 있는 차이로 보지 마십시오.</p>
                         </div>
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-center items-center">
-                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase mb-1">최종 판단 등급</p>
+                        <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 flex flex-col justify-center items-center">
+                            <p class="text-[11px] text-blue-500 font-bold tracking-wider uppercase mb-1.5">최종 판단 등급</p>
                             <div id="lbl-grade-badge"></div>
+                            <p class="text-[9px] text-slate-500 mt-1.5 leading-tight text-center">점수보다 등급과 아래 근거를 우선 확인하십시오.</p>
                         </div>
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
-                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">종합 데이터 신뢰도</p>
-                            <p class="text-2xl font-black text-emerald-600 mt-1" id="lbl-confidence">0%</p>
+                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">데이터 연동률</p>
+                            <p class="text-xl font-black text-emerald-600 mt-1" id="lbl-confidence">0%</p>
+                            <p class="text-[9px] text-slate-400 mt-1 leading-tight">연동에 성공한 공공 API의 비중입니다. <strong>예상 매출의 정확도가 아닙니다.</strong></p>
                         </div>
                     </div>
                     
@@ -323,19 +335,20 @@
                             </ul>
                         </div>
                         <div class="border-t border-slate-200 pt-2.5">
-                            <p class="font-bold text-slate-800 mb-1.5"><i class="fa-solid fa-calculator text-emerald-500"></i> [종합 데이터 신뢰도 판정 기준]</p>
+                            <p class="font-bold text-slate-800 mb-1.5"><i class="fa-solid fa-calculator text-emerald-500"></i> [데이터 연동률 판정 기준]</p>
+                            <p class="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2 mb-2"><strong>주의:</strong> 데이터 연동률은 <strong>몇 개의 공공 API가 실제로 연결됐는지</strong>를 나타내는 값입니다. 예상 매출·처방량이 얼마나 정확한지를 의미하지 않습니다. 연동률이 90%여도 처방량·매약 매출은 여전히 내부 가정값입니다.</p>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-slate-600">
                                 <div class="p-2.5 bg-white rounded-lg border border-slate-100" id="guide-high">
-                                    <span class="font-bold text-emerald-600 block mb-0.5">■ 80% 이상 : 실데이터 중심</span>
-                                    핵심 지표 대부분이 실제 API로 연동된 상태. 그래도 임장과 계약조건 확인은 필요합니다.
+                                    <span class="font-bold text-emerald-600 block mb-0.5">■ 80% 이상 : 대부분 연동됨</span>
+                                    의료·장소·건물·인구·매출 API가 대부분 응답한 상태입니다. 그래도 임장과 계약조건 확인은 필요합니다.
                                 </div>
                                 <div class="p-2.5 bg-white rounded-lg border border-slate-100" id="guide-mid">
-                                    <span class="font-bold text-blue-600 block mb-0.5">■ 50% ~ 79% : 실데이터·추정 혼합형</span>
-                                    일부 핵심 지표는 실제 조회값이나 매출·인구·유동 지표에 추정값이 포함된 상태입니다.
+                                    <span class="font-bold text-blue-600 block mb-0.5">■ 50% ~ 79% : 일부만 연동됨</span>
+                                    핵심 API는 응답했으나 인구·매출 등 일부 모듈이 미연동 상태입니다. 해당 항목은 화면에서 조회 실패로 표시됩니다.
                                 </div>
                                 <div class="p-2.5 bg-white rounded-lg border border-slate-100" id="guide-low">
-                                    <span class="font-bold text-amber-600 block mb-0.5">■ 49% 이하 : 추정 비중이 높은 데이터</span>
-                                    데이터 미공급 공백 구역. 직접 현장 임장 및 유동인구 실측 조사를 필히 권장.
+                                    <span class="font-bold text-amber-600 block mb-0.5">■ 49% 이하 : 연동 부족</span>
+                                    다수 API가 응답하지 않았습니다. 이 상태의 리포트는 판단자료로 사용하지 마십시오.
                                 </div>
                             </div>
                         </div>
@@ -344,7 +357,7 @@
                         <p class="font-black text-slate-800"><i class="fa-solid fa-circle-question text-blue-500 mr-1"></i> 점수와 신뢰도는 왜 이렇게 계산하나요?</p>
                         <p><strong>입지 모형점수</strong>는 기본점수에 핵심·안정·보조 진료과 의사 수의 공급 가중치를 더하고, 경쟁 약국 수에 따른 분산 위험을 차감한 뒤 의료기관 실데이터 조회 여부를 보정합니다. 세부 계산식은 분석 결과에 맞춰 아래 문구에 자동 표시됩니다.</p>
                         <p id="lbl-score-formula" class="font-bold text-blue-800"></p>
-                        <p><strong>종합 데이터 신뢰도</strong>는 의료기관·주소 좌표의 실제 조회 여부와 매출·주거·유동인구 등 추정 모듈의 비중을 함께 반영합니다. 따라서 의료기관 API가 성공해도 전체 리포트를 90% 이상 실데이터로 표시하지 않습니다.</p>
+                        <p><strong>데이터 연동률</strong>은 기본 45%(심평원 의료기관 확보)에서 시작해 실제 진료과목 최대 15%, 카카오 반경 10%, SGIS 인구 12%, 건축물대장 8%(인허가만이면 4%), 서울 공식 매출·생활인구 8%를 더해 계산하며 <strong>상한은 92%</strong>입니다. 처방량·매약 매출이 내부 가정값으로 남아 있으므로 100%가 나오지 않습니다.</p>
                     </div>
                 </section>
 
@@ -860,7 +873,8 @@
                                 <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v3.1.0</strong></p>
+                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v4.1.0</strong></p>
+                                <p id="report-data-basis" class="mt-1 leading-relaxed">데이터 기준: 분석 실행 후 표시됩니다.</p>
                             </div>
                         </div>
                         <div class="bg-white border border-slate-200 rounded-xl p-4 print-card">
@@ -883,7 +897,7 @@
                     </div>
                     <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>본 자료는 약국 개설 후보지의 1차 검토용입니다. 서울시 공식 추정데이터·SGIS 지역통계·내부 추정모형을 특정 약국의 실제 처방·매출 또는 수익 보장값으로 해석해서는 안 됩니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v3.1.0</p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v4.1.0</p>
                     </div>
                 </div>
 
@@ -942,7 +956,7 @@
                 <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[58vh] overflow-y-auto">
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="header" checked><span><strong class="text-sm text-slate-800 block">리포트 제목·기준월</strong><small class="text-xs text-slate-500">분석 대상과 데이터 기준 정보</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-amber-300 bg-amber-50 cursor-not-allowed"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="disclaimer" checked disabled data-required="true"><span><strong class="text-sm text-amber-900 block">활용 안내·면책 고지 <em class="not-italic text-[10px]">(필수 포함)</em></strong><small class="text-xs text-amber-700">임장·책임 범위 안내는 제외할 수 없습니다.</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="summary" checked><span><strong class="text-sm text-slate-800 block">모형점수·신뢰도</strong><small class="text-xs text-slate-500">모형점수, 등급, 데이터 신뢰도</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="summary" checked><span><strong class="text-sm text-slate-800 block">모형점수·연동률</strong><small class="text-xs text-slate-500">모형점수, 등급, 데이터 연동률</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><strong class="text-sm text-slate-800 block">후보지 지도</strong><small class="text-xs text-slate-500">개설 후보지 위치 지형도</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><strong class="text-sm text-slate-800 block">메디컬 인프라</strong><small class="text-xs text-slate-500">병원·의사·경쟁 약국 현황</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><strong class="text-sm text-slate-800 block">매출·배후 인구</strong><small class="text-xs text-slate-500">약국 매출 및 주거 수요</small></span></label>
@@ -962,15 +976,16 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "3.1.0";
-        const VERSION_DISPLAY_SHORT = "v3.1";      // 화면 헤더 배지용 2자리 표기
-        const VERSION_DISPLAY_FULL = "v3.1.0";     // PDF·리포트 정보용 3자리 표기
+        const SYSTEM_VERSION = "4.1.0";
+        const VERSION_DISPLAY_SHORT = "v4.1";      // 화면 헤더 배지용 2자리 표기
+        const VERSION_DISPLAY_FULL = "v4.1.0";     // PDF·리포트 정보용 3자리 표기
 
         // [v3.0.0] 아래 함수들은 단일 정의만 존재하며, 뒤쪽 모듈 블록에서 대입 방식으로 정의됩니다.
         // 암묵적 전역 생성을 막기 위해 선언만 미리 둡니다.
         var startAnalysisWithParsing, aggregateDetailedMedicalData, loadKakaoNearbyPlaces,
             resetPrescriptionModel, reCalculateProfit, recalculateLocationScoreFromCurrentData,
-            generateMergedReportReason;
+            generateMergedReportReason, renderReportDataBasis, loadSeoulCommercialForCurrentAddress,
+            loadSgisForCurrentAddress;
         const PRESCRIPTION_MODEL_DEFAULTS = {
             // 처방건수는 시장에서 통용되는 진료과군 기준범위의 중앙값, 건당 수입은 2026년 공식 약국 수가를 대표 처방일수로 환산한 기본값입니다.
             main: { perDoctor: 75, unitFee: 11450, representativeDays: 14 },
@@ -1030,10 +1045,14 @@
         }
 
         async function fetchPublicApiPayload(url, timeoutMs = 12000) {
+            /* [v3.1.1] 실측 검증 반영
+               - allorigins.win/get : 실패 확인 → 사용 중단
+               - allorigins.win/raw : 정상 동작 확인 → 유일한 폴백으로 사용
+               - corsproxy.io       : HTTP 522(Cloudflare) 응답, 사실상 폐쇄 → 제거
+               프록시 의존 자체를 없애는 근본 해결은 v4.0.0(정적 데이터 전환)에서 진행합니다. */
             const attempts = [
                 url,
-                `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-                `https://corsproxy.io/?${encodeURIComponent(url)}`
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
             ];
             let lastError = null;
             for (const target of attempts) {
@@ -1043,7 +1062,8 @@
                     const response = await fetch(target, { signal: controller.signal });
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     let text = await response.text();
-                    if (target.includes('allorigins.win')) {
+                    // /raw 는 원본 본문을 그대로 반환하므로 별도 언랩이 필요 없습니다.
+                    if (target.includes('allorigins.win/get')) {
                         try { text = JSON.parse(text).contents || text; } catch(e) {}
                     }
                     if (!text || /SERVICE ERROR|Unauthorized|Forbidden/i.test(text)) throw new Error('공공데이터 응답 오류');
@@ -1117,19 +1137,28 @@
             return url.toString();
         }
 
+        /* [v3.1.1] 실측 검증 반영
+           numOfRows=1000 이 정상 동작함을 확인했습니다. (역삼동 641건 → 1페이지 전량 반환)
+           기존 100행 × 최대 5페이지 = 500건 상한에서는 641건 중 141건이 조회조차 되지 않아
+           반경 500m 이내 의료기관이 통째로 누락될 수 있었습니다.
+           호출 횟수도 5회 → 1회로 줄어듭니다. */
+        const HIRA_BASIS_ROWS_PER_PAGE = 1000;
+        const HIRA_BASIS_MAX_PAGES = 3;
+
         async function fetchHiraBasisPages(cleanDong, sidoCd) {
-            const rowsPerPage = 100;
+            const rowsPerPage = HIRA_BASIS_ROWS_PER_PAGE;
             const firstPayload = await fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, 1, rowsPerPage, sidoCd));
             const items = getPayloadItems(firstPayload);
             const totalCount = getPayloadTotalCount(firstPayload);
-            const totalPages = Math.min(5, Math.max(1, Math.ceil(totalCount / rowsPerPage)));
+            const neededPages = Math.max(1, Math.ceil(totalCount / rowsPerPage));
+            const totalPages = Math.min(HIRA_BASIS_MAX_PAGES, neededPages);
             if (totalPages > 1) {
                 const pagePayloads = await Promise.all(Array.from({ length: totalPages - 1 }, (_, index) =>
                     fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, index + 2, rowsPerPage, sidoCd)).catch(() => null)
                 ));
                 pagePayloads.filter(Boolean).forEach(payload => { items.push(...getPayloadItems(payload)); });
             }
-            return { items, totalCount, truncated: Math.ceil(totalCount / rowsPerPage) > totalPages };
+            return { items, totalCount, truncated: neededPages > totalPages };
         }
 
         async function executeHiraFetch(cleanDong, kakaoCoordinateObj) {
@@ -1709,6 +1738,7 @@
             const sync = document.getElementById('report-sync-line');
             // v2.10.1: 실제 연동 상태에 맞춰 데이터 출처 문구를 생성합니다. (기존 '매출/인구/유동 = 내부 추정모형' 일괄 표기 제거)
             if (sync) sync.innerText = `※ 의료기관·진료과목: 건강보험심사평가원 API ｜ 주변 병원·약국: 카카오 지도 300m·500m ｜ 배후 인구·가구·주택: SGIS ${d.sgisReal ? '실데이터' : '미적용'} ｜ 예상 매약·처방 가정: 내부 추정모형`;
+            renderReportDataBasis();
         }
 
         // [v3.0.0 정리] seededEstimate(주소 해시 기반 임의 추정) 함수 완전 삭제. 임의 숫자 생성 금지 원칙에 따라 대체 함수를 두지 않습니다.
@@ -2457,6 +2487,23 @@
             cap: 92
         };
 
+        /* [v3.1.1] PDF·리포트에 각 데이터의 기준 시점을 명시합니다.
+           생성 시점만으로는 "어느 시점 통계로 뽑은 자료인지" 추적할 수 없었습니다. */
+        renderReportDataBasis = function() {
+            const el = document.getElementById('report-data-basis');
+            if (!el) return;
+            const d = GLOBAL_CALC_DATA;
+            const today = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(new Date());
+            const parts = [
+                `심평원 의료기관 ${d.isRealData ? `${today} 조회` : '조회 실패'}`,
+                `카카오 장소 ${d.nearbySearchReal ? `${today} 조회` : '미적용'}`,
+                `SGIS 인구 ${d.sgisReal ? `${d.sgisYear || '-'}년 ${d.sgisScopeLevel || ''} 통계` : '미적용'}`,
+                `서울 매출·생활인구 ${d.seoulCommercialApplied ? `${formatQuarterLabel(d.seoulQuarter)} 기준` : '미적용'}`,
+                `건축물대장 ${d.buildingLedgerReal ? `${today} 조회` : (d.buildingPermitReal ? `건축인허가 계획정보 ${today} 조회` : '미확인')}`
+            ];
+            el.innerText = `데이터 기준: ${parts.join(' · ')}`;
+        };
+
         function computeReportConfidence() {
             const d = GLOBAL_CALC_DATA;
             if (!d.isRealData) return 0;
@@ -2591,38 +2638,11 @@
             return bestScore >= 60 ? best : null;
         }
 
-        function getSgisAccessToken() {
-            if (typeof window.accessToken === 'string' && window.accessToken) return window.accessToken;
-            try { if (typeof accessToken === 'string' && accessToken) return accessToken; } catch(e) { }
-            return '';
-        }
+        // [v4.1.0 정리] getSgisAccessToken 삭제 — SGIS 브라우저 직접 조회 경로가 제거되어 더 이상 호출되지 않습니다.
 
-        async function waitForSgisAccessToken(timeoutMs = 9000) {
-            const started = Date.now();
-            while (Date.now() - started < timeoutMs) {
-                const token = getSgisAccessToken();
-                if (token) return token;
-                await new Promise(resolve => setTimeout(resolve, 180));
-            }
-            throw new Error('SGIS JavaScript 인증 토큰을 확인하지 못했습니다. 등록 URL과 서비스 ID를 확인해 주세요.');
-        }
+        // [v4.1.0 정리] waitForSgisAccessToken 삭제 — SGIS 브라우저 직접 조회 경로가 제거되어 더 이상 호출되지 않습니다.
 
-        async function sgisFetch(path, params = {}, timeoutMs = 12000) {
-            const token = await waitForSgisAccessToken();
-            const url = new URL(`${CONFIG.SGIS_BASE_URL}/${path.replace(/^\//, '')}`);
-            Object.entries({ ...params, accessToken: token }).forEach(([key, value]) => {
-                if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
-            });
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), timeoutMs);
-            try {
-                const response = await fetch(url.toString(), { method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store', signal: controller.signal });
-                if (!response.ok) throw new Error(`SGIS HTTP ${response.status}`);
-                const data = await response.json();
-                if (Number(data.errCd) !== 0) throw new Error(data.errMsg || `SGIS 오류 ${data.errCd}`);
-                return data.result;
-            } finally { clearTimeout(timer); }
-        }
+        // [v4.1.0 정리] sgisFetch 삭제 — SGIS 브라우저 직접 조회 경로가 제거되어 더 이상 호출되지 않습니다.
 
         function getSgisAddressMeta() {
             const meta = GLOBAL_SITE_CONTEXT.sgisRegionMeta || {};
@@ -2648,105 +2668,11 @@
             try { localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), value })); } catch(e) { }
         }
 
-        async function resolveSgisAdministrativeArea(meta) {
-            const cacheKey = `sgis-adm-v270:${CONFIG.SGIS_STAT_YEAR}:${meta.region1}|${meta.region2}|${meta.region3Admin}|${meta.region3Legal}`;
-            const cached = sgisCacheRead(cacheKey);
-            if (cached) return cached;
+        // [v4.1.0 정리] resolveSgisAdministrativeArea 삭제 — SGIS 브라우저 직접 조회 경로가 제거되어 더 이상 호출되지 않습니다.
 
-            const sidoRows = await sgisFetch('stats/population.json', { year: CONFIG.SGIS_STAT_YEAR, low_search: 1 });
-            const sido = chooseRegionRow(sidoRows, [meta.region1]);
-            if (!sido) throw new Error(`SGIS 시도 코드를 찾지 못했습니다: ${meta.region1 || '지역명 없음'}`);
+        // [v4.1.0 정리] fetchSgisAgePopulation 삭제 — SGIS 브라우저 직접 조회 경로가 제거되어 더 이상 호출되지 않습니다.
 
-            if (!meta.region2) {
-                const resolved = { admCd: sido.adm_cd, admName: sido.adm_nm, scopeLevel: '시도' };
-                sgisCacheWrite(cacheKey, resolved);
-                return resolved;
-            }
-
-            const sigunguRows = await sgisFetch('stats/population.json', { year: CONFIG.SGIS_STAT_YEAR, adm_cd: sido.adm_cd, low_search: 1 });
-            const sigungu = chooseRegionRow(sigunguRows, [meta.region2, `${meta.region1}${meta.region2}`]);
-            if (!sigungu) {
-                const resolved = { admCd: sido.adm_cd, admName: sido.adm_nm, scopeLevel: '시도' };
-                sgisCacheWrite(cacheKey, resolved);
-                return resolved;
-            }
-
-            const dongTargets = [meta.region3Admin, meta.region3Legal].filter(Boolean);
-            if (dongTargets.length) {
-                try {
-                    const dongRows = await sgisFetch('stats/population.json', { year: CONFIG.SGIS_STAT_YEAR, adm_cd: sigungu.adm_cd, low_search: 1 });
-                    const dong = chooseRegionRow(dongRows, dongTargets);
-                    if (dong) {
-                        const resolved = { admCd: dong.adm_cd, admName: dong.adm_nm, scopeLevel: '행정동' };
-                        sgisCacheWrite(cacheKey, resolved);
-                        return resolved;
-                    }
-                } catch(e) { console.warn('SGIS 행정동 코드 조회 보정:', e); }
-            }
-
-            const resolved = { admCd: sigungu.adm_cd, admName: sigungu.adm_nm, scopeLevel: '시군구' };
-            sgisCacheWrite(cacheKey, resolved);
-            return resolved;
-        }
-
-        async function fetchSgisAgePopulation(admCd, ageType) {
-            try {
-                const rows = await sgisFetch('stats/searchpopulation.json', {
-                    year: CONFIG.SGIS_STAT_YEAR, gender: 0, adm_cd: admCd, low_search: 0, age_type: ageType
-                });
-                return sgisNumber(rows?.[0]?.population);
-            } catch(e) { return 0; }
-        }
-
-        async function fetchSgisDemographics(area) {
-            const cacheKey = `sgis-demo-v270:${CONFIG.SGIS_STAT_YEAR}:${area.admCd}`;
-            const cached = sgisCacheRead(cacheKey);
-            if (cached) return cached;
-
-            const ageDefinitions = [
-                ['10대', '31'], ['20대', '32'], ['30대', '33'], ['40대', '34'],
-                ['50대', '35'], ['60대', '36'], ['70대', '37'], ['80대', '38'], ['90대', '39']
-            ];
-
-            const [populationRows, singleRows, housingRows, under15, over65, ...ageValues] = await Promise.all([
-                sgisFetch('stats/population.json', { year: CONFIG.SGIS_STAT_YEAR, adm_cd: area.admCd, low_search: 0 }),
-                sgisFetch('stats/household.json', { year: CONFIG.SGIS_STAT_YEAR, adm_cd: area.admCd, low_search: 0, household_type: 'A0' }).catch(() => []),
-                sgisFetch('startupbiz/housesummary.json', { adm_cd: area.admCd }).catch(() => []),
-                fetchSgisAgePopulation(area.admCd, '22'),
-                fetchSgisAgePopulation(area.admCd, '24'),
-                ...ageDefinitions.map(([, code]) => fetchSgisAgePopulation(area.admCd, code))
-            ]);
-
-            const pop = populationRows?.[0] || {};
-            const single = singleRows?.[0] || {};
-            const housing = housingRows?.[0] || {};
-            const ageGroups = ageDefinitions.map(([label], index) => ({ label, population: sgisNumber(ageValues[index]) }));
-            const priorityPopulation = under15 + ageGroups.filter(row => ['50대','60대','70대','80대','90대'].includes(row.label)).reduce((sum, row) => sum + row.population, 0);
-
-            const value = {
-                real: true,
-                year: CONFIG.SGIS_STAT_YEAR,
-                admCd: area.admCd,
-                admName: pop.adm_nm || area.admName,
-                scopeLevel: area.scopeLevel,
-                totalPopulation: sgisNumber(pop.tot_ppltn),
-                totalHouseholds: sgisNumber(pop.tot_family),
-                totalHousing: sgisNumber(pop.tot_house),
-                avgAge: Number(pop.avg_age) || null,
-                avgHouseholdSize: Number(pop.avg_fmember_cnt) || null,
-                apartmentHouseholds: housing.apart_cnt !== undefined ? sgisNumber(housing.apart_cnt) : null,
-                rowHouseholds: housing.row_house_cnt !== undefined ? sgisNumber(housing.row_house_cnt) : null,
-                detachedHouseholds: housing.detach_house_cnt !== undefined ? sgisNumber(housing.detach_house_cnt) : null,
-                officetelHouseholds: housing.officetel_cnt !== undefined ? sgisNumber(housing.officetel_cnt) : null,
-                singleHouseholds: single.household_cnt !== undefined ? sgisNumber(single.household_cnt) : null,
-                under15,
-                over65,
-                priorityPopulation,
-                ageGroups
-            };
-            sgisCacheWrite(cacheKey, value);
-            return value;
-        }
+        // [v4.1.0 정리] fetchSgisDemographics 삭제 — SGIS 브라우저 직접 조회 경로가 제거되어 더 이상 호출되지 않습니다.
 
         function formatSgisCount(value, unit) {
             return Number.isFinite(Number(value)) ? `${Number(value).toLocaleString()}${unit}` : '미제공';
@@ -2773,7 +2699,13 @@
             const age = document.getElementById('lbl-target-age'); if (age) age.innerText = '연령 통계 조회 실패';
             const strategy = document.getElementById('lbl-target-bullseye'); if (strategy) strategy.innerText = '연령별 상품전략은 현장 및 별도 통계 확인 필요';
             const message = document.getElementById('sgis-data-message');
-            if (message) message.innerText = `SGIS 실데이터를 불러오지 못했습니다. 임의 추정값은 표시하지 않습니다. (${error?.message || '원인 미상'})`;
+            /* [v3.1.1] 실측 검증 결과
+               SGIS의 JavaScript 인증(javascriptAuth)은 지도 SDK(sop)를 내려줄 뿐
+               Data API용 accessToken을 제공하지 않습니다. 따라서 브라우저 단독으로는
+               인구·가구·주택 통계 조회가 구조적으로 불가능합니다.
+               (accessToken 발급에는 보안 Key가 필요하며, 이를 정적 페이지에 넣을 수 없습니다.)
+               v4.0.0에서 서버측 사전 수집 방식으로 전환합니다. */
+            if (message) message.innerHTML = `SGIS 배후 인구 통계를 불러오지 못했습니다. <strong>임의 추정값은 표시하지 않습니다.</strong><br><span class="text-slate-500">원인: SGIS JavaScript 인증은 지도 SDK 전용이며 통계 Data API 토큰을 제공하지 않습니다. 서버측 사전 수집 방식으로 전환 예정입니다. (${escapeHtml(String(error?.message || '원인 미상'))})</span>`;
             recalculateLocationScoreFromCurrentData();
             updateReportDataStatus();
             generateMergedReportReason();
@@ -2837,22 +2769,7 @@
             generateMergedReportReason();
         }
 
-        async function loadSgisForCurrentAddress() {
-            const requestToken = ++GLOBAL_SGIS_REQUEST_TOKEN;
-            setSgisLoadingUi();
-            try {
-                const meta = getSgisAddressMeta();
-                if (!meta.region1) throw new Error('카카오 주소 결과에서 시도 정보를 확인하지 못했습니다.');
-                const area = await resolveSgisAdministrativeArea(meta);
-                const data = await fetchSgisDemographics(area);
-                if (requestToken !== GLOBAL_SGIS_REQUEST_TOKEN) return;
-                renderSgisDemographics(data);
-            } catch(error) {
-                if (requestToken !== GLOBAL_SGIS_REQUEST_TOKEN) return;
-                console.error('SGIS 데이터 연동 실패:', error);
-                setSgisFailureUi(error);
-            }
-        }
+        // [v4.1.0 정리] 구버전 loadSgisForCurrentAddress(브라우저 직접 조회) 삭제. 파일 하단 정적 데이터 버전만 사용합니다.
 
         // 카카오 주소 결과에서 행정구역명을 보관합니다.
         const V26_SET_TARGET_CONTEXT_FOR_SGIS = setTargetContext;
@@ -3051,8 +2968,11 @@
             const estimatedRow = Math.floor(targetIndex * avgRowsPerArea) + 1;
             const pageSize = CONFIG.SEOUL_COMMERCIAL_PAGE_SIZE || 1000;
             const estimatedPageStart = Math.floor((estimatedRow - 1) / pageSize) * pageSize + 1;
+            /* [v3.1.1] 실측 결과 분기 필터 적용 시에도 16,831행(1,000행 × 17페이지)입니다.
+               기존 7페이지 탐색으로는 구조적으로 못 찾는 경우가 있어 탐색 폭을 넓혔습니다.
+               프록시 응답이 2~4초/페이지라 최악의 경우 느립니다. v4.0.0에서 정적 데이터로 전환합니다. */
             const pageStarts = [];
-            [0, -1, 1, -2, 2, -3, 3].forEach(offset => {
+            [0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7, -8, 8].forEach(offset => {
                 const start = Math.max(1, Math.min(total, estimatedPageStart + offset * pageSize));
                 if (!pageStarts.includes(start)) pageStarts.push(start);
             });
@@ -3214,7 +3134,7 @@
             setSeoulFlowUnavailableUi('조회 실패');
         }
 
-        async function loadSeoulCommercialForCurrentAddress() {
+        loadSeoulCommercialForCurrentAddress = async function() {
             const requestToken = ++GLOBAL_SEOUL_REQUEST_TOKEN;
             if (!isSeoulAddressContext()) { setNonSeoulCommercialUi(); updateReportDataStatus(); return; }
             setSeoulCommercialLoadingUi();
@@ -3243,7 +3163,7 @@
                 setSeoulCommercialFailureUi(error);
                 updateReportDataStatus();
             }
-        }
+        };
 
         // 카카오 주소 결과의 행정동 코드와 지역명을 서울 데이터 매칭용으로 보관합니다.
         const V27_SET_TARGET_CONTEXT_FOR_SEOUL = setTargetContext;
@@ -3888,6 +3808,273 @@
                 };
             }
             return V29_SAVE_REPORT_HISTORY_FOR_PERMIT(selectedSections);
+        };
+
+        /* ==========================================================================
+           v4.0.0  서울 상권데이터 정적 전환
+           --------------------------------------------------------------------------
+           [배경 — 실측 검증 결과]
+             · 서울 OpenAPI는 HTTP 전용이라 HTTPS 페이지에서 직접 호출 불가 (Mixed Content)
+             · allorigins.win/get 실패 · corsproxy.io 폐쇄(522) 확인
+             · 매출 서비스는 분기 필터 적용 후에도 16,831행(17페이지) → 브라우저 탐색 비현실적
+             · 프록시 응답 2~4초/페이지, 대용량 요청은 타임아웃 빈발
+
+           [변경]
+             GitHub Actions가 분기 1회 수집해 커밋한 data/seoul-commercial.json 을 우선 사용합니다.
+             정적 파일이 없거나 해당 행정동이 없으면 기존 API 경로로 자동 폴백합니다.
+           ========================================================================== */
+        let GLOBAL_SEOUL_STATIC_DATASET = null;   // null=미시도, false=사용불가, object=로드완료
+        let GLOBAL_SEOUL_STATIC_PROMISE = null;
+
+        async function loadSeoulStaticDataset() {
+            if (GLOBAL_SEOUL_STATIC_DATASET !== null) return GLOBAL_SEOUL_STATIC_DATASET;
+            if (GLOBAL_SEOUL_STATIC_PROMISE) return GLOBAL_SEOUL_STATIC_PROMISE;
+
+            GLOBAL_SEOUL_STATIC_PROMISE = (async () => {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), CONFIG.SEOUL_STATIC_TIMEOUT_MS);
+                try {
+                    const response = await fetch(CONFIG.SEOUL_STATIC_DATA_URL, { signal: controller.signal, cache: 'no-cache' });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    if (!data || !data.dongs || !data.quarter) throw new Error('정적 데이터 구조를 확인하지 못했습니다.');
+                    GLOBAL_SEOUL_STATIC_DATASET = data;
+                    console.log(`서울 정적 상권데이터 로드 완료: ${data.quarter} 기준 · 행정동 ${Object.keys(data.dongs).length}개`);
+                } catch (error) {
+                    console.warn('서울 정적 상권데이터를 사용할 수 없어 API 경로로 폴백합니다:', error.message);
+                    GLOBAL_SEOUL_STATIC_DATASET = false;
+                } finally {
+                    clearTimeout(timer);
+                    GLOBAL_SEOUL_STATIC_PROMISE = null;
+                }
+                return GLOBAL_SEOUL_STATIC_DATASET;
+            })();
+            return GLOBAL_SEOUL_STATIC_PROMISE;
+        }
+
+        // 카카오 행정동코드(h_code) 우선, 실패 시 행정동명으로 매칭합니다.
+        function matchSeoulStaticDong(dataset, meta) {
+            const dongs = dataset.dongs || {};
+            const targetCode = normalizeSeoulAdminCode(meta.hCode || '');
+            if (targetCode && dongs[targetCode]) return { code: targetCode, entry: dongs[targetCode], matchedBy: '행정동코드' };
+
+            const targetName = normalizeSeoulName(meta.region3Admin || meta.region3Legal || '');
+            if (!targetName) return null;
+            for (const [code, entry] of Object.entries(dongs)) {
+                if (normalizeSeoulName(entry.name) === targetName) return { code, entry, matchedBy: '행정동명' };
+            }
+            for (const [code, entry] of Object.entries(dongs)) {
+                const name = normalizeSeoulName(entry.name);
+                if (name && (name.includes(targetName) || targetName.includes(name))) return { code, entry, matchedBy: '행정동명 부분일치' };
+            }
+            return null;
+        }
+
+        function formatStaticCollectedAt(iso) {
+            const date = new Date(iso);
+            if (Number.isNaN(date.getTime())) return '수집 시점 미상';
+            return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(date);
+        }
+
+        const V40_LOAD_SEOUL_VIA_API = loadSeoulCommercialForCurrentAddress;
+        loadSeoulCommercialForCurrentAddress = async function() {
+            if (!isSeoulAddressContext()) { setNonSeoulCommercialUi(); updateReportDataStatus(); return; }
+
+            setSeoulCommercialLoadingUi();
+            const requestToken = ++GLOBAL_SEOUL_REQUEST_TOKEN;
+            try {
+                const dataset = await loadSeoulStaticDataset();
+                if (requestToken !== GLOBAL_SEOUL_REQUEST_TOKEN) return;
+                if (!dataset) return V40_LOAD_SEOUL_VIA_API();
+
+                const meta = GLOBAL_SITE_CONTEXT.seoulRegionMeta || GLOBAL_SITE_CONTEXT.sgisRegionMeta || {};
+                const matched = matchSeoulStaticDong(dataset, meta);
+                if (!matched) {
+                    console.warn('정적 데이터에서 후보지 행정동을 찾지 못해 API 경로로 폴백합니다.');
+                    return V40_LOAD_SEOUL_VIA_API();
+                }
+
+                const { code, entry, matchedBy } = matched;
+                const area = { ADSTRD_CD: code, ADSTRD_CD_NM: entry.name };
+                const quarter = dataset.quarter;
+
+                if (entry.sales && entry.stores) {
+                    renderSeoulSalesAndStores(entry.sales, entry.stores, area, quarter);
+                } else {
+                    setSeoulCommercialFailureUi(new Error(`${entry.name}의 의약품 업종 매출·점포 자료가 수집분에 없습니다.`));
+                }
+                if (entry.flow) {
+                    renderSeoulFlow(entry.flow, area, quarter);
+                } else {
+                    setSeoulFlowUnavailableUi('자료 미제공');
+                }
+
+                GLOBAL_SEOUL_COMMERCIAL_DATA = {
+                    applied: true, quarter, adminCode: code, adminName: entry.name,
+                    sales: entry.sales, stores: entry.stores, flow: entry.flow, staticDataset: true
+                };
+                Object.assign(GLOBAL_CALC_DATA, {
+                    seoulStaticApplied: true,
+                    seoulStaticGeneratedAt: dataset.generatedAt,
+                    seoulStaticMatchedBy: matchedBy
+                });
+
+                // 정적 데이터임을 화면에 명시합니다. (수집 시점과 매칭 근거를 함께 노출)
+                const marketMessage = document.getElementById('seoul-market-message');
+                if (marketMessage) {
+                    marketMessage.innerText += ` 본 수치는 ${formatStaticCollectedAt(dataset.generatedAt)}에 서울 열린데이터광장에서 수집해 시스템에 저장한 ${formatQuarterLabel(quarter)} 공식 추정데이터이며, ${matchedBy}(으)로 후보지 행정동과 매칭했습니다.`;
+                }
+
+                updateReportDataStatus();
+                recalculateLocationScoreFromCurrentData();
+                generateMergedReportReason();
+            } catch (error) {
+                if (requestToken !== GLOBAL_SEOUL_REQUEST_TOKEN) return;
+                console.error('서울 정적 데이터 적용 실패 → API 폴백:', error);
+                return V40_LOAD_SEOUL_VIA_API();
+            }
+        };
+
+        // 데이터 기준일 표기에 정적 수집 시점을 함께 남깁니다.
+        const V40_RENDER_DATA_BASIS = renderReportDataBasis;
+        renderReportDataBasis = function() {
+            V40_RENDER_DATA_BASIS();
+            const el = document.getElementById('report-data-basis');
+            if (el && GLOBAL_CALC_DATA.seoulStaticApplied) {
+                el.innerText += ` (서울 데이터 수집일 ${formatStaticCollectedAt(GLOBAL_CALC_DATA.seoulStaticGeneratedAt)})`;
+            }
+        };
+
+        /* ==========================================================================
+           v4.1.0  SGIS 인구통계 정적 전환
+           --------------------------------------------------------------------------
+           [배경 — 실측 검증 결과]
+             · SGIS JavaScript 인증(auth/javascriptAuth)은 320KB 지도 SDK(sop)만 반환
+             · 통계 Data API용 accessToken은 제공하지 않음 → 브라우저 단독 조회 불가
+             · accessToken 발급에는 보안 Key가 필요하나 정적 HTML에 둘 수 없음
+           [변경]
+             GitHub Actions가 연 1회 수집해 커밋한 data/sgis/{시도코드}.json 을 사용합니다.
+             브라우저에는 SGIS 인증값이 전혀 남지 않습니다.
+           ========================================================================== */
+        let GLOBAL_SGIS_STATIC_INDEX = null;      // null=미시도, false=사용불가
+        const GLOBAL_SGIS_SIDO_CACHE = new Map();
+
+        async function fetchStaticJson(url, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } finally { clearTimeout(timer); }
+        }
+
+        async function loadSgisStaticIndex() {
+            if (GLOBAL_SGIS_STATIC_INDEX !== null) return GLOBAL_SGIS_STATIC_INDEX;
+            try {
+                const data = await fetchStaticJson(`${CONFIG.SGIS_STATIC_BASE}/index.json`, CONFIG.SGIS_STATIC_TIMEOUT_MS);
+                if (!data || !Array.isArray(data.sidos) || !data.sidos.length) throw new Error('인덱스 구조 확인 실패');
+                GLOBAL_SGIS_STATIC_INDEX = data;
+                console.log(`SGIS 정적 통계 인덱스 로드: ${data.year}년 · 시도 ${data.sidos.length}개${data.partial ? ' (부분 수집)' : ''}`);
+            } catch (error) {
+                console.warn('SGIS 정적 통계 인덱스를 불러오지 못했습니다:', error.message);
+                GLOBAL_SGIS_STATIC_INDEX = false;
+            }
+            return GLOBAL_SGIS_STATIC_INDEX;
+        }
+
+        async function loadSgisStaticSido(sidoCd) {
+            if (GLOBAL_SGIS_SIDO_CACHE.has(sidoCd)) return GLOBAL_SGIS_SIDO_CACHE.get(sidoCd);
+            const data = await fetchStaticJson(`${CONFIG.SGIS_STATIC_BASE}/${sidoCd}.json`, CONFIG.SGIS_STATIC_TIMEOUT_MS);
+            GLOBAL_SGIS_SIDO_CACHE.set(sidoCd, data);
+            return data;
+        }
+
+        // 기존 이름 매칭 로직(scoreRegionMatch)을 그대로 재사용합니다.
+        function pickStaticArea(entries, targetNames) {
+            const rows = (entries || []).map(entry => ({ adm_nm: entry.admNm, __entry: entry }));
+            const chosen = chooseRegionRow(rows, targetNames);
+            return chosen ? chosen.__entry : null;
+        }
+
+        function toSgisDemographics(entry, scopeLevel, year) {
+            const ageGroups = Array.isArray(entry.ageGroups) ? entry.ageGroups : [];
+            return {
+                real: true,
+                year,
+                admCd: entry.admCd,
+                admName: entry.admNm,
+                scopeLevel,
+                totalPopulation: entry.totalPopulation || 0,
+                totalHouseholds: entry.totalHouseholds || 0,
+                totalHousing: entry.totalHousing || 0,
+                avgAge: entry.avgAge ?? null,
+                avgHouseholdSize: entry.avgHouseholdSize ?? null,
+                apartmentHouseholds: entry.apartmentHouseholds ?? null,
+                rowHouseholds: entry.rowHouseholds ?? null,
+                detachedHouseholds: entry.detachedHouseholds ?? null,
+                officetelHouseholds: entry.officetelHouseholds ?? null,
+                singleHouseholds: entry.singleHouseholds ?? null,
+                under15: entry.under15 || 0,
+                over65: entry.over65 || 0,
+                priorityPopulation: entry.priorityPopulation || 0,
+                ageGroups
+            };
+        }
+
+        loadSgisForCurrentAddress = async function() {
+            const requestToken = ++GLOBAL_SGIS_REQUEST_TOKEN;
+            setSgisLoadingUi();
+            try {
+                const meta = getSgisAddressMeta();
+                if (!meta.region1) throw new Error('카카오 주소 결과에서 시도 정보를 확인하지 못했습니다.');
+
+                const index = await loadSgisStaticIndex();
+                if (requestToken !== GLOBAL_SGIS_REQUEST_TOKEN) return;
+                if (!index) throw new Error('인구통계 정적 데이터가 아직 생성되지 않았습니다. GitHub Actions에서 「SGIS 인구통계 수집」 워크플로를 1회 실행해 주세요.');
+
+                const sidoEntry = pickStaticArea(index.sidos, [meta.region1]);
+                if (!sidoEntry) throw new Error(`수집된 통계에서 시도를 찾지 못했습니다: ${meta.region1}`);
+
+                const sidoData = await loadSgisStaticSido(sidoEntry.admCd);
+                if (requestToken !== GLOBAL_SGIS_REQUEST_TOKEN) return;
+
+                let resolved = toSgisDemographics(sidoData.sido, '시도', sidoData.year);
+                const sigungu = meta.region2
+                    ? pickStaticArea(sidoData.sigungus, [meta.region2, `${meta.region1} ${meta.region2}`])
+                    : null;
+
+                if (sigungu) {
+                    resolved = toSgisDemographics(sigungu, '시군구', sidoData.year);
+                    const dong = pickStaticArea(sigungu.dongs, [meta.region3Admin, meta.region3Legal].filter(Boolean));
+                    if (dong) resolved = toSgisDemographics(dong, '행정동', sidoData.year);
+                }
+
+                Object.assign(GLOBAL_CALC_DATA, {
+                    sgisStaticApplied: true,
+                    sgisStaticGeneratedAt: sidoData.generatedAt
+                });
+                renderSgisDemographics(resolved);
+
+                const message = document.getElementById('sgis-data-message');
+                if (message) {
+                    message.innerText += ` 본 통계는 ${formatStaticCollectedAt(sidoData.generatedAt)}에 국가데이터처 SGIS에서 수집해 시스템에 저장한 ${sidoData.year}년 인구주택총조사 ${resolved.scopeLevel} 단위 값입니다.`;
+                }
+            } catch (error) {
+                if (requestToken !== GLOBAL_SGIS_REQUEST_TOKEN) return;
+                console.error('SGIS 정적 통계 적용 실패:', error);
+                setSgisFailureUi(error);
+            }
+        };
+
+        // 데이터 기준일 표기에 SGIS 수집 시점을 추가합니다.
+        const V41_RENDER_DATA_BASIS = renderReportDataBasis;
+        renderReportDataBasis = function() {
+            V41_RENDER_DATA_BASIS();
+            const el = document.getElementById('report-data-basis');
+            if (el && GLOBAL_CALC_DATA.sgisStaticApplied) {
+                el.innerText += ` (SGIS 수집일 ${formatStaticCollectedAt(GLOBAL_CALC_DATA.sgisStaticGeneratedAt)})`;
+            }
         };
 
 </script>
