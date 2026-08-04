@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v2.10.1</title>
+    <title>약국 개설 전용 상권분석 시스템 v3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -226,7 +226,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v2.10.1</span>
+                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v3.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -650,7 +650,7 @@
                                 <span class="text-[10px] font-bold text-slate-400">월 운영일수 자동 반영</span>
                             </div>
                             <div class="flex justify-between text-xs"><span class="text-slate-500">예상 월 조제 수입</span><span id="lbl-month-presc-rev-detail" class="font-bold text-slate-800">0원</span></div>
-                            <div class="flex justify-between text-xs"><span class="text-slate-500">예상 월 매약 매출</span><span id="lbl-month-otc-rev" class="font-bold text-slate-800">0원</span></div>
+                            <div class="flex justify-between items-center text-xs gap-2"><span class="text-slate-500">예상 월 매약 매출 <em class="not-italic text-[9px] text-amber-600 font-bold">내부 가정값·수정 가능</em></span><span class="flex items-center gap-1"><input type="number" id="input-otc-revenue" value="0" min="0" step="10" oninput="onOtcRevenueChanged()" class="number-input-compact w-20 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span><span id="lbl-month-otc-rev" class="hidden">0원</span></span></div>
                             <div class="flex justify-between text-xs bg-slate-50 rounded-lg p-3"><span class="font-bold text-slate-700">예상 월 총매출</span><span id="lbl-month-total-rev" class="font-black text-blue-700">0원</span></div>
                         </div>
                         <div id="cost-analysis-output" class="hidden print-card border border-slate-800 rounded-xl p-5 bg-slate-900 text-white card-shadow space-y-3">
@@ -858,7 +858,7 @@
                                 <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                                <p>시스템 버전: <strong class="text-slate-700">v2.10.1</strong></p>
+                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v3.0.0</strong></p>
                             </div>
                         </div>
                         <div class="bg-white border border-slate-200 rounded-xl p-4 print-card">
@@ -881,7 +881,7 @@
                     </div>
                     <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>본 자료는 약국 개설 후보지의 1차 검토용입니다. 서울시 공식 추정데이터·SGIS 지역통계·내부 추정모형을 특정 약국의 실제 처방·매출 또는 수익 보장값으로 해석해서는 안 됩니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v2.10.1</p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v3.0.0</p>
                     </div>
                 </div>
 
@@ -960,7 +960,15 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "2.10.1";
+        const SYSTEM_VERSION = "3.0.0";
+        const VERSION_DISPLAY_SHORT = "v3.0";      // 화면 헤더 배지용 2자리 표기
+        const VERSION_DISPLAY_FULL = "v3.0.0";     // PDF·리포트 정보용 3자리 표기
+
+        // [v3.0.0] 아래 함수들은 단일 정의만 존재하며, 뒤쪽 모듈 블록에서 대입 방식으로 정의됩니다.
+        // 암묵적 전역 생성을 막기 위해 선언만 미리 둡니다.
+        var startAnalysisWithParsing, aggregateDetailedMedicalData, loadKakaoNearbyPlaces,
+            resetPrescriptionModel, reCalculateProfit, recalculateLocationScoreFromCurrentData,
+            generateMergedReportReason;
         const PRESCRIPTION_MODEL_DEFAULTS = {
             // 처방건수는 시장에서 통용되는 진료과군 기준범위의 중앙값, 건당 수입은 2026년 공식 약국 수가를 대표 처방일수로 환산한 기본값입니다.
             main: { perDoctor: 75, unitFee: 11450, representativeDays: 14 },
@@ -1011,29 +1019,7 @@
             reCalculateProfit();
         }
 
-        function startAnalysisWithParsing() {
-            const rawAddress = document.getElementById('input-address').value.trim();
-            if(!rawAddress) { alert("분석할 지번 또는 도로명 주소를 기입해 주세요."); return; }
-
-            document.getElementById('loading-spinner').classList.remove('hidden');
-            document.getElementById('report-zone').classList.add('hidden');
-            onPyeongChanged();
-
-            if (typeof kakao !== 'undefined' && kakao.maps && kakao.maps.services) {
-                const geocoder = new kakao.maps.services.Geocoder();
-                geocoder.addressSearch(rawAddress, function(result, status) {
-                    if (status === kakao.maps.services.Status.OK) {
-                        let parsedDong = result[0].address ? result[0].address.region_3depth_name : result[0].road_address.region_3depth_name;
-                        if(!parsedDong) {
-                            const match = rawAddress.match(/([가-힣\d]+동|[가-힣]+읍|[가-힣]+면)/);
-                            parsedDong = match ? match[1] : rawAddress;
-                        }
-                        executeHiraFetch(parsedDong, result[0]);
-                    } else { fallbackStandardFlow(rawAddress); }
-                });
-            } else { fallbackStandardFlow(rawAddress); }
-        }
-
+        // [v3.0.0 정리] 구버전 startAnalysisWithParsing 원본 정의 삭제. 아래 단일 정의만 사용합니다.
         function fallbackStandardFlow(address) {
             let cleanAddress = address;
             const dongMatch = address.match(/([가-힣\d]+동|[가-힣]+읍|[가-힣]+면)/);
@@ -1173,7 +1159,9 @@
         }
 
         function renderFinalDashboard(address, mm, md, sm1, sd1, sm2, sd2, rx, isReal, kakaoCoordinateObj, hiraFacilities = []) {
-            const isSeoul = address.includes("서울") || document.getElementById('input-address').value.includes("서울");
+            // [v3.0.0] 서울 판정을 카카오 행정구역(region_1depth_name) 기준으로 변경합니다.
+            //          "강남구 테헤란로 …"처럼 시도명이 빠진 입력도 정확히 서울로 판정됩니다.
+            const isSeoul = resolveIsSeoulRegion(address);
             const supplyPoints = Math.min(38, (md * 6) + (sd1 * 3) + (sd2 * 1));
             const doctorBalance = (md + sd1 + sd2) / Math.max(1, rx + 1);
             const balancePoints = Math.min(17, doctorBalance * 5);
@@ -1183,7 +1171,7 @@
 
             GLOBAL_CALC_DATA = {
                 address: address, mainMedical: mm, mainDoctors: md, subMedical1: sm1, subDoctors1: sd1,
-                subMedical2: sm2, subDoctors2: sd2, isSeoul: isSeoul, monthOtcRevenue: (isSeoul ? 15500000 : 9000000),
+                subMedical2: sm2, subDoctors2: sd2, isSeoul: isSeoul, monthOtcRevenue: (isSeoul ? OTC_REVENUE_DEFAULTS.seoul : OTC_REVENUE_DEFAULTS.nonSeoul),
                 baseScore: baseScore, existingPharmacy: rx, existingPharmacyAdminDong: rx, competitionEquivalent: rx, nearbySearchReal: false,
                 nearbyHospitals300: 0, nearbyHospitals500: 0, nearbyPharmacies300: 0, nearbyPharmacies500: 0, isRealData: isReal,
                 hiraDetailReal: false, hiraDetailCoverage: 0, hiraDetailScope: '', hiraFacilities, hiraSubjectSummary: [],
@@ -1203,8 +1191,8 @@
 
             // v2.10.1: 의료기관 실데이터가 없으면 점수·신뢰도를 임의로 산출해 표시하지 않습니다.
             document.getElementById('lbl-score').innerText = isReal ? `${baseScore} / 100 점` : '판정 불가';
-            // 의료기관·주소는 실데이터여도 매출·주거·유동 모듈이 추정이므로 전체 신뢰도를 보수적으로 표시
-            const confidence = isReal ? 68 : 0;
+            // [v3.0.0] 신뢰도는 computeReportConfidence() 단일 산식만 사용합니다.
+            const confidence = computeReportConfidence();
             GLOBAL_CALC_DATA.confidence = confidence;
             document.getElementById('lbl-confidence').innerText = isReal ? `${confidence}%` : '산출 불가';
             document.getElementById('lbl-score-formula').innerText = isReal
@@ -1285,6 +1273,7 @@
             document.getElementById('lbl-target-age').innerText = 'SGIS 조회 대기';
             document.getElementById('lbl-target-bullseye').innerText = '연령 통계 확인 후 산출';
 
+            initializeOtcRevenueInput(isSeoul);
             resetOptionalCostState();
             initializePrescriptionModel();
             reCalculateBudget();
@@ -1379,49 +1368,7 @@
             return results;
         }
 
-        function aggregateDetailedMedicalData(successRows, failedFacilities) {
-            const groupTotals = { main: { facilities: 0, doctors: 0 }, stable: { facilities: 0, doctors: 0 }, support: { facilities: 0, doctors: 0 } };
-            const subjectMap = new Map();
-            successRows.forEach(({ facility, items }) => {
-                const weights = { main: 0, stable: 0, support: 0 };
-                (items || []).forEach(item => {
-                    const group = classifyTextGroup(item.subjectName);
-                    const count = Math.max(0, Number(item.specialistCount || 0) + Number(item.generalCount || 0));
-                    weights[group] += count;
-                    subjectMap.set(item.subjectName, (subjectMap.get(item.subjectName) || 0) + count);
-                });
-                let dominant = ['main', 'stable', 'support'].sort((a, b) => weights[b] - weights[a])[0];
-                if (weights.main + weights.stable + weights.support === 0) {
-                    dominant = classifyTextGroup((items || []).map(item => item.subjectName).join(' ') || facility.name);
-                    weights[dominant] = Math.max(1, facility.doctorTotal || 1);
-                }
-                groupTotals[dominant].facilities += 1;
-                const declared = weights.main + weights.stable + weights.support;
-                const doctorTotal = Math.max(0, Number(facility.doctorTotal || 0), declared);
-                if (declared > 0) {
-                    const scale = doctorTotal > 0 && declared > doctorTotal ? doctorTotal / declared : 1;
-                    ['main', 'stable', 'support'].forEach(group => { groupTotals[group].doctors += weights[group] * scale; });
-                    const assigned = ['main', 'stable', 'support'].reduce((sum, group) => sum + weights[group] * scale, 0);
-                    if (doctorTotal > assigned) groupTotals[dominant].doctors += doctorTotal - assigned;
-                } else groupTotals[dominant].doctors += doctorTotal;
-            });
-            (failedFacilities || []).forEach(facility => {
-                const group = classifyTextGroup(facility.name);
-                groupTotals[group].facilities += 1;
-                groupTotals[group].doctors += Number(facility.doctorTotal || 1);
-            });
-            const subjectSummary = [...subjectMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([name, count]) => ({ name, count: Math.round(count) }));
-            return {
-                mm: groupTotals.main.facilities,
-                md: Math.round(groupTotals.main.doctors),
-                sm1: groupTotals.stable.facilities,
-                sd1: Math.round(groupTotals.stable.doctors),
-                sm2: groupTotals.support.facilities,
-                sd2: Math.round(groupTotals.support.doctors),
-                subjectSummary
-            };
-        }
-
+        // [v3.0.0 정리] 구버전 aggregateDetailedMedicalData 원본 정의 삭제. 아래 단일 정의만 사용합니다.
         async function loadHiraDetailedSubjects(kakaoCoordinateObj) {
             const status = document.getElementById('hira-detail-status');
             const coverageEl = document.getElementById('hira-detail-coverage');
@@ -1526,6 +1473,17 @@
             }
         }
 
+        // [v3.0.0] 서울 판정 단일 함수. 카카오 지오코딩의 시도명을 1순위로 사용합니다.
+        function resolveIsSeoulRegion(fallbackText = '') {
+            const meta = (typeof GLOBAL_SITE_CONTEXT !== 'undefined' && GLOBAL_SITE_CONTEXT)
+                ? (GLOBAL_SITE_CONTEXT.seoulRegionMeta || GLOBAL_SITE_CONTEXT.sgisRegionMeta || {})
+                : {};
+            const region1 = String(meta.region1 || '');
+            if (region1) return /^서울/.test(region1);
+            const raw = `${fallbackText || ''} ${document.getElementById('input-address')?.value || ''}`;
+            return /서울/.test(raw);
+        }
+
         function clearKakaoOverlays() {
             (GLOBAL_KAKAO_OVERLAYS || []).forEach(item => {
                 try {
@@ -1608,64 +1566,8 @@
             (pharmacies || []).slice(0, 15).forEach(item => addMarker(item, 'pharmacy', 'P'));
         }
 
-        async function loadKakaoNearbyPlaces(centerLatLng, mapInstance) {
-            const token = ++GLOBAL_NEARBY_SEARCH_TOKEN;
-            const status = document.getElementById('nearby-search-status');
-            if (status) { status.className = 'source-chip source-input self-start sm:self-auto'; status.innerText = '반경 장소 검색 중'; }
-            try {
-                const [hospitals500, pharmacies500] = await Promise.all([searchKakaoCategoryAll('HP8', centerLatLng, 500), searchKakaoCategoryAll('PM9', centerLatLng, 500)]);
-                if (token !== GLOBAL_NEARBY_SEARCH_TOKEN) return;
-                const hospitals300 = hospitals500.filter(item => Number(item.distance || Infinity) <= 300);
-                const pharmacies300 = pharmacies500.filter(item => Number(item.distance || Infinity) <= 300);
-                const competitionEquivalent = pharmacies300.length + Math.max(0, pharmacies500.length - pharmacies300.length) * 0.5;
-                Object.assign(GLOBAL_CALC_DATA, { nearbySearchReal: true, nearbyHospitals300: hospitals300.length, nearbyHospitals500: hospitals500.length, nearbyPharmacies300: pharmacies300.length, nearbyPharmacies500: pharmacies500.length, existingPharmacy: pharmacies500.length, competitionEquivalent });
-                document.getElementById('stat-hospital-300').innerText = `${hospitals300.length}개소`;
-                document.getElementById('stat-hospital-500').innerText = `${hospitals500.length}개소`;
-                document.getElementById('stat-pharmacy-300').innerText = `${pharmacies300.length}개소`;
-                document.getElementById('stat-pharmacy-500').innerText = `${pharmacies500.length}개소`;
-                document.getElementById('tbl-existing-pharmacy').innerText = `500m ${pharmacies500.length}개 / 300m ${pharmacies300.length}개`;
-                renderNearbyPlaceList('nearby-hospital-list', hospitals500, '병원·의원');
-                renderNearbyPlaceList('nearby-pharmacy-list', pharmacies500, '약국');
-                document.getElementById('nearby-competition-basis').innerHTML = `<strong class="text-blue-800">경쟁환산 ${competitionEquivalent.toFixed(1)}개소</strong> = 300m 약국 ${pharmacies300.length}개 × 1.0 + 301~500m 약국 ${Math.max(0, pharmacies500.length - pharmacies300.length)}개 × 0.5. 점수·기본 점유율 계산에는 이 환산값을 사용합니다.`;
-                if (status) { status.className = 'source-chip source-real self-start sm:self-auto'; status.innerText = '카카오 반경 실데이터'; }
-                drawNearbyPlaceMarkers(mapInstance, hospitals500, pharmacies500);
-                recalculateLocationScoreFromCurrentData();
-                updateMarketPotentialFromCompetition();
-                resetPrescriptionModel(false);
-                reCalculateProfit();
-                updateReportDataStatus();
-            } catch(e) {
-                console.error('카카오 반경 장소 검색 실패:', e);
-                setNearbySearchError('반경 검색 실패');
-            }
-        }
-
-        function recalculateLocationScoreFromCurrentData() {
-            const d = GLOBAL_CALC_DATA;
-            const competition = getCompetitionEquivalent();
-            const supplyPoints = Math.min(38, (d.mainDoctors * 6) + (d.subDoctors1 * 3) + (d.subDoctors2 * 1));
-            const doctorBalance = (d.mainDoctors + d.subDoctors1 + d.subDoctors2) / Math.max(1, competition + 1);
-            const balancePoints = Math.min(17, doctorBalance * 5);
-            const competitionPenalty = Math.min(35, competition * 7);
-            const dataAdjustment = d.hiraDetailReal ? 7 : (d.isRealData ? 5 : -5);
-            const baseScore = Math.min(100, Math.max(20, Math.round(35 + supplyPoints + balancePoints - competitionPenalty + dataAdjustment)));
-            const detailBonus = d.hiraDetailReal ? Math.round(8 * Math.max(0.25, d.hiraDetailCoverage || 0)) : 0;
-            const confidence = Math.min(79, (d.isRealData ? 60 : 30) + detailBonus + (d.nearbySearchReal ? 8 : 0));
-            Object.assign(d, { baseScore, supplyPoints, balancePoints, competitionPenalty, dataAdjustment, confidence });
-            document.getElementById('lbl-score').innerText = `${baseScore} / 100 점`;
-            document.getElementById('lbl-confidence').innerText = `${confidence}%`;
-            document.getElementById('lbl-score-formula').innerText = `35점 + 의료공급 ${supplyPoints.toFixed(1)}점 + 의사/경쟁 균형 ${balancePoints.toFixed(1)}점 - 경쟁위험 ${competitionPenalty.toFixed(1)}점 ${dataAdjustment >= 0 ? '+' : '-'} 데이터보정 ${Math.abs(dataAdjustment)}점 = ${baseScore}점 (경쟁환산 ${competition.toFixed(1)}개소)`;
-            const guideDefault = 'p-2.5 bg-white rounded-lg border border-slate-100 opacity-60';
-            ['guide-high', 'guide-mid', 'guide-low'].forEach(id => document.getElementById(id).className = guideDefault);
-            if (confidence >= 80) document.getElementById('guide-high').className = 'p-2.5 bg-emerald-50 rounded-lg border-2 border-emerald-400 font-medium';
-            else if (confidence >= 50) document.getElementById('guide-mid').className = 'p-2.5 bg-blue-50 rounded-lg border-2 border-blue-400 font-medium';
-            else document.getElementById('guide-low').className = 'p-2.5 bg-amber-50 rounded-lg border-2 border-amber-400 font-medium';
-            const badgeEl = document.getElementById('lbl-grade-badge');
-            if (baseScore >= 80) badgeEl.innerHTML = '<span class="bg-blue-100 text-blue-800 text-xs font-black px-4 py-2 rounded-xl border border-blue-300">PRIORITY REVIEW (우선 임장 검토)</span>';
-            else if (baseScore >= 60) badgeEl.innerHTML = '<span class="bg-emerald-100 text-emerald-800 text-xs font-black px-4 py-2 rounded-xl border border-emerald-300">FIELD TRIP (현장 검증 필요)</span>';
-            else badgeEl.innerHTML = '<span class="bg-red-100 text-red-800 text-xs font-black px-4 py-2 rounded-xl border border-red-300">HOLD / OBSERVE (보류·추가 확인)</span>';
-        }
-
+        // [v3.0.0 정리] 구버전 loadKakaoNearbyPlaces 원본 정의 삭제. 아래 단일 정의만 사용합니다.
+        // [v3.0.0 정리] 구버전 recalculateLocationScoreFromCurrentData 원본 정의 삭제. 아래 단일 정의만 사용합니다.
         function updateMarketPotentialFromCompetition() {
             const d = GLOBAL_CALC_DATA;
             const competition = getCompetitionEquivalent();
@@ -1705,30 +1607,7 @@
             if (sync) sync.innerText = `※ 의료기관·진료과목: 건강보험심사평가원 API ｜ 주변 병원·약국: 카카오 지도 300m·500m ｜ 배후 인구·가구·주택: SGIS ${d.sgisReal ? '실데이터' : '미적용'} ｜ 예상 매약·처방 가정: 내부 추정모형`;
         }
 
-        // [v2.10.1 사용 중단] 주소 해시 기반 의사난수 추정 함수. 임의 숫자 표시 금지 원칙에 따라 호출부를 모두 제거했습니다.
-        //                     신규 코드에서 다시 사용하지 마십시오. (v2.11.0에서 삭제 예정)
-        function seededEstimate(text, min, max, salt = 0) {
-            let hash = 2166136261 + salt;
-            const source = String(text || 'default');
-            for (let i = 0; i < source.length; i++) {
-                hash ^= source.charCodeAt(i);
-                hash = Math.imul(hash, 16777619);
-            }
-            const ratio = (hash >>> 0) / 4294967295;
-            return Math.floor(min + ratio * (max - min + 1));
-        }
-
-        function getCompetitionEquivalent() {
-            const value = Number(GLOBAL_CALC_DATA.competitionEquivalent);
-            return Number.isFinite(value) && value >= 0 ? value : Number(GLOBAL_CALC_DATA.existingPharmacy || 0);
-        }
-
-        function getCompetitionDisplayText() {
-            // v2.10.1: 거리 가중 환산은 적용하지 않으므로 '경쟁환산' 대신 '직접 경쟁'으로 표기합니다.
-            if (GLOBAL_CALC_DATA.nearbySearchReal) return `반경 500m ${GLOBAL_CALC_DATA.nearbyPharmacies500}개소 · 300m ${GLOBAL_CALC_DATA.nearbyPharmacies300}개소 · 직접 경쟁 ${getCompetitionEquivalent()}개소`;
-            return `행정동 약국 ${GLOBAL_CALC_DATA.existingPharmacyAdminDong || GLOBAL_CALC_DATA.existingPharmacy}개소`;
-        }
-
+        // [v3.0.0 정리] seededEstimate(주소 해시 기반 임의 추정) 함수 완전 삭제. 임의 숫자 생성 금지 원칙에 따라 대체 함수를 두지 않습니다.
         function initializePrescriptionModel() {
             document.getElementById('rx-main-doctors').innerText = `${GLOBAL_CALC_DATA.mainDoctors}명`;
             document.getElementById('rx-stable-doctors').innerText = `${GLOBAL_CALC_DATA.subDoctors1}명`;
@@ -1736,126 +1615,7 @@
             resetPrescriptionModel(false);
         }
 
-        function resetPrescriptionModel(recalculate = true) {
-            document.getElementById('rx-main-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.main.perDoctor;
-            document.getElementById('rx-main-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.main.unitFee;
-            document.getElementById('rx-stable-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.stable.perDoctor;
-            document.getElementById('rx-stable-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.stable.unitFee;
-            document.getElementById('rx-support-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.support.perDoctor;
-            document.getElementById('rx-support-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.support.unitFee;
-            const equalShare = 100 / Math.max(1, getCompetitionEquivalent() + 1);
-            document.getElementById('input-market-share-rate').value = equalShare.toFixed(1);
-            document.getElementById('input-operating-days').value = 25;
-            if (recalculate) reCalculateProfit();
-        }
-
-        function getPrescriptionModelRows() {
-            return [
-                {
-                    key: 'main', label: '핵심 처방과', doctors: GLOBAL_CALC_DATA.mainDoctors,
-                    perDoctor: parseFloat(document.getElementById('rx-main-per-doctor').value || 0),
-                    unitFee: parseFloat(document.getElementById('rx-main-unit-fee').value || 0),
-                    outputId: 'rx-main-share'
-                },
-                {
-                    key: 'stable', label: '안정 처방과', doctors: GLOBAL_CALC_DATA.subDoctors1,
-                    perDoctor: parseFloat(document.getElementById('rx-stable-per-doctor').value || 0),
-                    unitFee: parseFloat(document.getElementById('rx-stable-unit-fee').value || 0),
-                    outputId: 'rx-stable-share'
-                },
-                {
-                    key: 'support', label: '보조 처방과', doctors: GLOBAL_CALC_DATA.subDoctors2,
-                    perDoctor: parseFloat(document.getElementById('rx-support-per-doctor').value || 0),
-                    unitFee: parseFloat(document.getElementById('rx-support-unit-fee').value || 0),
-                    outputId: 'rx-support-share'
-                }
-            ];
-        }
-
-        function reCalculateProfit() {
-            const marketShareRate = Math.min(100, Math.max(0, parseFloat(document.getElementById('input-market-share-rate').value || 0)));
-            const marketShare = marketShareRate / 100;
-            const operatingDays = Math.min(31, Math.max(1, parseInt(document.getElementById('input-operating-days').value || 25)));
-            const categoryResults = getPrescriptionModelRows().map(row => {
-                const totalSupply = row.doctors * row.perDoctor;
-                const myShare = totalSupply * marketShare;
-                const monthlyRevenue = myShare * row.unitFee * operatingDays;
-                document.getElementById(row.outputId).innerText = `${Math.round(myShare).toLocaleString()}건`;
-                return { ...row, totalSupply, myShare, monthlyRevenue };
-            });
-
-            const totalGross = categoryResults.reduce((sum, row) => sum + row.totalSupply, 0);
-            const myShare = categoryResults.reduce((sum, row) => sum + row.myShare, 0);
-            const prescRev = categoryResults.reduce((sum, row) => sum + row.monthlyRevenue, 0);
-            const weightedCost = myShare > 0 ? prescRev / (myShare * operatingDays) : 0;
-            const totalRev = prescRev + GLOBAL_CALC_DATA.monthOtcRevenue;
-
-            const staffCount = parseInt(document.getElementById('count-staff').innerText || 0);
-            const fullPharmCount = parseInt(document.getElementById('count-full-pharm').innerText || 0);
-            const halfPharmCount = parseInt(document.getElementById('count-half-pharm').innerText || 0);
-            const rent = parseFloat(document.getElementById('fixed-rent-cost').value || 0) * 10000;
-            const maint = parseFloat(document.getElementById('fixed-maintenance-cost').value || 0) * 10000;
-            const utility = parseFloat(document.getElementById('fixed-utility-cost').value || 0) * 10000;
-            const humanCost = (staffCount * CONFIG.COST_STAFF) + (fullPharmCount * CONFIG.COST_FULL_PHARM) + (halfPharmCount * CONFIG.COST_HALF_PHARM);
-            const totalFixedCost = rent + maint + utility + humanCost;
-            const netProfit = Math.round((totalRev * CONFIG.NET_MARGIN_RATE) - totalFixedCost);
-            const requiredTotalRevenue = totalFixedCost / CONFIG.NET_MARGIN_RATE;
-            const requiredPrescriptionRevenue = Math.max(0, requiredTotalRevenue - GLOBAL_CALC_DATA.monthOtcRevenue);
-            const breakEvenPrescriptions = weightedCost > 0 ? Math.ceil(requiredPrescriptionRevenue / weightedCost / operatingDays) : 0;
-            const roundedMyShare = Math.round(myShare);
-            const safetyMarginPrescriptions = roundedMyShare - breakEvenPrescriptions;
-            const costsConfirmed = document.getElementById('input-costs-confirmed').checked;
-
-            Object.assign(GLOBAL_ANALYSIS_METRICS, {
-                totalGross,
-                myShare: roundedMyShare,
-                prescRev,
-                totalRev,
-                totalFixedCost,
-                netProfit,
-                breakEvenPrescriptions,
-                safetyMarginPrescriptions,
-                weightedCost,
-                marketShareRate,
-                operatingDays,
-                rent,
-                maint,
-                utility,
-                humanCost,
-                staffCount,
-                fullPharmCount,
-                halfPharmCount,
-                costsConfirmed,
-                categoryResults
-            });
-
-            document.getElementById('lbl-prescription-model-basis').innerText = `${getCompetitionDisplayText()} · 점유율 ${marketShareRate.toFixed(1)}% · 월 ${operatingDays}일 적용`;
-            document.getElementById('lbl-total-prescription-supply').innerText = `${Math.round(totalGross).toLocaleString()}건 / 일`;
-            document.getElementById('lbl-presc-count').innerText = `${roundedMyShare.toLocaleString()}건 / 일`;
-            document.getElementById('lbl-applied-cost').innerText = `${Math.round(weightedCost).toLocaleString()}원`;
-            document.getElementById('lbl-month-presc-rev').innerText = `${Math.round(prescRev).toLocaleString()}원`;
-            document.getElementById('lbl-month-presc-rev-detail').innerText = `${Math.round(prescRev).toLocaleString()}원`;
-            document.getElementById('lbl-month-otc-rev').innerText = `${Math.round(GLOBAL_CALC_DATA.monthOtcRevenue).toLocaleString()}원`;
-            document.getElementById('lbl-month-total-rev').innerText = `${Math.round(totalRev).toLocaleString()}원`;
-            document.getElementById('lbl-net-profit').innerText = netProfit >= 0 ? `월 약 ${netProfit.toLocaleString()}원` : `월 약 -${Math.abs(netProfit).toLocaleString()}원`;
-            document.getElementById('lbl-break-even-prescriptions').innerText = `${breakEvenPrescriptions.toLocaleString()}건 / 일`;
-            document.getElementById('lbl-safety-margin-prescriptions').innerText = `${safetyMarginPrescriptions >= 0 ? '+' : ''}${safetyMarginPrescriptions.toLocaleString()}건 / 일`;
-            document.getElementById('lbl-safety-margin-prescriptions').className = safetyMarginPrescriptions >= 0 ? 'text-emerald-300' : 'text-red-300';
-            document.getElementById('lbl-profit-basis').innerText = costsConfirmed ? '실제 입력값 기준' : '기본 가정 기준';
-            document.getElementById('lbl-profit-basis').className = costsConfirmed
-                ? 'text-[10px] font-bold text-emerald-300 bg-slate-800 border border-emerald-800 rounded-lg px-2 py-1'
-                : 'text-[10px] font-bold text-amber-300 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1';
-            document.getElementById('calc-total-fixed-cost').innerText = `${totalFixedCost.toLocaleString()}원`;
-            document.getElementById('lbl-fixed-preview').innerText = formatWonCompact(totalFixedCost);
-            document.getElementById('count-staff-print').innerText = `${staffCount}명`;
-            document.getElementById('count-full-pharm-print').innerText = `${fullPharmCount}명`;
-            document.getElementById('count-half-pharm-print').innerText = `${halfPharmCount}명`;
-
-            updatePaybackMetrics();
-            updateOptionalCostUi();
-            if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
-        }
-
+        // [v3.0.0 정리] 구버전 resetPrescriptionModel / getPrescriptionModelRows / reCalculateProfit 원본 정의 삭제. 아래 단일 정의만 사용합니다.
         function reCalculateBudget() {
             const pyeong = parseFloat(document.getElementById('input-pyeong').value || 15);
             const interiorUnit = parseFloat(document.getElementById('budget-interior-unit').value || 350);
@@ -1917,6 +1677,29 @@
             }
         }
 
+        // [v3.0.0] 예상 매약 매출을 분석 건마다 수정할 수 있도록 개방합니다. (내부 가정값)
+        const OTC_REVENUE_DEFAULTS = { seoul: 15500000, nonSeoul: 9000000 };
+
+        function initializeOtcRevenueInput(isSeoul) {
+            const won = isSeoul ? OTC_REVENUE_DEFAULTS.seoul : OTC_REVENUE_DEFAULTS.nonSeoul;
+            GLOBAL_CALC_DATA.monthOtcRevenue = won;
+            GLOBAL_CALC_DATA.otcRevenueEdited = false;
+            const input = document.getElementById('input-otc-revenue');
+            if (input) input.value = Math.round(won / 10000);
+            const label = document.getElementById('lbl-month-otc-rev');
+            if (label) label.innerText = `${won.toLocaleString()}원`;
+        }
+
+        function onOtcRevenueChanged() {
+            const input = document.getElementById('input-otc-revenue');
+            const manwon = Math.max(0, parseFloat(input?.value || 0));
+            GLOBAL_CALC_DATA.monthOtcRevenue = Math.round(manwon * 10000);
+            GLOBAL_CALC_DATA.otcRevenueEdited = true;
+            const label = document.getElementById('lbl-month-otc-rev');
+            if (label) label.innerText = `${GLOBAL_CALC_DATA.monthOtcRevenue.toLocaleString()}원`;
+            reCalculateProfit();
+        }
+
         function updatePaybackMetrics() {
             const m = GLOBAL_ANALYSIS_METRICS;
             m.paybackMonths = m.netProfit > 0 && m.totalInvestment > 0 ? m.totalInvestment / m.netProfit : Infinity;
@@ -1929,113 +1712,7 @@
             return `${abs.toLocaleString()}원`;
         }
 
-        function generateMergedReportReason() {
-            const d = GLOBAL_CALC_DATA;
-            const m = GLOBAL_ANALYSIS_METRICS;
-            const totalMedical = d.mainMedical + d.subMedical1 + d.subMedical2;
-            const totalDoctors = d.mainDoctors + d.subDoctors1 + d.subDoctors2;
-            const competitionEquivalent = getCompetitionEquivalent();
-            const doctorShare = totalDoctors / Math.max(1, competitionEquivalent + 1);
-            const paybackText = Number.isFinite(m.paybackMonths) ? `${Math.ceil(m.paybackMonths)}개월` : '회수 산출 불가';
-            const confidence = d.confidence || (d.isRealData ? 68 : 30);
-            const currentRentRatio = m.totalRev > 0 ? (m.rent / m.totalRev) * 100 : 0;
-            const requiredProfit36 = m.totalInvestment > 0 ? Math.ceil(m.totalInvestment / 36) : 0;
-            const profitGap36 = m.netProfit - requiredProfit36;
-            const topCategory = [...(m.categoryResults || [])].sort((a, b) => b.monthlyRevenue - a.monthlyRevenue)[0];
-
-            let decision = '보류 및 재검증';
-            let decisionClass = 'text-red-300';
-            let decisionReason = '현재 입력 조건으로는 손익 또는 데이터 신뢰도가 계약 판단을 충분히 뒷받침하지 못합니다.';
-            if (m.netProfit > 0 && m.safetyMarginPrescriptions >= 0 && d.baseScore >= 60) {
-                decision = d.isRealData && d.baseScore >= 80 && (!m.costsConfirmed || m.paybackMonths <= 36) ? '우선 검토' : '조건부 현장 검토';
-                decisionClass = decision === '우선 검토' ? 'text-emerald-300' : 'text-amber-300';
-                decisionReason = decision === '우선 검토'
-                    ? '처방 수요와 경쟁 분할 이후에도 손익 완충폭이 확인됩니다.'
-                    : '수치상 진입 가능성은 있으나 현장 동선과 실제 처방 유입 검증이 선행되어야 합니다.';
-            }
-
-            const competitionText = d.nearbySearchReal ? `반경 500m 약국 ${d.nearbyPharmacies500}개소(300m ${d.nearbyPharmacies300}개소, 경쟁환산 ${competitionEquivalent.toFixed(1)}개소)` : `행정동 약국 ${d.existingPharmacyAdminDong || d.existingPharmacy}개소`;
-            const normalText = `후보지 인근 의료기관은 ${totalMedical}개소, 진료 의사는 ${totalDoctors}명, 경쟁 현황은 ${competitionText}로 집계되었습니다. 진료과군별 처방 가정과 신규 약국 점유율 ${m.marketShareRate.toFixed(1)}%를 적용한 예상 처방은 일 ${m.myShare}건이며, 손익분기 기준은 일 ${m.breakEvenPrescriptions}건입니다. 배후 유효 잠재 고객은 약 ${(d.potentialCustomers || 0).toLocaleString()}명으로 추정됩니다.`;
-            document.getElementById('lbl-normal-reason').innerText = normalText;
-
-            document.getElementById('lbl-ai-summary-cards').innerHTML = `
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card">
-                    <p class="text-[10px] text-slate-400 font-bold tracking-wider">최종 판단</p>
-                    <p class="text-base font-black mt-1 ${decisionClass}">${decision}</p>
-                    <p class="text-[10px] text-slate-400 mt-1">입지점수 ${d.baseScore}점 · 신뢰도 ${confidence}%</p>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card">
-                    <p class="text-[10px] text-slate-400 font-bold tracking-wider">손익 안전마진</p>
-                    <p class="text-base font-black mt-1 ${m.safetyMarginPrescriptions >= 0 ? 'text-emerald-300' : 'text-red-300'}">${m.safetyMarginPrescriptions >= 0 ? '+' : ''}${m.safetyMarginPrescriptions}건 / 일</p>
-                    <p class="text-[10px] text-slate-400 mt-1">예상 ${m.myShare}건 · BEP ${m.breakEvenPrescriptions}건</p>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card">
-                    <p class="text-[10px] text-slate-400 font-bold tracking-wider">시설투자 회수</p>
-                    <p class="text-base font-black mt-1 ${!m.costsConfirmed ? 'text-slate-300' : m.paybackMonths <= 36 ? 'text-emerald-300' : m.paybackMonths <= 60 ? 'text-amber-300' : 'text-red-300'}">${m.costsConfirmed ? paybackText : '기본값 참고'}</p>
-                    <p class="text-[10px] text-slate-400 mt-1">${m.costsConfirmed ? '보증금·권리금 제외' : '실제 비용 미확정'}</p>
-                </div>`;
-
-            const strengths = [];
-            const risks = [];
-            if (doctorShare >= 2) strengths.push(`신규 약국 포함 약국 1개소당 의사 수가 약 ${doctorShare.toFixed(1)}명으로 의료 공급 여력이 있습니다.`);
-            else risks.push(`약국 1개소당 의사 수가 약 ${doctorShare.toFixed(1)}명으로 경쟁 분할 후 처방 여력이 낮을 수 있습니다.`);
-            if (topCategory) strengths.push(`${topCategory.label}가 월 조제 수입 기여도가 가장 높은 진료과군으로 추정됩니다.`);
-            if (m.safetyMarginPrescriptions >= 15) strengths.push(`예상 처방건수가 손익분기점보다 일 ${m.safetyMarginPrescriptions}건 높아 손익 완충폭이 있습니다.`);
-            else if (m.safetyMarginPrescriptions >= 0) risks.push(`손익분기점 초과 폭이 일 ${m.safetyMarginPrescriptions}건에 불과해 병원 휴진·이탈 시 수익 변동성이 큽니다.`);
-            else risks.push(`예상 처방건수가 손익분기점보다 일 ${Math.abs(m.safetyMarginPrescriptions)}건 부족합니다.`);
-            if (m.netProfit > 0) strengths.push(`현재 비용 가정 기준 월 추정 순이익은 약 ${formatWonCompact(m.netProfit)}입니다.`);
-            else risks.push(`현재 비용 가정 기준 월 약 ${formatWonCompact(m.netProfit)}의 적자가 예상됩니다.`);
-            if (!m.costsConfirmed) risks.push('초기 투자비와 고정비가 실제 정보로 확정되지 않아 순이익·회수기간은 참고값입니다.');
-            else if (Number.isFinite(m.paybackMonths) && m.paybackMonths <= 36) strengths.push(`시설투자금 회수기간이 약 ${Math.ceil(m.paybackMonths)}개월로 3년 이내입니다.`);
-            else if (Number.isFinite(m.paybackMonths)) risks.push(`시설투자금 회수기간이 약 ${Math.ceil(m.paybackMonths)}개월로 장기화될 수 있습니다.`);
-            else risks.push('현 손익에서는 시설투자금 회수가 어렵습니다.');
-            if (!d.isRealData) risks.push('현재 의료기관 기본목록이 추정형으로 동작 중이므로 숫자를 계약 근거로 단독 사용하면 안 됩니다.');
-            else if (!d.hiraDetailReal) risks.push('의료기관 기본목록은 조회되었지만 실제 진료과목 상세정보가 적용되지 않아 기관명 기반 분류 오차가 남아 있습니다.');
-            else if ((d.hiraDetailCoverage || 0) < 0.8) risks.push(`실제 진료과목 상세조회 적용률이 ${Math.round((d.hiraDetailCoverage || 0) * 100)}%로 일부 기관은 기관명 기반 보정분류가 적용되었습니다.`);
-            if (!d.nearbySearchReal) risks.push('후보지 반경 병원·약국 검색이 적용되지 않아 경쟁도는 행정동 단위 값입니다.');
-            else if (d.nearbyPharmacies300 >= 3) risks.push(`300m 이내 약국이 ${d.nearbyPharmacies300}개소로 근거리 경쟁이 강할 수 있습니다.`);
-            else if (d.nearbyPharmacies300 === 0) strengths.push('카카오 지도 기준 300m 이내 등록 약국이 없어 근거리 경쟁은 제한적으로 보입니다.');
-            if (currentRentRatio >= 10) risks.push(`임대료가 추정 총매출의 약 ${currentRentRatio.toFixed(1)}%로 고정비 부담이 높은 편입니다.`);
-            if ((d.potentialCustomers || 0) >= 1500) strengths.push(`배후 유효 잠재 고객이 약 ${(d.potentialCustomers || 0).toLocaleString()}명으로 매약·단골 고객 기반을 기대할 수 있습니다.`);
-
-            const strengthsHtml = (strengths.length ? strengths : ['현재 수치에서 명확한 우위 요인이 부족합니다.']).slice(0, 4).map(v => `<li>${v}</li>`).join('');
-            const risksHtml = (risks.length ? risks : ['수치상 중대 위험은 제한적이나 현장 동선 검증은 필요합니다.']).slice(0, 5).map(v => `<li>${v}</li>`).join('');
-            const checks = [
-                `핵심 병원 ${d.mainMedical}개소의 실제 외래 환자 수와 처방전의 약국별 분산 여부를 평일 최소 2개 시간대에 확인`,
-                `병원 출입구·엘리베이터·주차장에서 후보 점포까지의 이동 동선이 기존 약국보다 우위인지 확인`,
-                `${d.nearbySearchReal ? `반경 500m 약국 ${d.nearbyPharmacies500}개소` : `행정동 약국 ${d.existingPharmacyAdminDong || d.existingPharmacy}개소`}의 영업시간, 조제 대기, 배달·주차, 일반약 경쟁력을 직접 비교`,
-                `진료과군별 예상 처방량과 평균 조제 수입을 실제 병원 구성에 맞게 다시 입력`,
-                `권리금·보증금까지 포함한 총투자금으로 회수기간을 재산출하고 임대차 갱신·중도해지 조건 확인`
-            ];
-
-            let target36 = '실제 투자비가 확정되면 3년 회수 목표를 자동 재계산합니다.';
-            if (m.costsConfirmed) {
-                target36 = profitGap36 >= 0
-                    ? `3년 회수 목표에 필요한 월 순이익 ${formatWonCompact(requiredProfit36)}를 추정·입력치가 약 ${formatWonCompact(profitGap36)} 초과합니다.`
-                    : `3년 회수 목표에 필요한 월 순이익보다 약 ${formatWonCompact(Math.abs(profitGap36))} 부족합니다.`;
-            }
-
-            document.getElementById('lbl-ai-reason').innerHTML = `
-                <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card">
-                    <p class="font-bold text-white"><i class="fa-solid fa-gavel text-blue-400 mr-1"></i> [의사결정 요약]</p>
-                    <p class="mt-1"><strong class="${decisionClass}">${decision}</strong> — ${decisionReason} ${target36}</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="bg-emerald-950/30 border border-emerald-800/50 rounded-xl p-4 print-card">
-                        <p class="font-bold text-emerald-300 mb-2"><i class="fa-solid fa-circle-plus mr-1"></i> 긍정 요인</p>
-                        <ul class="list-disc pl-4 space-y-1.5">${strengthsHtml}</ul>
-                    </div>
-                    <div class="bg-red-950/25 border border-red-800/40 rounded-xl p-4 print-card">
-                        <p class="font-bold text-red-300 mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 핵심 리스크</p>
-                        <ul class="list-disc pl-4 space-y-1.5">${risksHtml}</ul>
-                    </div>
-                </div>
-                <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card">
-                    <p class="font-bold text-white mb-2"><i class="fa-solid fa-clipboard-check text-amber-300 mr-1"></i> 계약 전 임장 체크리스트</p>
-                    <ol class="list-decimal pl-4 space-y-1.5">${checks.map(v => `<li>${v}</li>`).join('')}</ol>
-                </div>`;
-        }
-
+        // [v3.0.0 정리] 구버전 generateMergedReportReason 원본 정의 삭제. 아래 단일 정의만 사용합니다.
         function buildAiBriefingPayload() {
             const d = GLOBAL_CALC_DATA;
             const m = GLOBAL_ANALYSIS_METRICS;
@@ -2275,11 +1952,31 @@
             return String(place?.road_address_name || place?.address_name || '').trim();
         }
 
+        // [v3.0.0] 동일 건물 판정 개편
+        //  - 기존: 정규화 주소의 8자 이상 접두 일치 → "테헤란로 15"와 "테헤란로 152"를 동일 건물로 오판
+        //  - 변경: 도로명+건물번호 또는 법정동+지번을 완전 일치로 비교 (부분 일치 제거)
+        function extractRoadBuildingKey(value) {
+            const match = String(value || '').match(/([가-힣A-Za-z0-9]+(?:대?로|길))\s*(\d+(?:-\d+)?)(?!\d)/);
+            return match ? `${match[1]} ${match[2]}` : '';
+        }
+
+        function extractJibunBuildingKey(value) {
+            const match = String(value || '').match(/([가-힣]+(?:동|가|리))\s*(?:산\s*)?(\d+(?:-\d+)?)(?!\d)(?!\s*(?:층|호))/);
+            return match ? `${match[1]} ${match[2]}` : '';
+        }
+
         function sameBuildingByData(addressA, addressB) {
             const a = normalizeBuildingAddress(addressA);
             const b = normalizeBuildingAddress(addressB);
             if (!a || !b) return false;
-            return a === b || (a.length >= 8 && b.length >= 8 && (a.startsWith(b) || b.startsWith(a)));
+            if (a === b) return true;
+            const roadA = extractRoadBuildingKey(addressA);
+            const roadB = extractRoadBuildingKey(addressB);
+            if (roadA && roadB) return roadA === roadB;
+            const jibunA = extractJibunBuildingKey(addressA);
+            const jibunB = extractJibunBuildingKey(addressB);
+            if (jibunA && jibunB) return jibunA === jibunB;
+            return false;
         }
 
         function detectSpecialSite(rawText, buildingName) {
@@ -2638,6 +2335,34 @@
             updatePaybackMetrics(); updateOptionalCostUi(); renderScenarioCards(); if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
         };
 
+        /* [v3.0.0] 데이터 신뢰도 단일 산식
+           - 기존: 4개 모듈이 순차적으로 +8/+4/+2 가산하며 상한도 82/90/92/94로 제각각이었습니다.
+           - 변경: 아래 한 곳에서만 계산합니다. 매약·처방 가정이 남아 있으므로 상한은 92%입니다. */
+        const CONFIDENCE_WEIGHTS = {
+            base: 45,            // 심평원 의료기관 기본목록 확보
+            hiraSubjectMax: 15,  // 실제 신고 진료과목 (조회 커버리지 비례)
+            kakaoNearby: 10,     // 카카오 반경 장소 실데이터
+            sgis: 12,            // SGIS 인구·가구·주택 실데이터
+            buildingLedger: 8,   // 건축물대장 표제부 실데이터
+            buildingPermit: 4,   // 건축인허가 계획정보 (준공 전)
+            seoulOfficial: 8,    // 서울시 공식 추정매출·생활인구
+            cap: 92
+        };
+
+        function computeReportConfidence() {
+            const d = GLOBAL_CALC_DATA;
+            if (!d.isRealData) return 0;
+            const w = CONFIDENCE_WEIGHTS;
+            let value = w.base;
+            if (d.hiraDetailReal) value += Math.round(w.hiraSubjectMax * Math.max(0.25, Math.min(1, d.hiraDetailCoverage || 0)));
+            if (d.nearbySearchReal) value += w.kakaoNearby;
+            if (d.sgisReal) value += w.sgis;
+            if (d.buildingLedgerReal) value += w.buildingLedger;
+            else if (d.buildingPermitReal) value += w.buildingPermit;
+            if (d.seoulCommercialApplied) value += w.seoulOfficial;
+            return Math.min(w.cap, value);
+        }
+
         recalculateLocationScoreFromCurrentData = function() {
             const d = GLOBAL_CALC_DATA; const ctx = GLOBAL_SITE_CONTEXT; const models = getActiveSourceModels(); const directDoctors = models.reduce((s,m)=>s+Number(m.doctors||0),0); const directCompetition = ctx.effectivePharmacies.length;
             // v2.10.1: 심평원 의료기관 실데이터가 없으면 점수·등급을 임의로 산출하지 않습니다.
@@ -2649,7 +2374,7 @@
                 document.getElementById('lbl-score-formula').innerText = '건강보험심사평가원 의료기관 데이터를 조회하지 못해 입지 모형점수를 산출하지 않았습니다. 임의 추정값을 대신 표시하지 않습니다.';
                 return;
             }
-            let score; let confidence = Math.min(82, (d.isRealData ? 60 : 30) + (d.hiraDetailReal ? Math.round(8 * Math.max(.25,d.hiraDetailCoverage||0)) : 0) + (d.nearbySearchReal ? 8 : 0));
+            let score; const confidence = computeReportConfidence();
             if (ctx.mode === 'new-simulation' || ctx.mode === 'new-planned' || ctx.mode === 'new-pending') {
                 const surroundingMedical = d.nearbyHospitals300 || 0; const surroundingPharmacy = d.nearbyPharmacies300 || 0; score = Math.max(20, Math.min(100, Math.round(48 + Math.min(18, surroundingMedical * 2) - Math.min(20, surroundingPharmacy * 3) + (directCompetition === 0 ? 8 : 0) + (d.potentialCustomers >= 1500 ? 8 : 0))));
                 let grade = '판단 유보'; let cls = 'bg-slate-100 text-slate-700 border-slate-300'; if (confidence >= 50 && score >= 75) { grade = '잠재력 높음'; cls='bg-blue-100 text-blue-800 border-blue-300'; } else if (confidence >= 50 && score >= 55) { grade='조건부 검토'; cls='bg-emerald-100 text-emerald-800 border-emerald-300'; } else if (confidence >= 50) { grade='잠재력 낮음'; cls='bg-red-100 text-red-800 border-red-300'; }
@@ -3043,16 +2768,7 @@
             return result;
         };
 
-        // SGIS 성공 여부를 데이터 신뢰도와 상태 표시에도 반영합니다.
-        const V26_RECALCULATE_SCORE_FOR_SGIS = recalculateLocationScoreFromCurrentData;
-        recalculateLocationScoreFromCurrentData = function() {
-            V26_RECALCULATE_SCORE_FOR_SGIS();
-            if (GLOBAL_CALC_DATA.sgisReal) {
-                const confidence = Math.min(90, Number(GLOBAL_CALC_DATA.confidence || 0) + 8);
-                GLOBAL_CALC_DATA.confidence = confidence;
-                const el = document.getElementById('lbl-confidence'); if (el) el.innerText = `${confidence}%`;
-            }
-        };
+        // [v3.0.0] SGIS 신뢰도 가산은 computeReportConfidence() 단일 함수로 통합했습니다.
 
         const V26_UPDATE_REPORT_STATUS_FOR_SGIS = updateReportDataStatus;
         updateReportDataStatus = function() {
@@ -3394,6 +3110,8 @@
                 GLOBAL_SEOUL_COMMERCIAL_DATA = { applied: true, quarter, adminCode: area.ADSTRD_CD, adminName: area.ADSTRD_CD_NM, sales, stores, flow };
                 renderSeoulSalesAndStores(sales, stores, area, quarter);
                 renderSeoulFlow(flow, area, quarter);
+                // [v3.0.0] 서울 공식 데이터 적용분을 신뢰도 단일 산식에 즉시 반영합니다.
+                recalculateLocationScoreFromCurrentData();
                 updateReportDataStatus();
                 generateMergedReportReason();
             } catch(error) {
@@ -3710,16 +3428,7 @@
             setTimeout(loadBuildingLedgerForCurrentAddress, 60);
         };
 
-        // 건축물대장 실데이터는 데이터 신뢰도에 소폭 반영합니다.
-        const V28_RECALCULATE_SCORE_FOR_BUILDING = recalculateLocationScoreFromCurrentData;
-        recalculateLocationScoreFromCurrentData = function() {
-            V28_RECALCULATE_SCORE_FOR_BUILDING();
-            if (GLOBAL_CALC_DATA.buildingLedgerReal) {
-                const confidence = Math.min(94, Number(GLOBAL_CALC_DATA.confidence || 0) + 4);
-                GLOBAL_CALC_DATA.confidence = confidence;
-                const el = document.getElementById('lbl-confidence'); if (el) el.innerText = `${confidence}%`;
-            }
-        };
+        // [v3.0.0] 건축물대장 신뢰도 가산은 computeReportConfidence() 단일 함수로 통합했습니다.
 
         const V28_UPDATE_REPORT_STATUS_FOR_BUILDING = updateReportDataStatus;
         updateReportDataStatus = function() {
@@ -4002,16 +3711,7 @@
             }
         };
 
-        // 건축인허가 계획정보는 실재 준공정보보다 낮은 수준으로 신뢰도에 반영합니다.
-        const V29_RECALCULATE_SCORE_FOR_PERMIT = recalculateLocationScoreFromCurrentData;
-        recalculateLocationScoreFromCurrentData = function() {
-            V29_RECALCULATE_SCORE_FOR_PERMIT();
-            if (GLOBAL_CALC_DATA.buildingPermitReal && !GLOBAL_CALC_DATA.buildingLedgerReal) {
-                const confidence = Math.min(92, Number(GLOBAL_CALC_DATA.confidence || 0) + 2);
-                GLOBAL_CALC_DATA.confidence = confidence;
-                const el = document.getElementById('lbl-confidence'); if (el) el.innerText = `${confidence}%`;
-            }
-        };
+        // [v3.0.0] 건축인허가 신뢰도 가산은 computeReportConfidence() 단일 함수로 통합했습니다.
 
         const V29_UPDATE_REPORT_STATUS_FOR_PERMIT = updateReportDataStatus;
         updateReportDataStatus = function() {
