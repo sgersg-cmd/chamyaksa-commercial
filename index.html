@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.1.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.1.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -152,20 +152,28 @@
             #report-card .print-profit-grid,
             #report-card .print-investment-grid,
             #report-card [data-print-section="flow"] > .grid,
-            #report-card #lbl-ai-reason > .grid,
-            #report-card .footer-print-grid {
+            #report-card #lbl-ai-reason > .grid {
                 display: block !important;
             }
             #report-card [data-print-section="market"] > *,
             #report-card .print-profit-grid > *,
             #report-card .print-investment-grid > *,
             #report-card [data-print-section="flow"] > .grid > *,
-            #report-card #lbl-ai-reason > .grid > *,
-            #report-card .footer-print-grid > * {
+            #report-card #lbl-ai-reason > .grid > * {
                 width: 100% !important;
                 margin-bottom: 2.2mm !important;
                 page-break-inside: auto !important;
                 break-inside: auto !important;
+            }
+            #report-card .footer-print-grid {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1.45fr) minmax(0, .95fr) !important;
+                gap: 2.5mm !important;
+            }
+            #report-card .footer-print-grid > *,
+            #report-card .footer-source-strip {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             #report-card table.min-w-\[760px\] { min-width: 0 !important; width: 100% !important; }
             #report-card .basis-note { padding: 2.6mm 3mm !important; font-size: 9.5pt !important; line-height: 1.5 !important; }
@@ -206,7 +214,18 @@
             #lbl-ai-summary-cards > div,
             #lbl-ai-reason > div,
             #lbl-ai-reason > .grid > div { page-break-inside: avoid !important; break-inside: avoid !important; }
-            .nearby-place-list, .effective-place-list { max-height: none !important; overflow: visible !important; }
+            .print-place-grid, .print-effective-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                align-items: start !important;
+                gap: 2.5mm !important;
+            }
+            .print-place-grid > *, .print-effective-grid > * {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            .nearby-place-list, .effective-place-list { max-height: none !important; height: auto !important; overflow: visible !important; }
+            .nearby-place-list > *, .effective-place-list > * { page-break-inside: avoid !important; break-inside: avoid !important; }
             #nearby-radius-panel { page-break-inside: auto !important; break-inside: auto !important; }
         }
     </style>
@@ -269,7 +288,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.1.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.1.1</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -477,7 +496,7 @@
                                 <div class="bg-white border border-slate-200 rounded-xl p-3 text-center"><p class="text-[10px] text-slate-400 font-bold">약국 300m</p><p id="stat-pharmacy-300" class="text-xl font-black text-blue-600 mt-1">-</p></div>
                                 <div class="bg-white border border-slate-200 rounded-xl p-3 text-center"><p class="text-[10px] text-slate-400 font-bold">약국 500m</p><p id="stat-pharmacy-500" class="text-xl font-black text-blue-700 mt-1">-</p></div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="print-place-grid grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] font-black text-red-700 mb-2"><i class="fa-solid fa-hospital mr-1"></i> 가까운 병원·의원</p><div id="nearby-hospital-list" class="nearby-place-list text-[10px] text-slate-600 space-y-1.5"><p class="text-slate-400">검색 대기 중</p></div></div>
                                 <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] font-black text-blue-700 mb-2"><i class="fa-solid fa-prescription-bottle-medical mr-1"></i> 가까운 약국</p><div id="nearby-pharmacy-list" class="nearby-place-list text-[10px] text-slate-600 space-y-1.5"><p class="text-slate-400">검색 대기 중</p></div></div>
                             </div>
@@ -524,7 +543,7 @@
                                 <div class="bg-white border border-blue-200 rounded-xl p-3 text-center"><p class="text-[10px] text-blue-500 font-bold">직접 경쟁 약국</p><p id="stat-effective-pharmacies" class="text-base font-black text-blue-700 mt-1">0개소</p></div>
                             </div>
                             <div id="site-mode-message" class="text-[11px] text-slate-700 bg-white border border-slate-200 rounded-xl p-3 leading-relaxed"></div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="print-effective-grid grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] font-black text-red-700 mb-2">처방 계산에 반영되는 병원</p><div id="effective-hospital-list" class="effective-place-list text-[10px] text-slate-600 space-y-1.5"><p class="text-slate-400">판정 대기 중</p></div></div>
                                 <div class="bg-white border border-slate-200 rounded-xl p-3"><p class="text-[10px] font-black text-blue-700 mb-2">직접 경쟁 계산에 반영되는 약국</p><div id="effective-pharmacy-list" class="effective-place-list text-[10px] text-slate-600 space-y-1.5"><p class="text-slate-400">판정 대기 중</p></div></div>
                             </div>
@@ -877,50 +896,43 @@
                     <p class="text-[10px] text-slate-400 border-t border-slate-800 pt-3">참고용 결과입니다. 계약 전 처방 유입·동선·임대조건을 확인하세요.</p>
                 </section>
 
-                <!-- v2.8.0 리포트 푸터 정보 구조 개선 -->
+                <!-- v5.1.1 출처·적용범위 요약 영역 압축 -->
                 <div data-print-section="footer" class="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
-                    <div class="px-5 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                            <p class="text-xs font-black text-slate-900"><i class="fa-solid fa-shield-halved text-blue-600 mr-1"></i> 데이터 출처·적용 범위·확인사항</p>
-                            <p class="text-[10px] text-slate-500 mt-1">실데이터와 추정값을 구분해 확인하세요.</p>
-                        </div>
+                    <div class="px-4 py-3 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <p class="text-xs font-black text-slate-900"><i class="fa-solid fa-shield-halved text-blue-600 mr-1"></i> 데이터 근거·확인사항</p>
                         <div class="flex items-center gap-2">
-                            <span class="source-chip source-real">실데이터</span>
-                            <span class="source-chip source-model">추정모형</span>
-                            <span class="source-chip source-input">사용자 입력</span>
+                            <span class="source-chip source-real">공식·실측</span>
+                            <span class="source-chip source-model">근거형 추정</span>
+                            <span class="source-chip source-input">확인 입력</span>
                         </div>
                     </div>
-                    <div class="footer-print-grid grid grid-cols-1 md:grid-cols-3 gap-4 p-5 text-[10px]">
-                        <div class="bg-white border border-slate-200 rounded-xl p-4 print-card">
-                            <p class="font-black text-slate-800 text-xs mb-2"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 정보</p>
-                            <div class="space-y-1.5 text-slate-500 leading-relaxed">
-                                <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
+                    <div class="footer-print-grid grid grid-cols-1 md:grid-cols-[1.45fr_.95fr] gap-3 p-4 pb-3 text-[10px]">
+                        <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.1.1</strong></p>
+                            </div>
+                            <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                        <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.1.0</strong></p>
-                                <p id="report-data-basis" class="mt-1 leading-relaxed">데이터 기준: 분석 실행 후 표시됩니다.</p>
                             </div>
                         </div>
-                        <div class="bg-white border border-slate-200 rounded-xl p-4 print-card">
-                            <p class="font-black text-slate-800 text-xs mb-2"><i class="fa-solid fa-database text-emerald-500 mr-1"></i> 데이터 구성</p>
-                            <div class="space-y-2 text-slate-500 leading-relaxed">
-                                <p><span class="source-chip source-real mr-1">실데이터</span> 심평원 · 카카오 · 건축HUB · SGIS · 서울시 공식데이터</p>
-                                <p><span class="source-chip source-model mr-1">추정값</span> 서울 외 매출·유동 · 처방량 · 매약</p>
-                                <p><span class="source-chip source-input mr-1">입력값</span> 처방·조제수입·비용</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-900 text-white rounded-xl p-4 print-card">
-                            <p class="font-black text-white text-xs mb-2"><i class="fa-solid fa-location-dot text-amber-300 mr-1"></i> 반드시 현장에서 확인</p>
-                            <ul class="list-disc pl-4 space-y-1.5 text-slate-300 leading-relaxed">
-                                <li>병원 처방 흐름과 약국 유입 동선</li>
-                                <li>경쟁 약국의 운영시간과 강점</li>
-                                <li>권리금·보증금·임대차 조건</li>
+                        <div class="bg-slate-900 text-white rounded-xl p-3 print-card">
+                            <p class="font-black text-white text-xs mb-1.5"><i class="fa-solid fa-location-dot text-amber-300 mr-1"></i> 현장 확인 3가지</p>
+                            <ul class="list-disc pl-4 space-y-1 text-slate-300 leading-relaxed">
+                                <li>처방 흐름·보행 동선</li>
+                                <li>경쟁 약국 운영·강점</li>
+                                <li>권리금·보증금·임대조건</li>
                             </ul>
                         </div>
                     </div>
-                    <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
+                    <div class="footer-source-strip mx-4 mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
+                        <p><strong class="text-slate-700">구성:</strong> 공식·실측(심평원·카카오·건축HUB·SGIS) · 공식 추정(서울 상권데이터) · 확인 입력/근거형 계산(처방·조제·비용)</p>
+                        <p id="report-data-basis" class="mt-1">기준: 분석 실행 후 표시됩니다.</p>
+                    </div>
+                    <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.1.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.1.1</span></p>
                     </div>
                 </div>
 
@@ -1008,12 +1020,13 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v5.1.1] PDF 후보지 목록 전체 출력, 출처·확인사항 영역 압축.
         // [v5.1.0] 화면·PDF 가독성 개선, 출력 시 산정 기준 자동 펼침, 데이터 실패 원인 세분화.
         // [v5.0.3] 리포트 단순화 후 남은 요소 참조 오류를 수정하고 API 지연 시 1회 재시도합니다.
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.1.0";
+        const SYSTEM_VERSION = "5.1.1";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2714,13 +2727,13 @@
             const d = GLOBAL_CALC_DATA;
             const today = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(new Date());
             const parts = [
-                `심평원 의료기관 ${d.isRealData ? `${today} 조회` : (GLOBAL_DATA_DIAGNOSTICS.hira?.short || '미적용')}`,
-                `카카오 장소 ${d.nearbySearchReal ? `${today} 조회` : (GLOBAL_DATA_DIAGNOSTICS.kakao?.short || '미적용')}`,
-                `SGIS 인구 ${d.sgisReal ? `${d.sgisYear || '-'}년 ${d.sgisScopeLevel || ''} 통계` : (GLOBAL_DATA_DIAGNOSTICS.sgis?.short || '미적용')}`,
-                `서울 매출·생활인구 ${d.seoulCommercialApplied ? `${formatQuarterLabel(d.seoulQuarter)} 기준` : (GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미적용')}`,
-                `건축정보 ${d.buildingLedgerReal ? `${today} 건축물대장 조회` : (d.buildingPermitReal ? `건축인허가 계획정보 ${today} 조회` : (GLOBAL_DATA_DIAGNOSTICS.building?.short || '미확인'))}`
+                `심평원 ${d.isRealData ? today : (GLOBAL_DATA_DIAGNOSTICS.hira?.short || '미확인')}`,
+                `카카오 ${d.nearbySearchReal ? today : (GLOBAL_DATA_DIAGNOSTICS.kakao?.short || '미확인')}`,
+                `SGIS ${d.sgisReal ? `${d.sgisYear || '-'}년·${d.sgisScopeLevel || '범위 미확인'}` : (GLOBAL_DATA_DIAGNOSTICS.sgis?.short || '미확인')}`,
+                `서울 ${d.seoulCommercialApplied ? formatQuarterLabel(d.seoulQuarter) : (GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미확인')}`,
+                `건축 ${d.buildingLedgerReal ? today : (d.buildingPermitReal ? `${today}·인허가` : (GLOBAL_DATA_DIAGNOSTICS.building?.short || '미확인'))}`
             ];
-            el.innerText = `데이터 기준: ${parts.join(' · ')}`;
+            el.innerText = `기준: ${parts.join(' ｜ ')}`;
         };
 
         function computeReportConfidence() {
@@ -4185,7 +4198,7 @@
             V40_RENDER_DATA_BASIS();
             const el = document.getElementById('report-data-basis');
             if (el && GLOBAL_CALC_DATA.seoulStaticApplied) {
-                el.innerText += ` (서울 데이터 수집일 ${formatStaticCollectedAt(GLOBAL_CALC_DATA.seoulStaticGeneratedAt)})`;
+                el.innerText += ` ｜ 서울 수집 ${formatStaticCollectedAt(GLOBAL_CALC_DATA.seoulStaticGeneratedAt)}`;
             }
         };
 
@@ -4317,7 +4330,7 @@
             V41_RENDER_DATA_BASIS();
             const el = document.getElementById('report-data-basis');
             if (el && GLOBAL_CALC_DATA.sgisStaticApplied) {
-                el.innerText += ` (SGIS 수집일 ${formatStaticCollectedAt(GLOBAL_CALC_DATA.sgisStaticGeneratedAt)})`;
+                el.innerText += ` ｜ SGIS 수집 ${formatStaticCollectedAt(GLOBAL_CALC_DATA.sgisStaticGeneratedAt)}`;
             }
         };
 
