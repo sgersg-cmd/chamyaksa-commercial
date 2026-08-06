@@ -244,14 +244,14 @@
 
     <main class="max-w-5xl mx-auto px-4 mt-8 space-y-6 print-padding">
         <!-- 대상 정보 입력단 -->
-        <section class="bg-white rounded-2xl border border-slate-200 p-6 card-shadow no-print">
+        <form id="analysis-form" class="bg-white rounded-2xl border border-slate-200 p-6 card-shadow no-print" onsubmit="event.preventDefault(); startAnalysisWithParsing();">
             <h2 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-sliders text-blue-600"></i> 입지 분석 대상 정보 입력 (지번/도로명 통합 검색)
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                 <div class="md:col-span-6 space-y-1.5">
-                    <label class="text-xs font-bold text-slate-500 block pl-1">분석할 주소 (도로명, 지번, 건물명 모두 가능)</label>
-                    <input type="text" id="input-address" placeholder="예: 서울시 강북구 번동 148-199 또는 종암로 120" 
+                    <label for="input-address" class="text-xs font-bold text-slate-500 block pl-1">분석할 주소 (도로명, 지번, 건물명 모두 가능)</label>
+                    <input type="text" id="input-address" autocomplete="street-address" onkeydown="if (event.key === 'Enter') { event.preventDefault(); startAnalysisWithParsing(); }" placeholder="예: 서울시 강북구 번동 148-199 또는 종암로 120" 
                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="md:col-span-3 space-y-1.5">
@@ -260,17 +260,27 @@
                            class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="md:col-span-3">
-                    <button onclick="startAnalysisWithParsing()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 tracking-wide">
+                    <button type="submit" id="start-analysis-button" class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-wait text-white font-bold py-3 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 tracking-wide">
                         <i class="fa-solid fa-magnifying-glass-location"></i> 상권분석 시작
                     </button>
                 </div>
             </div>
-        </section>
+        </form>
 
         <!-- 로딩 바 -->
         <div id="loading-spinner" class="hidden text-center py-20 space-y-4">
             <div class="inline-block w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
             <p class="text-xs text-slate-500 font-semibold tracking-wider">빅데이터 지형 동형 연산 처리 엔진 가동 중...</p>
+        </div>
+
+        <div id="analysis-error" class="hidden rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 no-print" role="alert">
+            <div class="flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation mt-0.5 text-amber-600"></i>
+                <div>
+                    <p class="font-black">분석을 완료하지 못했습니다.</p>
+                    <p id="analysis-error-message" class="mt-1 text-xs leading-relaxed">잠시 후 다시 시도해 주세요.</p>
+                </div>
+            </div>
         </div>
 
         <!-- 리포트 스킨 출력 구역 -->
@@ -1000,6 +1010,54 @@
         let GLOBAL_SITE_CONTEXT = { rawAddress: "", targetAddress: "", targetBaseAddress: "", buildingName: "", effectiveRadius: 100, specialType: "general", mode: "pending", nearbyHospitals: [], nearbyPharmacies: [], effectiveHospitals: [], effectivePharmacies: [], hospitalModels: [], plannedHospitals: [], plannedPharmacyCount: 1, activeScenario: "combo", promptHandled: false };
         let GLOBAL_ANALYSIS_METRICS = { totalGross: 0, myShare: 0, prescRev: 0, totalRev: 0, totalFixedCost: 0, netProfit: 0, breakEvenPrescriptions: 0, safetyMarginPrescriptions: 0, totalInvestment: 0, paybackMonths: Infinity, weightedCost: 0, marketShareRate: 0, rent: 0, humanCost: 0, costsConfirmed: false, categoryResults: [] };
         let PRE_PRINT_STATE = null;
+        let GLOBAL_ANALYSIS_WATCHDOG = null;
+
+        function getCompetitionEquivalent() {
+            const competition = Number(GLOBAL_CALC_DATA?.competitionEquivalent);
+            if (Number.isFinite(competition)) return Math.max(0, competition);
+            const existing = Number(GLOBAL_CALC_DATA?.existingPharmacy);
+            return Number.isFinite(existing) ? Math.max(0, existing) : 0;
+        }
+
+        function clearAnalysisWatchdog() {
+            if (GLOBAL_ANALYSIS_WATCHDOG) clearTimeout(GLOBAL_ANALYSIS_WATCHDOG);
+            GLOBAL_ANALYSIS_WATCHDOG = null;
+        }
+
+        function setAnalysisLoading(isLoading) {
+            const spinner = document.getElementById('loading-spinner');
+            const button = document.getElementById('start-analysis-button');
+            if (spinner) spinner.classList.toggle('hidden', !isLoading);
+            if (button) {
+                button.disabled = isLoading;
+                button.setAttribute('aria-busy', String(isLoading));
+            }
+            if (isLoading) {
+                const errorBox = document.getElementById('analysis-error');
+                if (errorBox) errorBox.classList.add('hidden');
+            }
+        }
+
+        function finishAnalysisLoading() {
+            clearAnalysisWatchdog();
+            setAnalysisLoading(false);
+        }
+
+        function showAnalysisError(message, error = null) {
+            if (error) console.error(message, error);
+            finishAnalysisLoading();
+            const errorBox = document.getElementById('analysis-error');
+            const errorMessage = document.getElementById('analysis-error-message');
+            if (errorMessage) errorMessage.innerText = message;
+            if (errorBox) errorBox.classList.remove('hidden');
+        }
+
+        function startAnalysisWatchdog() {
+            clearAnalysisWatchdog();
+            GLOBAL_ANALYSIS_WATCHDOG = setTimeout(() => {
+                showAnalysisError('외부 공공데이터 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
+            }, 45000);
+        }
 
         function onPyeongChanged() {
             const pyeong = parseFloat(document.getElementById('input-pyeong').value || 15);
@@ -1041,7 +1099,7 @@
             let cleanAddress = address;
             const dongMatch = address.match(/([가-힣\d]+동|[가-힣]+읍|[가-힣]+면)/);
             if(dongMatch) cleanAddress = dongMatch[1];
-            executeHiraFetch(cleanAddress, null);
+            return executeHiraFetch(cleanAddress, null);
         }
 
         async function fetchPublicApiPayload(url, timeoutMs = 12000) {
@@ -1181,7 +1239,7 @@
             } catch(e) {
                 console.error('심평원 병원 기본목록 조회 실패:', e);
                 // v2.10.1: API 실패 시 임의 추정 의료기관 수를 주입하지 않고 미확인 상태로 렌더링합니다.
-                renderFinalDashboard(cleanDong, 0, 0, 0, 0, 0, 0, 0, false, kakaoCoordinateObj, []);
+                return renderFinalDashboard(cleanDong, 0, 0, 0, 0, 0, 0, 0, false, kakaoCoordinateObj, []);
             }
         }
 
@@ -1397,7 +1455,7 @@
             generateMergedReportReason();
             requestExternalAiBriefing();
 
-            document.getElementById('loading-spinner').classList.add('hidden');
+            finishAnalysisLoading();
             document.getElementById('report-zone').classList.remove('hidden');
             
             setTimeout(() => { drawKakaoMapCandidateOnly(address, kakaoCoordinateObj); }, 150);
@@ -2146,20 +2204,33 @@
             const rawAddress = document.getElementById('input-address').value.trim();
             if (!rawAddress) { alert('분석할 지번 또는 도로명 주소를 기입해 주세요.'); return; }
             resetSiteContext(rawAddress);
-            document.getElementById('loading-spinner').classList.remove('hidden');
+            setAnalysisLoading(true);
+            startAnalysisWatchdog();
             document.getElementById('report-zone').classList.add('hidden');
             onPyeongChanged();
             if (typeof kakao !== 'undefined' && kakao.maps && kakao.maps.services) {
                 const geocoder = new kakao.maps.services.Geocoder();
                 geocoder.addressSearch(rawAddress, function(result, status) {
-                    if (status === kakao.maps.services.Status.OK) {
-                        setTargetContext(rawAddress, result[0]);
-                        let parsedDong = result[0].address ? result[0].address.region_3depth_name : result[0].road_address?.region_3depth_name;
-                        if (!parsedDong) { const match = rawAddress.match(/([가-힣\d]+동|[가-힣]+읍|[가-힣]+면)/); parsedDong = match ? match[1] : rawAddress; }
-                        executeHiraFetch(parsedDong, result[0]);
-                    } else { setTargetContext(rawAddress, null); fallbackStandardFlow(rawAddress); }
+                    try {
+                        let analysisPromise;
+                        if (status === kakao.maps.services.Status.OK) {
+                            setTargetContext(rawAddress, result[0]);
+                            let parsedDong = result[0].address ? result[0].address.region_3depth_name : result[0].road_address?.region_3depth_name;
+                            if (!parsedDong) { const match = rawAddress.match(/([가-힣\d]+동|[가-힣]+읍|[가-힣]+면)/); parsedDong = match ? match[1] : rawAddress; }
+                            analysisPromise = executeHiraFetch(parsedDong, result[0]);
+                        } else {
+                            setTargetContext(rawAddress, null);
+                            analysisPromise = fallbackStandardFlow(rawAddress);
+                        }
+                        Promise.resolve(analysisPromise).catch(error => showAnalysisError('분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', error));
+                    } catch (error) {
+                        showAnalysisError('주소를 처리하는 중 오류가 발생했습니다. 주소를 확인한 뒤 다시 시도해 주세요.', error);
+                    }
                 });
-            } else { setTargetContext(rawAddress, null); fallbackStandardFlow(rawAddress); }
+            } else {
+                setTargetContext(rawAddress, null);
+                Promise.resolve(fallbackStandardFlow(rawAddress)).catch(error => showAnalysisError('분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', error));
+            }
         };
 
         aggregateDetailedMedicalData = function(successRows, failedFacilities) {
