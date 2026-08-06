@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.0.3</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -21,21 +21,21 @@
          인구 통계는 GitHub Actions가 수집한 data/sgis/*.json 을 사용합니다. -->
     
     <style>
-        body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: linear-gradient(180deg, #eef3f9 0%, #f8fafc 42%, #eef2f7 100%); font-size: 14px; line-height: 1.55; }
         .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03); }
         .pdf-section-checkbox { accent-color: #2563eb; }
         .optional-panel-transition { transition: opacity .18s ease, transform .18s ease; }
         .number-input-compact::-webkit-inner-spin-button,
         .number-input-compact::-webkit-outer-spin-button { opacity: 1; }
-        .basis-note { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 0.875rem 1rem; }
+        .basis-note { background: #f8fafc; border: 1px solid #dbe5f1; border-radius: 0.85rem; padding: 0.95rem 1.1rem; }
         .basis-note strong { color: #0f172a; }
         .report-details { overflow: hidden; padding: 0; }
-        .report-details > summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 1rem; cursor: pointer; color: #475569; font-weight: 800; list-style: none; }
+        .report-details > summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .85rem 1.05rem; cursor: pointer; color: #334155; font-size: 13px; font-weight: 800; list-style: none; }
         .report-details > summary::-webkit-details-marker { display: none; }
-        .report-details > summary::after { content: '보기'; flex: 0 0 auto; color: #2563eb; font-size: 10px; }
+        .report-details > summary::after { content: '보기'; flex: 0 0 auto; color: #2563eb; font-size: 12px; }
         .report-details[open] > summary::after { content: '닫기'; }
-        .report-details-content { border-top: 1px solid #e2e8f0; padding: .75rem 1rem; }
-        .source-chip { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 9999px; padding: 0.125rem 0.45rem; font-size: 10px; font-weight: 800; white-space: nowrap; }
+        .report-details-content { border-top: 1px solid #dbe5f1; padding: .9rem 1.05rem; font-size: 13px; line-height: 1.65; }
+        .source-chip { display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; border-radius: 9999px; padding: 0.25rem 0.6rem; font-size: 11px; line-height: 1.4; font-weight: 800; white-space: normal; text-align: center; }
         .source-real { color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; }
         .source-model { color: #b45309; background: #fffbeb; border: 1px solid #fde68a; }
         .source-input { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; }
@@ -57,6 +57,26 @@
         .effective-place-list { max-height: 12rem; overflow-y: auto; }
         .effective-place-list::-webkit-scrollbar { width: 5px; }
         .effective-place-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+
+        /* [v5.1.0] 화면 가독성: 9~11px 보조문구를 읽을 수 있는 크기로 통일합니다. */
+        #report-card { color: #1e293b; box-shadow: 0 20px 55px -34px rgba(15, 23, 42, .45), 0 8px 24px -18px rgba(37, 99, 235, .22); }
+        #report-card > section { scroll-margin-top: 1rem; }
+        #report-card h3 { font-size: 16px !important; line-height: 1.4 !important; letter-spacing: 0 !important; }
+        #report-card h4 { font-size: 15px !important; line-height: 1.45 !important; }
+        #report-card .text-\[9px\] { font-size: 12px !important; line-height: 1.55 !important; }
+        #report-card .text-\[10px\] { font-size: 12.5px !important; line-height: 1.6 !important; }
+        #report-card .text-\[11px\] { font-size: 13px !important; line-height: 1.6 !important; }
+        #report-card .text-xs { font-size: 13px !important; line-height: 1.6 !important; }
+        #report-card .text-sm { font-size: 14px !important; line-height: 1.55 !important; }
+        #report-card th { font-size: 13px !important; line-height: 1.45 !important; color: #475569; }
+        #report-card td { font-size: 13px !important; line-height: 1.55 !important; vertical-align: top; }
+        #report-card input[type="number"] { min-height: 34px; font-size: 13px; }
+        #report-card .rounded-xl { border-radius: .85rem; }
+        #lbl-grade-badge { width: 100%; display: flex; justify-content: center; padding: 0 .25rem; }
+        #lbl-grade-badge > span { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: center; line-height: 1.45; }
+        #report-sync-line { max-width: 900px; margin-left: auto; margin-right: auto; line-height: 1.65; overflow-wrap: anywhere; }
+        #lbl-data-status-bar { line-height: 1.55; overflow-wrap: anywhere; }
+        .data-diagnostic { border-left: 4px solid #f59e0b; background: #fffbeb; color: #78350f; border-radius: .75rem; padding: .75rem .9rem; font-size: 13px; line-height: 1.6; }
 
         @page {
             size: A4 portrait;
@@ -82,7 +102,9 @@
                 border: 0 !important;
                 border-radius: 0 !important;
                 box-shadow: none !important;
-                zoom: 0.82;
+                zoom: 1;
+                font-size: 10pt !important;
+                line-height: 1.5 !important;
             }
             #report-card > * + * { margin-top: 3mm !important; }
             #report-card [data-print-section] {
@@ -146,8 +168,17 @@
                 break-inside: auto !important;
             }
             #report-card table.min-w-\[760px\] { min-width: 0 !important; width: 100% !important; }
-            #report-card .basis-note { padding: 2.2mm 2.6mm !important; font-size: 9px !important; line-height: 1.45 !important; }
-            #report-card .report-details { display: none !important; }
+            #report-card .basis-note { padding: 2.6mm 3mm !important; font-size: 9.5pt !important; line-height: 1.5 !important; }
+            #report-card .report-details { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+            #report-card .report-details > summary { display: flex !important; padding: 2.4mm 3mm !important; font-size: 10pt !important; cursor: default !important; }
+            #report-card .report-details > summary::after { display: none !important; }
+            #report-card .report-details-content { display: block !important; padding: 2.6mm 3mm !important; font-size: 9.5pt !important; line-height: 1.5 !important; }
+            #report-card .text-\[9px\], #report-card .text-\[10px\], #report-card .text-\[11px\], #report-card .text-xs { font-size: 9.5pt !important; line-height: 1.5 !important; }
+            #report-card .text-sm { font-size: 10.5pt !important; line-height: 1.5 !important; }
+            #report-card h3 { font-size: 12pt !important; line-height: 1.35 !important; }
+            #report-card h4 { font-size: 11pt !important; line-height: 1.4 !important; }
+            #report-card th, #report-card td { font-size: 9.5pt !important; line-height: 1.45 !important; }
+            #report-card .source-chip { font-size: 8.5pt !important; line-height: 1.35 !important; padding: 1mm 2mm !important; }
             #report-card .card-shadow, #report-card .shadow-sm, #report-card .shadow-md, #report-card .shadow-inner { box-shadow: none !important; }
             #report-card p, #report-card li { orphans: 2; widows: 2; }
             #investment-input-panel { display: block !important; }
@@ -175,7 +206,7 @@
             #lbl-ai-summary-cards > div,
             #lbl-ai-reason > div,
             #lbl-ai-reason > .grid > div { page-break-inside: avoid !important; break-inside: avoid !important; }
-            .nearby-place-list { max-height: none !important; overflow: visible !important; }
+            .nearby-place-list, .effective-place-list { max-height: none !important; overflow: visible !important; }
             #nearby-radius-panel { page-break-inside: auto !important; break-inside: auto !important; }
         }
     </style>
@@ -238,14 +269,14 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.0.3</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.1.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto px-4 mt-8 space-y-6 print-padding">
+    <main class="max-w-6xl mx-auto px-4 mt-8 space-y-6 print-padding">
         <!-- 대상 정보 입력단 -->
         <form id="analysis-form" class="bg-white rounded-2xl border border-slate-200 p-6 card-shadow no-print" onsubmit="event.preventDefault(); startAnalysisWithParsing();">
             <h2 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -288,9 +319,9 @@
 
         <!-- 리포트 스킨 출력 구역 -->
         <div id="report-zone" class="hidden space-y-6">
-            <div class="flex justify-between items-center no-print bg-slate-800 text-white p-3 rounded-xl shadow-sm">
-                <span id="lbl-data-status-bar" class="text-xs font-medium pl-2 text-slate-300"></span>
-                <button onclick="openPdfSelection()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 no-print bg-slate-800 text-white p-4 rounded-xl shadow-sm">
+                <span id="lbl-data-status-bar" class="text-sm font-medium sm:pl-1 text-slate-200 flex-1"></span>
+                <button onclick="openPdfSelection()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0">
                     <i class="fa-solid fa-list-check"></i> PDF 항목 선택
                 </button>
             </div>
@@ -866,7 +897,7 @@
                                 <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.0.3</strong></p>
+                        <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.1.0</strong></p>
                                 <p id="report-data-basis" class="mt-1 leading-relaxed">데이터 기준: 분석 실행 후 표시됩니다.</p>
                             </div>
                         </div>
@@ -889,7 +920,7 @@
                     </div>
                     <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.0.3</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.1.0</span></p>
                     </div>
                 </div>
 
@@ -932,7 +963,7 @@
                 <div class="px-6 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
                     <div>
                         <h2 id="pdf-modal-title" class="text-base font-black text-slate-900">PDF에 포함할 항목 선택</h2>
-                        <p class="text-xs text-slate-500 mt-1">선택한 항목만 이어서 배열한 뒤 인쇄 창을 엽니다.</p>
+                        <p class="text-xs text-slate-500 mt-1">선택한 항목만 배열하며, 각 항목의 산정 기준은 PDF에서 자동으로 펼쳐집니다.</p>
                     </div>
                     <button type="button" onclick="closePdfSelection()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="닫기">
                         <i class="fa-solid fa-xmark"></i>
@@ -977,11 +1008,12 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v5.1.0] 화면·PDF 가독성 개선, 출력 시 산정 기준 자동 펼침, 데이터 실패 원인 세분화.
         // [v5.0.3] 리포트 단순화 후 남은 요소 참조 오류를 수정하고 API 지연 시 1회 재시도합니다.
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.0.3";
+        const SYSTEM_VERSION = "5.1.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -1015,6 +1047,7 @@
         let GLOBAL_NEARBY_SEARCH_TOKEN = 0;
         let GLOBAL_SITE_CONTEXT = { rawAddress: "", targetAddress: "", targetBaseAddress: "", buildingName: "", effectiveRadius: 100, specialType: "general", mode: "pending", nearbyHospitals: [], nearbyPharmacies: [], effectiveHospitals: [], effectivePharmacies: [], hospitalModels: [], plannedHospitals: [], plannedPharmacyCount: 1, activeScenario: "combo", promptHandled: false };
         let GLOBAL_ANALYSIS_METRICS = { totalGross: 0, myShare: 0, prescRev: 0, totalRev: 0, totalFixedCost: 0, netProfit: 0, breakEvenPrescriptions: 0, safetyMarginPrescriptions: 0, totalInvestment: 0, paybackMonths: Infinity, weightedCost: 0, marketShareRate: 0, rent: 0, humanCost: 0, costsConfirmed: false, categoryResults: [] };
+        let GLOBAL_DATA_DIAGNOSTICS = { hira: null, kakao: null, sgis: null, seoul: null, building: null };
         let PRE_PRINT_STATE = null;
         let GLOBAL_ANALYSIS_WATCHDOG = null;
 
@@ -1120,6 +1153,48 @@
             return url.toString();
         }
 
+        function createApiRequestError(message, options = {}) {
+            const error = new Error(message);
+            Object.assign(error, options);
+            return error;
+        }
+
+        function diagnoseDataFailure(error, sourceLabel = '공공데이터') {
+            const message = String(error?.message || error || '원인 미상').trim();
+            const status = Number(error?.status || 0);
+            const code = String(error?.code || '');
+            if (code === 'ADDRESS_MATCH' || /카카오 주소 결과|시도 정보를 확인|법정동 코드|지번을 확인|행정동.*찾지 못|수집된 통계에서.*찾지 못/i.test(message)) {
+                return { code: 'address-match', short: '주소·행정구역 매칭 실패', reason: `${sourceLabel} 조회에 필요한 주소 코드나 행정구역을 확정하지 못했습니다. 자료가 없다고 단정할 수 없으며 도로명·지번 주소를 더 정확히 입력해야 합니다.`, detail: message };
+            }
+            if (code === 'NO_DATA' || /조회 결과 없음|등록.*없|찾지 못|확인되지 않|미제공|0건/i.test(message)) {
+                return { code: 'no-data', short: '등록자료 없음', reason: `${sourceLabel}에는 요청 조건과 일치하는 등록자료가 없습니다. 연결 오류가 아니라 실제 응답 결과가 0건이거나 주소·행정구역 매칭 자료가 없는 경우입니다.`, detail: message };
+            }
+            if (code === 'TIMEOUT' || status === 504 || error?.name === 'AbortError' || /시간.*초과|timeout|aborted/i.test(message)) {
+                return { code: 'timeout', short: '응답 시간 초과', reason: `${sourceLabel} 자료가 없는 것이 아니라, 제공기관 또는 중계 서버가 제한시간 안에 응답하지 못했습니다. 잠시 후 다시 조회하면 정상 처리될 수 있습니다.`, detail: status ? `재시도 후 HTTP ${status}` : '자동 재시도 후에도 제한시간 내 응답 없음' };
+            }
+            if (status === 401 || status === 403 || code === 'AUTH' || /인증|Unauthorized|Forbidden|serviceKey|키.*오류/i.test(message)) {
+                return { code: 'auth', short: '인증·권한 오류', reason: `${sourceLabel} 인증키가 만료·미승인 상태이거나 해당 API 사용 권한이 없습니다. 인증키 상태와 활용신청 승인을 확인해야 합니다.`, detail: message };
+            }
+            if (status === 429 || /요청.*한도|too many|rate limit|traffic/i.test(message)) {
+                return { code: 'rate-limit', short: '호출 한도 초과', reason: `${sourceLabel}의 일시적인 호출량 제한에 걸렸습니다. 일정 시간 후 다시 조회해야 합니다.`, detail: message };
+            }
+            if (status >= 500 || code === 'SERVER' || /HTTP 5\d\d|서버.*오류|연결에 실패/i.test(message)) {
+                return { code: 'server', short: `제공기관 일시 장애${status ? ` (HTTP ${status})` : ''}`, reason: `${sourceLabel} 제공기관 또는 중계 서버에서 일시적인 오류가 발생했습니다. 자료가 없다는 뜻은 아닙니다.`, detail: message };
+            }
+            if (code === 'INVALID_RESPONSE' || /응답 구조|응답 형식|파싱|SERVICE ERROR/i.test(message)) {
+                return { code: 'invalid-response', short: '응답 형식 오류', reason: `${sourceLabel}가 예상한 형식과 다른 응답을 보내 자료를 해석하지 못했습니다.`, detail: message };
+            }
+            if (/Failed to fetch|NetworkError|CORS|네트워크|API 로드 실패/i.test(message)) {
+                return { code: 'network', short: '네트워크 연결 실패', reason: `${sourceLabel} 서버까지 연결되지 않았습니다. 인터넷 연결, 브라우저 차단 또는 중계 서버 상태를 확인해야 합니다.`, detail: message };
+            }
+            return { code: 'unknown', short: '원인 확인 필요', reason: `${sourceLabel} 조회 과정에서 분류되지 않은 오류가 발생했습니다.`, detail: message };
+        }
+
+        function diagnosticReasonHtml(diagnostic) {
+            if (!diagnostic) return '';
+            return `<strong>${escapeHtml(diagnostic.short)}</strong> · ${escapeHtml(diagnostic.reason)}${diagnostic.detail && diagnostic.detail !== diagnostic.reason ? `<br><span class="text-slate-500">확인 내용: ${escapeHtml(diagnostic.detail)}</span>` : ''}`;
+        }
+
         async function fetchPublicApiPayload(url, timeoutMs = 12000) {
             // [v5.0.0] 브라우저에서는 허용된 Cloudflare Worker 경로만 호출합니다.
             /* [v5.0.0] 무료 공개 프록시 의존을 제거하고 전용 Worker만 사용합니다. */
@@ -1131,14 +1206,36 @@
                 const timer = setTimeout(() => controller.abort(), attemptTimeouts[attemptIndex]);
                 try {
                     const response = await fetch(url, { signal: controller.signal });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    let text = await response.text();
-                    if (!text || /SERVICE ERROR|Unauthorized|Forbidden/i.test(text)) throw new Error('공공데이터 응답 오류');
-                    try { return { type: 'json', data: JSON.parse(text), raw: text }; }
-                    catch(e) { return { type: 'xml', data: new DOMParser().parseFromString(text, 'text/xml'), raw: text }; }
+                    const text = await response.text();
+                    if (!response.ok) {
+                        let detail = '';
+                        try { detail = JSON.parse(text)?.error || ''; } catch(parseError) { detail = text.slice(0, 180); }
+                        const status = response.status;
+                        const code = status === 504 ? 'TIMEOUT' : (status === 401 || status === 403 ? 'AUTH' : (status >= 500 ? 'SERVER' : 'HTTP'));
+                        throw createApiRequestError(`HTTP ${status}${detail ? ` · ${detail}` : ''}`, { status, code });
+                    }
+                    if (!text) throw createApiRequestError('공공데이터 빈 응답', { code: 'INVALID_RESPONSE' });
+                    if (/SERVICE ERROR|Unauthorized|Forbidden/i.test(text)) throw createApiRequestError('공공데이터 응답 오류', { code: 'INVALID_RESPONSE' });
+                    try {
+                        const data = JSON.parse(text);
+                        const apiCode = String(data?.response?.header?.resultCode ?? '');
+                        const apiMessage = String(data?.response?.header?.resultMsg || '');
+                        if (apiCode && !['00', '0'].includes(apiCode)) {
+                            const authLike = /인증|SERVICE KEY|APPLICATION ERROR|UNREGISTERED/i.test(apiMessage);
+                            throw createApiRequestError(`${apiMessage || '공공데이터 처리 오류'} (결과코드 ${apiCode})`, { code: authLike ? 'AUTH' : 'INVALID_RESPONSE' });
+                        }
+                        return { type: 'json', data, raw: text };
+                    } catch(e) {
+                        if (e?.code) throw e;
+                        const xml = new DOMParser().parseFromString(text, 'text/xml');
+                        const parserError = xml.getElementsByTagName('parsererror')?.[0];
+                        if (parserError) throw createApiRequestError('공공데이터 응답 형식을 해석하지 못했습니다.', { code: 'INVALID_RESPONSE' });
+                        return { type: 'xml', data: xml, raw: text };
+                    }
                 } catch(e) {
                     lastError = e;
-                    const retryable = e?.name === 'AbortError' || /HTTP 5\d\d|Failed to fetch|NetworkError/i.test(String(e?.message || e));
+                    if (e?.name === 'AbortError' && !e.code) Object.assign(e, { code: 'TIMEOUT' });
+                    const retryable = e?.code === 'TIMEOUT' || e?.code === 'SERVER' || e?.status === 429 || /HTTP 5\d\d|Failed to fetch|NetworkError/i.test(String(e?.message || e));
                     if (!retryable || attemptIndex === attemptTimeouts.length - 1) break;
                     await new Promise(resolve => setTimeout(resolve, 400));
                 }
@@ -1242,22 +1339,22 @@
         async function executeHiraFetch(cleanDong, kakaoCoordinateObj) {
             try {
                 const sidoCd = resolveHiraSidoCd();
-                let result = await fetchHiraBasisPages(cleanDong, sidoCd, kakaoCoordinateObj);
-                let appliedSidoCd = sidoCd;
-                if (sidoCd && !result.items.length) {
-                    // 시도코드가 맞지 않는 경우를 대비한 폴백 (기존 v3.0.0 동작)
-                    console.warn('심평원 sidoCd 필터 결과 0건 → 시도 필터 없이 재조회합니다.', sidoCd);
-                    result = await fetchHiraBasisPages(cleanDong, '', kakaoCoordinateObj);
-                    appliedSidoCd = '';
-                }
+                const result = await fetchHiraBasisPages(cleanDong, sidoCd, kakaoCoordinateObj);
+                const appliedSidoCd = sidoCd;
                 Object.assign(GLOBAL_CALC_DATA, {
                     hiraBasisSidoCd: appliedSidoCd,
                     hiraBasisTotalCount: result.totalCount,
                     hiraBasisTruncated: result.truncated
                 });
+                if (!result.items.length) {
+                    GLOBAL_DATA_DIAGNOSTICS.hira = diagnoseDataFailure(createApiRequestError(`심평원 정상 응답 · ${cleanDong} 검색 결과 0건`, { code: 'NO_DATA' }), '건강보험심사평가원');
+                    return renderFinalDashboard(cleanDong, 0, 0, 0, 0, 0, 0, 0, false, kakaoCoordinateObj, []);
+                }
+                GLOBAL_DATA_DIAGNOSTICS.hira = { code: 'success', short: '정상 조회', reason: '건강보험심사평가원 의료기관 기본목록을 정상적으로 조회했습니다.', detail: `${result.items.length.toLocaleString()}건 수신` };
                 parseRealDataItems(cleanDong, result.items, kakaoCoordinateObj);
             } catch(e) {
                 console.error('심평원 병원 기본목록 조회 실패:', e);
+                GLOBAL_DATA_DIAGNOSTICS.hira = diagnoseDataFailure(e, '건강보험심사평가원');
                 // v2.10.1: API 실패 시 임의 추정 의료기관 수를 주입하지 않고 미확인 상태로 렌더링합니다.
                 return renderFinalDashboard(cleanDong, 0, 0, 0, 0, 0, 0, 0, false, kakaoCoordinateObj, []);
             }
@@ -1340,6 +1437,7 @@
                 });
                 const valid = facilities.some(item => !item.isPharmacy);
                 if (!valid) {
+                    GLOBAL_DATA_DIAGNOSTICS.hira = diagnoseDataFailure(createApiRequestError(`심평원 정상 응답 · 후보지 반경 ${HIRA_BASIS_RADIUS_M}m 이내 의료기관 0건`, { code: 'NO_DATA' }), '건강보험심사평가원');
                     // v2.10.1: 조회 결과에 의료기관이 없으면 임의값 대신 미확인 상태로 렌더링합니다.
                     renderFinalDashboard(address, 0, 0, 0, 0, 0, 0, 0, false, kakaoCoordinateObj, facilities);
                     return;
@@ -1362,25 +1460,38 @@
             const dataAdjustment = isReal ? 5 : -5;
             const baseScore = Math.min(100, Math.max(20, Math.round(35 + supplyPoints + balancePoints - competitionPenalty + dataAdjustment)));
 
+            const hiraRequestMeta = {
+                hiraBasisSidoCd: GLOBAL_CALC_DATA.hiraBasisSidoCd || '',
+                hiraBasisTotalCount: GLOBAL_CALC_DATA.hiraBasisTotalCount || 0,
+                hiraBasisTruncated: Boolean(GLOBAL_CALC_DATA.hiraBasisTruncated),
+                hiraBasisRadiusApplied: Boolean(GLOBAL_CALC_DATA.hiraBasisRadiusApplied),
+                hiraBasisRadius: GLOBAL_CALC_DATA.hiraBasisRadius || HIRA_BASIS_RADIUS_M,
+                hiraBasisFetched: GLOBAL_CALC_DATA.hiraBasisFetched || 0,
+                hiraBasisOutOfRange: GLOBAL_CALC_DATA.hiraBasisOutOfRange || 0,
+                hiraBasisNoCoordinate: GLOBAL_CALC_DATA.hiraBasisNoCoordinate || 0
+            };
             GLOBAL_CALC_DATA = {
                 address: address, mainMedical: mm, mainDoctors: md, subMedical1: sm1, subDoctors1: sd1,
                 subMedical2: sm2, subDoctors2: sd2, isSeoul: isSeoul, monthOtcRevenue: (isSeoul ? OTC_REVENUE_DEFAULTS.seoul : OTC_REVENUE_DEFAULTS.nonSeoul),
                 baseScore: baseScore, existingPharmacy: rx, existingPharmacyAdminDong: rx, competitionEquivalent: rx, nearbySearchReal: false,
                 nearbyHospitals300: 0, nearbyHospitals500: 0, nearbyPharmacies300: 0, nearbyPharmacies500: 0, isRealData: isReal,
                 hiraDetailReal: false, hiraDetailCoverage: 0, hiraDetailScope: '', hiraFacilities, hiraSubjectSummary: [],
-                supplyPoints, balancePoints, competitionPenalty, dataAdjustment
+                supplyPoints, balancePoints, competitionPenalty, dataAdjustment, ...hiraRequestMeta
             };
+
+            const hiraDiagnostic = GLOBAL_DATA_DIAGNOSTICS.hira || diagnoseDataFailure(new Error('원인 미상'), '건강보험심사평가원');
+            const medicalUnavailableLabel = hiraDiagnostic.code === 'no-data' ? '등록자료 없음' : hiraDiagnostic.short;
 
             document.getElementById('report-title').innerText = `약국 개설 후보지 상권분석 리포트 [${address}]`;
             document.getElementById('report-sync-line').innerText = isReal
                 ? `※ 의료기관 기본정보 조회 완료 · 실제 진료과목 상세조회 진행 중 · SGIS/서울/건축HUB 연동 조회 중`
-                : `※ 의료기관 기본정보 조회 실패 · 임의 추정 의료데이터를 표시하지 않습니다 · 주소와 API 상태를 확인해 주세요`;
+                : `※ 의료기관 기본정보 미적용 (${medicalUnavailableLabel}) · 임의 추정 의료데이터를 표시하지 않습니다`;
 
             const now = new Date();
             const generatedAt = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeStyle: 'short' }).format(now);
             document.getElementById('report-print-time-footer').innerText = `생성 시점: ${generatedAt}`;
             document.getElementById('report-footer-address').innerText = `분석 대상: ${document.getElementById('input-address').value.trim() || address}`;
-            document.getElementById('report-footer-data-status').innerText = `의료 데이터 상태: ${isReal ? '실데이터 조회 성공' : '조회 실패 · 대체 추정값 미적용'}`;
+            document.getElementById('report-footer-data-status').innerText = `의료 데이터 상태: ${isReal ? '실데이터 조회 성공' : `${medicalUnavailableLabel} · 대체 추정값 미적용`}`;
 
             // v2.10.1: 의료기관 실데이터가 없으면 점수·신뢰도를 임의로 산출해 표시하지 않습니다.
             document.getElementById('lbl-score').innerText = isReal ? `${baseScore} / 100 점` : '판정 불가';
@@ -1390,31 +1501,31 @@
             document.getElementById('lbl-confidence').innerText = isReal ? `${confidence}%` : '산출 불가';
             document.getElementById('lbl-score-formula').innerText = isReal
                 ? `35점 + 의료공급 ${supplyPoints.toFixed(1)}점 + 의사/약국 균형 ${balancePoints.toFixed(1)}점 - 경쟁위험 ${competitionPenalty.toFixed(1)}점 ${dataAdjustment >= 0 ? '+' : '-'} 데이터보정 ${Math.abs(dataAdjustment)}점 = ${baseScore}점`
-                : '건강보험심사평가원 의료기관 데이터를 조회하지 못해 입지 모형점수를 산출하지 않았습니다. 임의 추정값을 대신 표시하지 않습니다.';
+                : `건강보험심사평가원 의료기관 기본목록을 적용하지 못해 입지 모형점수를 산출하지 않았습니다. 원인: ${medicalUnavailableLabel}. 임의 추정값을 대신 표시하지 않습니다.`;
 
             const statusBar = document.getElementById('lbl-data-status-bar');
             statusBar.innerHTML = isReal
                 ? `<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 의료기관 기본목록 조회 성공 · 실제 진료과목 상세조회 대기`
-                : `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 의료기관 데이터 조회 실패 · 임의 추정값을 표시하지 않습니다`;
+                : `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 의료기관 데이터 미적용 · ${escapeHtml(medicalUnavailableLabel)} · 임의 추정값 없음`;
 
             resetNearbyRadiusUi();
             resetHiraDetailUi();
             renderHiraBasisScope(isReal);
 
             const badgeEl = document.getElementById('lbl-grade-badge');
-            if(!isReal) { badgeEl.innerHTML = `<span class="bg-slate-200 text-slate-700 text-xs font-black px-4 py-2 rounded-xl border border-slate-400">DATA UNAVAILABLE (의료데이터 조회 실패)</span>`; }
+            if(!isReal) { badgeEl.innerHTML = `<span class="bg-slate-200 text-slate-700 text-xs font-black px-4 py-2 rounded-xl border border-slate-400">판정 보류 · ${escapeHtml(medicalUnavailableLabel)}</span>`; }
             else if(baseScore >= 80) { badgeEl.innerHTML = `<span class="bg-blue-100 text-blue-800 text-xs font-black px-4 py-2 rounded-xl border border-blue-300">PRIORITY REVIEW (우선 임장 검토)</span>`; }
             else if(baseScore >= 60) { badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 text-xs font-black px-4 py-2 rounded-xl border border-emerald-300">FIELD TRIP (현장 검증 필요)</span>`; }
             else { badgeEl.innerHTML = `<span class="bg-red-100 text-red-800 text-xs font-black px-4 py-2 rounded-xl border border-red-300">HOLD / OBSERVE (보류·추가 확인)</span>`; }
 
             // v2.10.1: 조회 실패 시 0 또는 임의값이 실제 개소 수처럼 보이지 않도록 상태 문자열을 표시합니다.
-            document.getElementById('tbl-main-medical').innerText = isReal ? `${mm} 개소` : '조회 실패';
-            document.getElementById('tbl-main-doctors').innerText = isReal ? `${md} 명` : '조회 실패';
-            document.getElementById('tbl-sub-medical-1').innerText = isReal ? `${sm1} 개소` : '조회 실패';
-            document.getElementById('tbl-sub-doctors-1').innerText = isReal ? `${sd1} 명` : '조회 실패';
-            document.getElementById('tbl-sub-medical-2').innerText = isReal ? `${sm2} 개소` : '조회 실패';
-            document.getElementById('tbl-sub-doctors-2').innerText = isReal ? `${sd2} 명` : '조회 실패';
-            document.getElementById('tbl-existing-pharmacy').innerText = isReal ? `${rx} 개소` : '조회 실패';
+            document.getElementById('tbl-main-medical').innerText = isReal ? `${mm} 개소` : medicalUnavailableLabel;
+            document.getElementById('tbl-main-doctors').innerText = isReal ? `${md} 명` : medicalUnavailableLabel;
+            document.getElementById('tbl-sub-medical-1').innerText = isReal ? `${sm1} 개소` : medicalUnavailableLabel;
+            document.getElementById('tbl-sub-doctors-1').innerText = isReal ? `${sd1} 명` : medicalUnavailableLabel;
+            document.getElementById('tbl-sub-medical-2').innerText = isReal ? `${sm2} 개소` : medicalUnavailableLabel;
+            document.getElementById('tbl-sub-doctors-2').innerText = isReal ? `${sd2} 명` : medicalUnavailableLabel;
+            document.getElementById('tbl-existing-pharmacy').innerText = isReal ? `${rx} 개소` : medicalUnavailableLabel;
 
             // v2.10.1: 의료기관 실데이터가 없으면 매출 내부모형도 산출하지 않습니다.
             const baseSales = isSeoul ? 40000000 : 30000000;
@@ -1480,9 +1591,12 @@
             if (!el) return;
             const d = GLOBAL_CALC_DATA;
             if (!isReal) {
-                el.innerHTML = '<strong class="text-amber-700">집계 범위:</strong> 심평원 기본목록을 조회하지 못해 의료기관 집계를 표시하지 않습니다.';
+                const diagnostic = GLOBAL_DATA_DIAGNOSTICS.hira || diagnoseDataFailure(new Error('원인 미상'), '건강보험심사평가원');
+                el.className = 'data-diagnostic';
+                el.innerHTML = `<strong>의료기관 자료 미적용:</strong> ${diagnosticReasonHtml(diagnostic)}<br><span class="font-bold">처리:</span> 의료기관 수·의사 수·입지 점수는 임의값 없이 판정 보류로 표시합니다.`;
                 return;
             }
+            el.className = 'text-[10px] text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-2.5';
             const sido = d.hiraBasisSidoCd ? '시도 필터 적용' : '시도 필터 미적용(전국 동명 행정동 포함 가능)';
             if (d.hiraBasisRadiusApplied) {
                 el.innerHTML = `<strong class="text-blue-800">집계 범위:</strong> 심평원 <strong>${sido}</strong> 조회 ${Number(d.hiraBasisFetched || 0).toLocaleString()}건 중 <strong>후보지 반경 ${d.hiraBasisRadius}m</strong> 이내 기관만 집계했습니다. (반경 밖 ${Number(d.hiraBasisOutOfRange || 0).toLocaleString()}건 제외 · 좌표 미제공 ${Number(d.hiraBasisNoCoordinate || 0).toLocaleString()}건 제외)${d.hiraBasisTruncated ? ' <span class="text-amber-700">조회 건수가 많아 상위 500건까지만 확인했습니다.</span>' : ''}`;
@@ -1584,7 +1698,8 @@
             const { candidates, totalCandidates, scope } = getHiraDetailCandidates(kakaoCoordinateObj);
             GLOBAL_CALC_DATA.hiraDetailScope = scope;
             if (!GLOBAL_CALC_DATA.isRealData || !candidates.length) {
-                if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = '상세 API 적용 불가'; }
+                const diagnostic = GLOBAL_DATA_DIAGNOSTICS.hira;
+                if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = diagnostic ? `상세 미적용 · ${diagnostic.short}` : '상세 API 적용 불가'; }
                 if (coverageEl) coverageEl.innerText = '0개 조회';
                 if (summaryEl) summaryEl.innerText = '기본목록 또는 요양기호가 없어 기관명 기반 분류를 유지합니다.';
                 if (listEl) listEl.innerHTML = '<span class="text-amber-700">기관명 기반 보정분류 유지</span>';
@@ -1628,9 +1743,11 @@
                 reCalculateProfit();
                 updateReportDataStatus();
             } else {
-                if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = '상세 진료과 조회 실패'; }
+                const firstError = results.find(result => !result.ok)?.error;
+                const detailDiagnostic = diagnoseDataFailure(firstError || new Error('상세 진료과목 응답 0건'), '심평원 상세 진료과 API');
+                if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = `상세 · ${detailDiagnostic.short}`; }
                 if (coverageEl) coverageEl.innerText = `0/${candidates.length}개 성공`;
-                if (summaryEl) summaryEl.innerText = '상세 API 호출을 적용하지 못해 병원 기본목록과 기관명 기반 분류를 유지합니다.';
+                if (summaryEl) summaryEl.innerText = `${detailDiagnostic.reason} 병원 기본목록과 기관명 기반 분류를 유지합니다.`;
                 if (listEl) listEl.innerHTML = '<span class="text-amber-700">상세 API 응답 확인 필요</span>';
             }
         }
@@ -1713,11 +1830,13 @@
             if (basis) basis.innerText = '직접 경쟁 약국 수는 반경 조회 성공 후 유효 계산 범위 기준으로 판정됩니다.';
         }
 
-        function setNearbySearchError(message) {
+        function setNearbySearchError(message, error = null) {
+            const diagnostic = diagnoseDataFailure(error || new Error(message), '카카오 지도 장소검색');
+            GLOBAL_DATA_DIAGNOSTICS.kakao = diagnostic;
             const status = document.getElementById('nearby-search-status');
-            if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = message; }
+            if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = `카카오 · ${diagnostic.short}`; }
             const basis = document.getElementById('nearby-competition-basis');
-            if (basis) basis.innerHTML = `<strong class="text-amber-700">반경 장소 검색을 적용하지 못했습니다.</strong> 심평원 행정동 약국 수 ${GLOBAL_CALC_DATA.existingPharmacyAdminDong || 0}개소를 임시 경쟁값으로 유지합니다.`;
+            if (basis) basis.innerHTML = `<strong class="text-amber-700">반경 장소 검색 미적용:</strong> ${diagnosticReasonHtml(diagnostic)} 심평원 행정동 약국 수 ${GLOBAL_CALC_DATA.existingPharmacyAdminDong || 0}개소를 임시 경쟁값으로 유지합니다.`;
         }
 
         function dedupeKakaoPlaces(items) {
@@ -1800,18 +1919,20 @@
 
         function updateReportDataStatus() {
             const d = GLOBAL_CALC_DATA;
+            const hiraDiagnostic = GLOBAL_DATA_DIAGNOSTICS.hira;
+            const hiraUnavailableLabel = hiraDiagnostic?.short || '미적용';
             const statusBar = document.getElementById('lbl-data-status-bar');
             // v2.10.1: 매 호출마다 상태바를 반드시 초기화해 하위 레이어 문구가 중복 누적되지 않도록 합니다.
             if (d.hiraDetailReal && d.nearbySearchReal) statusBar.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> 심평원 실제 진료과목 + 카카오 반경 장소 실데이터 적용';
             else if (d.isRealData && d.nearbySearchReal) statusBar.innerHTML = '<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 심평원 기본목록 + 카카오 반경 장소 조회 성공 · 진료과 상세는 추가 검증 필요';
-            else if (d.nearbySearchReal) statusBar.innerHTML = '<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 카카오 반경 장소 실데이터 조회 성공 · 의료기관 데이터는 추가 검증 필요';
+            else if (d.nearbySearchReal) statusBar.innerHTML = `<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 카카오 반경 장소 실데이터 적용 · 심평원 ${escapeHtml(hiraUnavailableLabel)}`;
             else if (d.isRealData) statusBar.innerHTML = '<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 심평원 기본목록 조회 성공 · 카카오 반경 장소 조회 대기';
-            else statusBar.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 의료기관 데이터 조회 실패 · 임의 추정값을 표시하지 않습니다';
+            else statusBar.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 심평원 ${escapeHtml(hiraUnavailableLabel)} · 임의 추정값 없음`;
             const footerStatus = document.getElementById('report-footer-data-status');
-            if (footerStatus) footerStatus.innerText = `데이터 상태: 심평원 기본목록 ${d.isRealData ? '성공' : '조회 실패'} · 실제 진료과 ${d.hiraDetailReal ? `${Math.round((d.hiraDetailCoverage || 0) * 100)}% 적용` : '미적용'} · 카카오 반경 ${d.nearbySearchReal ? '성공' : '미적용'}`;
+            if (footerStatus) footerStatus.innerText = `데이터 상태: 심평원 기본목록 ${d.isRealData ? '성공' : hiraUnavailableLabel} · 실제 진료과 ${d.hiraDetailReal ? `${Math.round((d.hiraDetailCoverage || 0) * 100)}% 적용` : (d.isRealData ? '상세자료 미확인' : hiraUnavailableLabel)} · 카카오 반경 ${d.nearbySearchReal ? '성공' : (GLOBAL_DATA_DIAGNOSTICS.kakao?.short || '미확인')}`;
             const sync = document.getElementById('report-sync-line');
             // v2.10.1: 실제 연동 상태에 맞춰 데이터 출처 문구를 생성합니다. (기존 '매출/인구/유동 = 내부 추정모형' 일괄 표기 제거)
-            if (sync) sync.innerText = `※ 의료기관·진료과목: 건강보험심사평가원 API ｜ 주변 병원·약국: 카카오 지도 300m·500m ｜ 배후 인구·가구·주택: SGIS ${d.sgisReal ? '실데이터' : '미적용'} ｜ 예상 매약·처방 가정: 내부 추정모형`;
+            if (sync) sync.innerText = `※ 의료기관·진료과목: 건강보험심사평가원 API ｜ 주변 병원·약국: 카카오 지도 300m·500m ｜ 배후 인구·가구·주택: SGIS ${d.sgisReal ? '실데이터' : (GLOBAL_DATA_DIAGNOSTICS.sgis?.short || '미확인')} ｜ 예상 매약·처방 가정: 내부 추정모형`;
             renderReportDataBasis();
         }
 
@@ -1964,12 +2085,12 @@
                     paybackMonths: Number.isFinite(m.paybackMonths) ? Math.ceil(m.paybackMonths) : null
                 },
                 dataSources: {
-                    medicalFacilities: d.isRealData ? `건강보험심사평가원 병원정보 API 실데이터 (${d.hiraBasisRadiusApplied ? `후보지 반경 ${d.hiraBasisRadius}m 필터 적용` : '반경 필터 미적용 · 행정동명 기준'}${d.hiraBasisSidoCd ? ' · 시도 필터 적용' : ''})` : '조회 실패 (값 미제공)',
+                    medicalFacilities: d.isRealData ? `건강보험심사평가원 병원정보 API 실데이터 (${d.hiraBasisRadiusApplied ? `후보지 반경 ${d.hiraBasisRadius}m 필터 적용` : '반경 필터 미적용 · 행정동명 기준'}${d.hiraBasisSidoCd ? ' · 시도 필터 적용' : ''})` : `${GLOBAL_DATA_DIAGNOSTICS.hira?.short || '미적용'} (값 미제공)`,
                     medicalSubjects: d.hiraDetailReal ? '심평원 의료기관별상세정보 실데이터' : '기관명 기반 보정분류',
-                    nearbyPlaces: d.nearbySearchReal ? '카카오 지도 카테고리 검색 실데이터' : '미적용',
-                    population: d.sgisReal ? `SGIS ${d.sgisYear || ''}년 ${d.sgisScopeLevel || ''} 실데이터` : '조회 실패 (값 미제공)',
-                    salesAndFlow: d.seoulCommercialApplied ? `서울시 ${d.seoulQuarter || ''} 행정동 공식 추정데이터` : (d.flowDataType === 'unavailable' ? '서울 API 조회 실패 (값 미제공)' : '서울 외 내부 추정모형'),
-                    building: d.buildingLedgerReal ? '건축HUB 건축물대장 표제부 실데이터' : (d.buildingPermitReal ? '건축HUB 건축인허가 계획정보' : '미확인'),
+                    nearbyPlaces: d.nearbySearchReal ? '카카오 지도 카테고리 검색 실데이터' : `${GLOBAL_DATA_DIAGNOSTICS.kakao?.short || '미확인'} (값 미제공)`,
+                    population: d.sgisReal ? `SGIS ${d.sgisYear || ''}년 ${d.sgisScopeLevel || ''} 실데이터` : `${GLOBAL_DATA_DIAGNOSTICS.sgis?.short || '미적용'} (값 미제공)`,
+                    salesAndFlow: d.seoulCommercialApplied ? `서울시 ${d.seoulQuarter || ''} 행정동 공식 추정데이터` : (d.flowDataType === 'unavailable' ? `서울 ${GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미적용'} (값 미제공)` : '서울 외 내부 추정모형'),
+                    building: d.buildingLedgerReal ? '건축HUB 건축물대장 표제부 실데이터' : (d.buildingPermitReal ? '건축HUB 건축인허가 계획정보' : `${GLOBAL_DATA_DIAGNOSTICS.building?.short || '미확인'} (값 미제공)`),
                     otcRevenue: '내부 가정값 (실데이터 아님)',
                     prescriptionVolume: '내부 가정값 (실데이터 아님)'
                 },
@@ -2057,18 +2178,27 @@
 
         function applyPrintSectionVisibility(selectedSections) {
             const selected = new Set(selectedSections);
+            const reportDetails = Array.from(document.querySelectorAll('#report-card details.report-details'));
             PRE_PRINT_STATE = {
-                investmentOpen: !document.getElementById('investment-input-panel').classList.contains('hidden')
+                investmentOpen: !document.getElementById('investment-input-panel').classList.contains('hidden'),
+                detailOpenStates: reportDetails.map(element => element.open)
             };
             document.querySelectorAll('[data-print-section]').forEach(element => {
                 element.classList.toggle('print-excluded', !selected.has(element.dataset.printSection));
             });
+            // [v5.1.0] 화면에서는 접어두되 PDF에서는 선택 항목의 산정 기준을 모두 표시합니다.
+            reportDetails.forEach(element => { element.open = true; });
             if (selected.has('investment')) toggleInvestmentPanel(true);
         }
 
         function resetPrintSectionVisibility() {
             document.querySelectorAll('.print-excluded').forEach(element => element.classList.remove('print-excluded'));
-            if (PRE_PRINT_STATE) toggleInvestmentPanel(PRE_PRINT_STATE.investmentOpen);
+            if (PRE_PRINT_STATE) {
+                toggleInvestmentPanel(PRE_PRINT_STATE.investmentOpen);
+                Array.from(document.querySelectorAll('#report-card details.report-details')).forEach((element, index) => {
+                    element.open = Boolean(PRE_PRINT_STATE.detailOpenStates?.[index]);
+                });
+            }
             PRE_PRINT_STATE = null;
         }
 
@@ -2202,6 +2332,7 @@
 
         function resetSiteContext(rawAddress = '') {
             GLOBAL_SITE_CONTEXT = { rawAddress, targetAddress: rawAddress, targetBaseAddress: normalizeBuildingAddress(rawAddress), buildingName: '', effectiveRadius: 100, specialType: 'general', specialLabel: '일반 상권형', mode: 'pending', nearbyHospitals: [], nearbyPharmacies: [], effectiveHospitals: [], effectivePharmacies: [], hospitalModels: [], plannedHospitals: [], plannedPharmacyCount: 1, activeScenario: 'combo', promptHandled: false };
+            GLOBAL_DATA_DIAGNOSTICS = { hira: null, kakao: null, sgis: null, seoul: null, building: null };
             const panel = document.getElementById('site-analysis-panel'); if (panel) panel.classList.add('hidden');
             const scenario = document.getElementById('new-site-scenario-panel'); if (scenario) scenario.classList.add('hidden');
         }
@@ -2513,6 +2644,7 @@
                 if (!sameBuildingHospital && !sameBuildingPharmacy) GLOBAL_SITE_CONTEXT.mode = GLOBAL_SITE_CONTEXT.promptHandled ? GLOBAL_SITE_CONTEXT.mode : 'new-pending';
                 else GLOBAL_SITE_CONTEXT.mode = 'existing';
                 const directCompetition = effectivePharmacies.length;
+                GLOBAL_DATA_DIAGNOSTICS.kakao = { code: 'success', short: '정상 조회', reason: '카카오 지도 300m·500m 장소검색을 정상 적용했습니다.', detail: `병원·의원 ${hospitals500.length}개 · 약국 ${pharmacies500.length}개` };
                 Object.assign(GLOBAL_CALC_DATA, { nearbySearchReal: true, nearbyHospitals300: hospitals300.length, nearbyHospitals500: hospitals500.length, nearbyPharmacies300: pharmacies300.length, nearbyPharmacies500: pharmacies500.length, existingPharmacy: directCompetition, competitionEquivalent: directCompetition, directCompetitionCount: directCompetition, effectiveRadius: radius });
                 document.getElementById('stat-hospital-300').innerText = `${hospitals300.length}개소`; document.getElementById('stat-hospital-500').innerText = `${hospitals500.length}개소`; document.getElementById('stat-pharmacy-300').innerText = `${pharmacies300.length}개소`; document.getElementById('stat-pharmacy-500').innerText = `${pharmacies500.length}개소`;
                 document.getElementById('tbl-existing-pharmacy').innerText = `직접 ${directCompetition}개 / 500m ${pharmacies500.length}개`;
@@ -2522,7 +2654,7 @@
                 drawNearbyPlaceMarkers(mapInstance, hospitals500, pharmacies500);
                 buildHospitalModels(); updateSiteAnalysisPanel(); updateMarketPotentialFromCompetition(); resetPrescriptionModel(false); reCalculateProfit(); recalculateLocationScoreFromCurrentData(); updateReportDataStatus();
                 if (GLOBAL_SITE_CONTEXT.mode === 'new-pending' && !GLOBAL_SITE_CONTEXT.promptHandled) setTimeout(openNewSiteModal, 200);
-            } catch(e) { console.error('카카오 반경 장소 검색 실패:', e); setNearbySearchError('반경 검색 실패'); }
+            } catch(e) { console.error('카카오 반경 장소 검색 실패:', e); setNearbySearchError('반경 검색 실패', e); }
         };
 
         const V25_LOAD_HIRA_DETAIL = loadHiraDetailedSubjects;
@@ -2582,11 +2714,11 @@
             const d = GLOBAL_CALC_DATA;
             const today = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(new Date());
             const parts = [
-                `심평원 의료기관 ${d.isRealData ? `${today} 조회` : '조회 실패'}`,
-                `카카오 장소 ${d.nearbySearchReal ? `${today} 조회` : '미적용'}`,
-                `SGIS 인구 ${d.sgisReal ? `${d.sgisYear || '-'}년 ${d.sgisScopeLevel || ''} 통계` : '미적용'}`,
-                `서울 매출·생활인구 ${d.seoulCommercialApplied ? `${formatQuarterLabel(d.seoulQuarter)} 기준` : '미적용'}`,
-                `건축물대장 ${d.buildingLedgerReal ? `${today} 조회` : (d.buildingPermitReal ? `건축인허가 계획정보 ${today} 조회` : '미확인')}`
+                `심평원 의료기관 ${d.isRealData ? `${today} 조회` : (GLOBAL_DATA_DIAGNOSTICS.hira?.short || '미적용')}`,
+                `카카오 장소 ${d.nearbySearchReal ? `${today} 조회` : (GLOBAL_DATA_DIAGNOSTICS.kakao?.short || '미적용')}`,
+                `SGIS 인구 ${d.sgisReal ? `${d.sgisYear || '-'}년 ${d.sgisScopeLevel || ''} 통계` : (GLOBAL_DATA_DIAGNOSTICS.sgis?.short || '미적용')}`,
+                `서울 매출·생활인구 ${d.seoulCommercialApplied ? `${formatQuarterLabel(d.seoulQuarter)} 기준` : (GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미적용')}`,
+                `건축정보 ${d.buildingLedgerReal ? `${today} 건축물대장 조회` : (d.buildingPermitReal ? `건축인허가 계획정보 ${today} 조회` : (GLOBAL_DATA_DIAGNOSTICS.building?.short || '미확인'))}`
             ];
             el.innerText = `데이터 기준: ${parts.join(' · ')}`;
         };
@@ -2609,11 +2741,12 @@
             const d = GLOBAL_CALC_DATA; const ctx = GLOBAL_SITE_CONTEXT; const models = getActiveSourceModels(); const directDoctors = models.reduce((s,m)=>s+Number(m.doctors||0),0); const directCompetition = ctx.effectivePharmacies.length;
             // v2.10.1: 심평원 의료기관 실데이터가 없으면 점수·등급을 임의로 산출하지 않습니다.
             if (!d.isRealData) {
+                const hiraDiagnostic = GLOBAL_DATA_DIAGNOSTICS.hira || diagnoseDataFailure(new Error('원인 미상'), '건강보험심사평가원');
                 Object.assign(d, { baseScore: 0, confidence: 0 });
                 document.getElementById('lbl-score').innerText = '판정 불가';
                 document.getElementById('lbl-confidence').innerText = '산출 불가';
-                document.getElementById('lbl-grade-badge').innerHTML = '<span class="bg-slate-200 text-slate-700 text-xs font-black px-4 py-2 rounded-xl border border-slate-400">DATA UNAVAILABLE (의료데이터 조회 실패)</span>';
-                document.getElementById('lbl-score-formula').innerText = '건강보험심사평가원 의료기관 데이터를 조회하지 못해 입지 모형점수를 산출하지 않았습니다. 임의 추정값을 대신 표시하지 않습니다.';
+                document.getElementById('lbl-grade-badge').innerHTML = `<span class="bg-slate-200 text-slate-700 text-xs font-black px-4 py-2 rounded-xl border border-slate-400">판정 보류 · ${escapeHtml(hiraDiagnostic.short)}</span>`;
+                document.getElementById('lbl-score-formula').innerText = `건강보험심사평가원 의료기관 기본목록을 적용하지 못해 입지 모형점수를 산출하지 않았습니다. 원인: ${hiraDiagnostic.short}. 임의 추정값을 대신 표시하지 않습니다.`;
                 return;
             }
             let score; const confidence = computeReportConfidence();
@@ -2632,13 +2765,22 @@
 
         generateMergedReportReason = function() {
             const d=GLOBAL_CALC_DATA, m=GLOBAL_ANALYSIS_METRICS, ctx=GLOBAL_SITE_CONTEXT; const costs=m.costsConfirmed; const sourceLabel = ctx.mode==='new-simulation'?'신규부지 가정 시뮬레이션':ctx.mode==='new-planned'?'입점 예정정보':ctx.mode==='existing-manual'?'검색 누락 수동 보정':'운영시설 실데이터';
+            if (!d.isRealData) {
+                const diagnostic = GLOBAL_DATA_DIAGNOSTICS.hira || diagnoseDataFailure(new Error('원인 미상'), '건강보험심사평가원');
+                document.getElementById('lbl-normal-reason').innerText = `판정 보류 · 심평원 ${diagnostic.short} · 의료기관 수·의사 수·입지점수·예상 처방을 산출하지 않음`;
+                document.getElementById('lbl-ai-summary-cards').innerHTML = `<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card"><p class="text-[10px] text-slate-400 font-bold">최종 판단</p><p class="text-base font-black mt-1 text-amber-300">판정 보류</p><p class="text-[10px] text-slate-400 mt-1">점수·신뢰도 산출 안 함</p></div><div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card"><p class="text-[10px] text-slate-400 font-bold">예상 처방·조제수입</p><p class="text-base font-black mt-1 text-slate-300">산출 보류</p><p class="text-[10px] text-slate-400 mt-1">의료기관 자료 확인 필요</p></div><div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card"><p class="text-[10px] text-slate-400 font-bold">손익분기 분석</p><p class="text-base font-black mt-1 text-slate-300">${costs ? '기초자료 부족' : '비용정보 필요'}</p><p class="text-[10px] text-slate-400 mt-1">현재 결과에서 제외</p></div>`;
+                document.getElementById('lbl-ai-reason').innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card"><p class="font-bold text-slate-200 mb-2">확인된 사항</p><ul class="list-disc pl-4 space-y-1.5"><li>주소 입력과 분석 요청은 정상 접수</li><li>임의 의료기관 수를 대신 넣지 않음</li></ul></div><div class="bg-red-950/25 border border-red-800/40 rounded-xl p-4 print-card"><p class="font-bold text-red-300 mb-2">판정 보류 사유</p><ul class="list-disc pl-4 space-y-1.5"><li>심평원 ${escapeHtml(diagnostic.short)}</li><li>${escapeHtml(diagnostic.reason)}</li></ul></div></div><div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card"><p class="font-bold text-white mb-2">다음 확인 3가지</p><ol class="list-decimal pl-4 space-y-1.5"><li>잠시 후 같은 주소로 다시 조회</li><li>심평원·카카오 연동 상태 확인</li><li>정상 연동 후 병원 구성과 경쟁 약국 재검토</li></ol></div>`;
+                return;
+            }
             const normal = `${sourceLabel} · 유효 ${ctx.effectiveRadius}m 병원 ${ctx.effectiveHospitals.length}개 · 경쟁 약국 ${ctx.effectivePharmacies.length}개 · 예상 ${m.myShare}건/일 · 월 조제 약 ${Math.round(m.prescRev).toLocaleString()}원${costs?` · 손익분기 ${m.breakEvenPrescriptions}건/일`:' · 비용 미입력'}`;
             document.getElementById('lbl-normal-reason').innerText=normal;
             let decision='현장 검증 필요', cls='text-amber-300';
             if (ctx.mode==='new-simulation'||ctx.mode==='new-planned') { decision=d.baseScore>=75?'입점 전제 잠재력 높음':d.baseScore>=55?'조건부 검토':'입점 확정 전 유보'; cls=d.baseScore>=75?'text-emerald-300':d.baseScore>=55?'text-amber-300':'text-slate-300'; }
             else if (costs && m.netProfit>0 && m.safetyMarginPrescriptions>=0 && d.baseScore>=60) { decision='조건부 우선 검토'; cls='text-emerald-300'; }
             const strengths=[]; const risks=[];
-            if(ctx.effectivePharmacies.length===0) strengths.push('유효 범위 내 직접 경쟁 약국 없음'); else risks.push(`직접 경쟁 약국 ${ctx.effectivePharmacies.length}개`);
+            if(!d.nearbySearchReal) risks.push(`카카오 반경 장소 ${GLOBAL_DATA_DIAGNOSTICS.kakao?.short || '미확인'}`);
+            else if(ctx.effectivePharmacies.length===0) strengths.push('유효 범위 내 직접 경쟁 약국 없음');
+            else risks.push(`직접 경쟁 약국 ${ctx.effectivePharmacies.length}개`);
             if(m.myShare>=50) strengths.push(`예상 처방 ${m.myShare}건/일`); else risks.push(`예상 처방 ${m.myShare}건/일 · 병원 구성 확인 필요`);
             if(ctx.hospitalModels.some(h=>h.sameBuildingPharmacyCount>0&&!h.sameTarget)) risks.push('타 건물 병원은 동일 건물 약국 우선');
             if(ctx.mode==='new-simulation') risks.push('확정 병원 없는 가정 시뮬레이션');
@@ -2776,29 +2918,26 @@
         }
 
         function setSgisFailureUi(error) {
+            const diagnostic = diagnoseDataFailure(error, 'SGIS 정적 통계');
+            GLOBAL_DATA_DIAGNOSTICS.sgis = diagnostic;
             Object.assign(GLOBAL_SGIS_DATA, { real: false });
             Object.assign(GLOBAL_CALC_DATA, { sgisReal: false, residentCount: 0, potentialCustomers: 0 });
             const chip = document.getElementById('sgis-data-status');
-            if (chip) { chip.className = 'source-chip source-model ml-auto'; chip.innerText = 'SGIS 조회 실패'; }
+            if (chip) { chip.className = 'source-chip source-model ml-auto'; chip.innerText = `SGIS · ${diagnostic.short}`; }
             ['stat-sgis-scope','stat-resident-cnt','stat-household-cnt','stat-apt-cnt','stat-villa-cnt','stat-single-household','stat-potential-cnt'].forEach(id => {
-                const el = document.getElementById(id); if (el) el.innerText = '조회 실패';
+                const el = document.getElementById(id); if (el) el.innerText = diagnostic.short;
             });
-            const age = document.getElementById('lbl-target-age'); if (age) age.innerText = '연령 통계 조회 실패';
+            const age = document.getElementById('lbl-target-age'); if (age) age.innerText = `연령 통계 ${diagnostic.short}`;
             const strategy = document.getElementById('lbl-target-bullseye'); if (strategy) strategy.innerText = '연령별 상품전략은 현장 및 별도 통계 확인 필요';
             const message = document.getElementById('sgis-data-message');
-            /* [v3.1.1] 실측 검증 결과
-               SGIS의 JavaScript 인증(javascriptAuth)은 지도 SDK(sop)를 내려줄 뿐
-               Data API용 accessToken을 제공하지 않습니다. 따라서 브라우저 단독으로는
-               인구·가구·주택 통계 조회가 구조적으로 불가능합니다.
-               (accessToken 발급에는 보안 Key가 필요하며, 이를 정적 페이지에 넣을 수 없습니다.)
-               v4.0.0에서 서버측 사전 수집 방식으로 전환합니다. */
-            if (message) message.innerHTML = `SGIS 배후 인구 통계를 불러오지 못했습니다. <strong>임의 추정값은 표시하지 않습니다.</strong><br><span class="text-slate-500">원인: SGIS JavaScript 인증은 지도 SDK 전용이며 통계 Data API 토큰을 제공하지 않습니다. 서버측 사전 수집 방식으로 전환 예정입니다. (${escapeHtml(String(error?.message || '원인 미상'))})</span>`;
+            if (message) message.innerHTML = `SGIS 배후 인구 통계를 적용하지 못했습니다. <strong>임의 추정값은 표시하지 않습니다.</strong><br>${diagnosticReasonHtml(diagnostic)}`;
             recalculateLocationScoreFromCurrentData();
             updateReportDataStatus();
             generateMergedReportReason();
         }
 
         function renderSgisDemographics(data) {
+            GLOBAL_DATA_DIAGNOSTICS.sgis = { code: 'success', short: '정상 적용', reason: `SGIS ${data.year}년 ${data.scopeLevel} 통계를 정상적으로 적용했습니다.`, detail: data.admName || '' };
             GLOBAL_SGIS_DATA = data;
             const total = data.totalPopulation || 0;
             const priorityRate = total > 0 ? (data.priorityPopulation / total * 100) : 0;
@@ -2886,10 +3025,13 @@
         updateReportDataStatus = function() {
             V26_UPDATE_REPORT_STATUS_FOR_SGIS();
             const d = GLOBAL_CALC_DATA;
+            const sgisLabel = GLOBAL_DATA_DIAGNOSTICS.sgis?.short || '미확인';
             const statusBar = document.getElementById('lbl-data-status-bar');
-            if (statusBar && d.sgisReal) statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-people-group text-emerald-400 mr-1"></i>SGIS ${d.sgisYear}년 ${d.sgisScopeLevel} 통계 적용`;
+            if (statusBar) statusBar.innerHTML += d.sgisReal
+                ? ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-people-group text-emerald-400 mr-1"></i>SGIS ${d.sgisYear}년 ${d.sgisScopeLevel} 통계 적용`
+                : ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>SGIS ${escapeHtml(sgisLabel)}`;
             const footerStatus = document.getElementById('report-footer-data-status');
-            if (footerStatus) footerStatus.innerText += ` · SGIS ${d.sgisReal ? `${d.sgisYear}년 ${d.sgisScopeLevel}` : '미적용'}`;
+            if (footerStatus) footerStatus.innerText += ` · SGIS ${d.sgisReal ? `${d.sgisYear}년 ${d.sgisScopeLevel}` : sgisLabel}`;
         };
 
         // Firestore 저장 데이터에 SGIS 근거를 추가합니다.
@@ -3214,16 +3356,17 @@
         }
 
         function setSeoulCommercialFailureUi(error) {
+            const diagnostic = diagnoseDataFailure(error, '서울시 공식 상권데이터');
+            GLOBAL_DATA_DIAGNOSTICS.seoul = diagnostic;
             const marketChip = document.getElementById('seoul-market-status');
             const flowChip = document.getElementById('seoul-flow-status');
-            if (marketChip) { marketChip.className = 'source-chip source-model ml-auto'; marketChip.innerText = '서울 API 실패·내부모형'; }
-            if (flowChip) { flowChip.className = 'source-chip source-model self-start sm:self-auto'; flowChip.innerText = '서울 API 실패·내부모형'; }
-            const message = error?.message || '원인 미상';
-            const marketMessage = document.getElementById('seoul-market-message'); if (marketMessage) marketMessage.innerText = `서울 공식 추정매출을 불러오지 못했습니다. 표시된 값은 서울 공식 데이터가 아니라 내부 추정모형 결과입니다. (${message})`;
-            const flowMessage = document.getElementById('seoul-flow-message'); if (flowMessage) flowMessage.innerText = `서울 공식 생활인구를 불러오지 못했습니다. 서울 주소의 주중·주말/시간대 값은 임의 표시하지 않습니다. (${message})`;
+            if (marketChip) { marketChip.className = 'source-chip source-model ml-auto'; marketChip.innerText = `서울 · ${diagnostic.short}`; }
+            if (flowChip) { flowChip.className = 'source-chip source-model self-start sm:self-auto'; flowChip.innerText = `서울 · ${diagnostic.short}`; }
+            const marketMessage = document.getElementById('seoul-market-message'); if (marketMessage) marketMessage.innerHTML = `서울 공식 추정매출을 적용하지 못했습니다. 표시값은 공식 데이터가 아니라 내부 추정모형입니다.<br>${diagnosticReasonHtml(diagnostic)}`;
+            const flowMessage = document.getElementById('seoul-flow-message'); if (flowMessage) flowMessage.innerHTML = `서울 공식 생활인구를 적용하지 못해 임의 비중은 표시하지 않습니다.<br>${diagnosticReasonHtml(diagnostic)}`;
             Object.assign(GLOBAL_CALC_DATA, { seoulCommercialApplied: false, marketDataType: 'internal-model-fallback', flowDataType: 'unavailable' });
             // v2.10.1: 서울 주소인데 공식 생활인구 조회에 실패하면 과거 하드코딩 상수를 남기지 않고 조회 실패로 표시합니다.
-            setSeoulFlowUnavailableUi('조회 실패');
+            setSeoulFlowUnavailableUi(diagnostic.short);
         }
 
         loadSeoulCommercialForCurrentAddress = async function() {
@@ -3243,6 +3386,7 @@
                 ]);
                 if (requestToken !== GLOBAL_SEOUL_REQUEST_TOKEN) return;
                 GLOBAL_SEOUL_COMMERCIAL_DATA = { applied: true, quarter, adminCode: area.ADSTRD_CD, adminName: area.ADSTRD_CD_NM, sales, stores, flow };
+                GLOBAL_DATA_DIAGNOSTICS.seoul = { code: 'success', short: '정상 적용', reason: `서울시 ${formatQuarterLabel(quarter)} 행정동 공식 추정데이터를 정상 적용했습니다.`, detail: area.ADSTRD_CD_NM || '' };
                 renderSeoulSalesAndStores(sales, stores, area, quarter);
                 renderSeoulFlow(flow, area, quarter);
                 // [v3.0.0] 서울 공식 데이터 적용분을 신뢰도 단일 산식에 즉시 반영합니다.
@@ -3292,15 +3436,18 @@
             if (statusBar) {
                 if (d.seoulCommercialApplied) statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-chart-line text-sky-400 mr-1"></i>서울 행정동 공식 추정매출·생활인구 적용`;
                 else if (!isSeoulAddressContext()) statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-chart-simple text-amber-400 mr-1"></i>서울 외 매출·유동 내부모형`;
+                else statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>서울 데이터 ${escapeHtml(GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미확인')}`;
             }
             const footerStatus = document.getElementById('report-footer-data-status');
-            if (footerStatus) footerStatus.innerText += ` · 매출/생활인구 ${d.seoulCommercialApplied ? `서울 ${d.seoulQuarter} 공식 추정` : '내부 추정'}`;
+            if (footerStatus) footerStatus.innerText += ` · 매출/생활인구 ${d.seoulCommercialApplied
+                ? `서울 ${d.seoulQuarter} 공식 추정`
+                : (isSeoulAddressContext() ? (GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미확인') : '서울 외 내부 추정')}`;
             const sync = document.getElementById('report-sync-line');
             if (sync) {
                 const base = sync.innerText.replace(/\s*｜\s*서울시.*$/, '');
                 sync.innerText = d.seoulCommercialApplied
                     ? `${base} ｜ 서울시 ${formatQuarterLabel(d.seoulQuarter)} 행정동 공식 추정매출·생활인구`
-                    : `${base} ｜ 매출·유동 ${isSeoulAddressContext() ? '서울 API 미적용 내부모형' : '서울 외 내부 추정모형'}`;
+                    : `${base} ｜ 매출·유동 ${isSeoulAddressContext() ? `서울 ${GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미확인'} · 매출만 내부모형` : '서울 외 내부 추정모형'}`;
             }
         };
 
@@ -3470,18 +3617,21 @@
         }
 
         function setBuildingLedgerFailureUi(error) {
+            const diagnostic = diagnoseDataFailure(error, '건축HUB 건축물대장·인허가');
+            GLOBAL_DATA_DIAGNOSTICS.building = diagnostic;
             Object.assign(GLOBAL_BUILDING_LEDGER_DATA, { real: false });
             Object.assign(GLOBAL_CALC_DATA, { buildingLedgerReal: false });
             const status = document.getElementById('building-ledger-status');
-            if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = '건축물대장 미확인'; }
+            if (status) { status.className = 'source-chip source-model self-start sm:self-auto'; status.innerText = `건축정보 · ${diagnostic.short}`; }
             const ids = ['stat-building-name','stat-building-purpose','stat-building-area','stat-building-floors','stat-building-elevators','stat-building-parking','stat-building-approval'];
             ids.forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '-'; });
             const radius = document.getElementById('stat-building-radius'); if (radius) radius.innerText = `${GLOBAL_SITE_CONTEXT.effectiveRadius || 100}m 유지`;
             const summary = document.getElementById('building-ledger-summary'); if (summary) summary.innerText = '건축물대장 표제부가 조회되지 않아 주소·건물명 기반 기본 판정을 유지합니다.';
-            const message = document.getElementById('building-ledger-message'); if (message) message.innerText = `신축 사용승인 전, 대장 미등재 또는 주소 불일치일 수 있습니다. 임의 건물정보는 생성하지 않습니다. (${error?.message || '조회 결과 없음'})`;
+            const message = document.getElementById('building-ledger-message'); if (message) message.innerHTML = `임의 건물정보는 생성하지 않습니다.<br>${diagnosticReasonHtml(diagnostic)}`;
         }
 
         function renderBuildingLedgerData(data) {
+            GLOBAL_DATA_DIAGNOSTICS.building = { code: 'success', short: '정상 조회', reason: '건축HUB 건축물대장 표제부를 정상 조회했습니다.', detail: data.buildingName || '' };
             const status = document.getElementById('building-ledger-status');
             if (status) { status.className = 'source-chip source-real self-start sm:self-auto'; status.innerText = '건축HUB 실데이터'; }
             const set = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value; };
@@ -3568,10 +3718,13 @@
         updateReportDataStatus = function() {
             V28_UPDATE_REPORT_STATUS_FOR_BUILDING();
             const d = GLOBAL_CALC_DATA;
+            const buildingLabel = GLOBAL_DATA_DIAGNOSTICS.building?.short || '미확인';
             const statusBar = document.getElementById('lbl-data-status-bar');
-            if (statusBar) statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-city text-cyan-400 mr-1"></i>건축물대장 ${d.buildingLedgerReal ? `${d.buildingLedgerRadius}m 판정` : '미적용'}`;
+            if (statusBar) statusBar.innerHTML += d.buildingLedgerReal
+                ? ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-city text-cyan-400 mr-1"></i>건축물대장 ${d.buildingLedgerRadius}m 판정`
+                : ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>건축정보 ${escapeHtml(buildingLabel)}`;
             const footerStatus = document.getElementById('report-footer-data-status');
-            if (footerStatus) footerStatus.innerText += ` · 건축물대장 ${d.buildingLedgerReal ? '적용' : '미확인'}`;
+            if (footerStatus) footerStatus.innerText += ` · 건축물대장 ${d.buildingLedgerReal ? '적용' : buildingLabel}`;
             const sync = document.getElementById('report-sync-line');
             if (sync && d.buildingLedgerReal && !sync.innerText.includes('건축HUB')) sync.innerText += ' ｜ 건축HUB 건축물대장 표제부';
         };
@@ -3745,6 +3898,7 @@
         }
 
         function renderBuildingPermitData(data) {
+            GLOBAL_DATA_DIAGNOSTICS.building = { code: 'success', short: '인허가 정상 조회', reason: '건축물대장 대신 건축인허가 계획정보를 정상 조회했습니다.', detail: data.buildingName || data.address || '' };
             const status = document.getElementById('building-ledger-status');
             if (status) { status.className = 'source-chip source-input self-start sm:self-auto'; status.innerText = '건축인허가 계획정보'; }
             const set = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value; };
@@ -3852,9 +4006,9 @@
             V29_UPDATE_REPORT_STATUS_FOR_PERMIT();
             if (!GLOBAL_CALC_DATA.buildingPermitReal) return;
             const statusBar = document.getElementById('lbl-data-status-bar');
-            if (statusBar) statusBar.innerHTML = statusBar.innerHTML.replace(/건축물대장\s*미적용/, `건축인허가 계획 ${GLOBAL_CALC_DATA.buildingPermitRadius || 100}m 판정`);
+            if (statusBar) statusBar.innerHTML = statusBar.innerHTML.replace(/건축정보[^<]*$/, `건축인허가 계획 ${GLOBAL_CALC_DATA.buildingPermitRadius || 100}m 판정`);
             const footerStatus = document.getElementById('report-footer-data-status');
-            if (footerStatus) footerStatus.innerText = footerStatus.innerText.replace('건축물대장 미확인', '건축인허가 계획정보 적용');
+            if (footerStatus) footerStatus.innerText = footerStatus.innerText.replace(/건축물대장\s+[^·]+$/, '건축인허가 계획정보 적용');
             const sync = document.getElementById('report-sync-line');
             if (sync) {
                 sync.innerText = sync.innerText.replace(/\s*｜\s*건축HUB 건축물대장 표제부/g, '');
