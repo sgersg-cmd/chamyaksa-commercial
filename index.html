@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v4.1</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.0.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -194,7 +194,8 @@
         } catch(e) { console.error("Firebase 에러:", e); }
 
         const CONFIG = {
-            PUBLIC_DATA_KEY: "3d31676da44e1b5c9a7b02181f5dd067d999224cc70f908e25de76566f911b7b",
+            // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
+            API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
             NET_MARGIN_RATE: 0.45,
             COST_STAFF: 2500000,   
             COST_FULL_PHARM: 6000000,
@@ -202,7 +203,6 @@
             // API 키를 브라우저에 직접 넣지 말고, Firebase Functions/Cloud Run 등 서버 엔드포인트를 연결하십시오.
             AI_BRIEFING_ENDPOINT: "",
             AI_BRIEFING_TIMEOUT_MS: 15000,
-            HIRA_DETAIL_BASE_URL: "https://apis.data.go.kr/B551182/MadmDtlInfoService2.8",
             HIRA_DETAIL_MAX_FACILITIES: 40,
             HIRA_DETAIL_CONCURRENCY: 5,
             HIRA_DETAIL_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
@@ -212,16 +212,12 @@
             SGIS_STATIC_TIMEOUT_MS: 8000,
             SGIS_STAT_YEAR: 2024,
             SGIS_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
-            SEOUL_OPEN_DATA_KEY: "697650445573676535395445424b49",
-            SEOUL_OPEN_API_BASE: "http://openapi.seoul.go.kr:8088",
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
             SEOUL_STATIC_TIMEOUT_MS: 8000,
             SEOUL_COMMERCIAL_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
             SEOUL_COMMERCIAL_PAGE_SIZE: 1000,
-            BUILDING_LEDGER_BASE_URL: "https://apis.data.go.kr/1613000/BldRgstHubService",
-            BUILDING_PERMIT_BASE_URL: "https://apis.data.go.kr/1613000/ArchPmsHubService",
             BUILDING_LEDGER_CACHE_TTL_MS: 30 * 24 * 60 * 60 * 1000,
             BUILDING_PERMIT_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
             BUILDING_LARGE_SITE_AREA_M2: 5000,
@@ -235,7 +231,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v4.1</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.0.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -883,7 +879,7 @@
                                 <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v4.1.0</strong></p>
+                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.0.0</strong></p>
                                 <p id="report-data-basis" class="mt-1 leading-relaxed">데이터 기준: 분석 실행 후 표시됩니다.</p>
                             </div>
                         </div>
@@ -907,7 +903,7 @@
                     </div>
                     <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>본 자료는 약국 개설 후보지의 1차 검토용입니다. 서울시 공식 추정데이터·SGIS 지역통계·내부 추정모형을 특정 약국의 실제 처방·매출 또는 수익 보장값으로 해석해서는 안 됩니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · v4.1.0</p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.0.0</span></p>
                     </div>
                 </div>
 
@@ -986,9 +982,30 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "4.1.0";
-        const VERSION_DISPLAY_SHORT = "v4.1";      // 화면 헤더 배지용 2자리 표기
-        const VERSION_DISPLAY_FULL = "v4.1.0";     // PDF·리포트 정보용 3자리 표기
+        /*
+         * 버전 규칙 (MAJOR.MINOR.PATCH)
+         * MAJOR: 서비스 구조가 크게 바뀔 때
+         * MINOR: 새 기능을 추가할 때
+         * PATCH: 오류 수정·문구 변경 등 작은 개선
+         *
+         * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
+         *            주소 입력 Enter 실행, 버전 표시 단일화
+         */
+        // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
+        const SYSTEM_VERSION = "5.0.0";
+        const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
+        const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
+
+        function applySystemVersion() {
+            document.title = `약국 개설 전용 상권분석 시스템 ${VERSION_DISPLAY_FULL}`;
+            const headerVersion = document.getElementById('lbl-header-version');
+            const reportVersion = document.getElementById('lbl-report-version');
+            const footerVersion = document.getElementById('lbl-footer-version');
+            if (headerVersion) headerVersion.innerText = VERSION_DISPLAY_SHORT;
+            if (reportVersion) reportVersion.innerText = VERSION_DISPLAY_FULL;
+            if (footerVersion) footerVersion.innerText = VERSION_DISPLAY_FULL;
+        }
+        applySystemVersion();
 
         // [v3.0.0] 아래 함수들은 단일 정의만 존재하며, 뒤쪽 모듈 블록에서 대입 방식으로 정의됩니다.
         // 암묵적 전역 생성을 막기 위해 선언만 미리 둡니다.
@@ -1102,16 +1119,22 @@
             return executeHiraFetch(cleanAddress, null);
         }
 
+        function buildApiProxyUrl(path, params = {}) {
+            const base = String(CONFIG.API_PROXY_BASE || '').replace(/\/$/, '');
+            if (!base) throw new Error('API 중계 서버 주소가 설정되지 않았습니다.');
+            const url = new URL(`${base}${path}`);
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && String(value) !== '') {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+            return url.toString();
+        }
+
         async function fetchPublicApiPayload(url, timeoutMs = 12000) {
-            /* [v3.1.1] 실측 검증 반영
-               - allorigins.win/get : 실패 확인 → 사용 중단
-               - allorigins.win/raw : 정상 동작 확인 → 유일한 폴백으로 사용
-               - corsproxy.io       : HTTP 522(Cloudflare) 응답, 사실상 폐쇄 → 제거
-               프록시 의존 자체를 없애는 근본 해결은 v4.0.0(정적 데이터 전환)에서 진행합니다. */
-            const attempts = [
-                url,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-            ];
+            // [v5.0.0] 브라우저에서는 허용된 Cloudflare Worker 경로만 호출합니다.
+            /* [v5.0.0] 무료 공개 프록시 의존을 제거하고 전용 Worker만 사용합니다. */
+            const attempts = [url];
             let lastError = null;
             for (const target of attempts) {
                 const controller = new AbortController();
@@ -1120,10 +1143,6 @@
                     const response = await fetch(target, { signal: controller.signal });
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     let text = await response.text();
-                    // /raw 는 원본 본문을 그대로 반환하므로 별도 언랩이 필요 없습니다.
-                    if (target.includes('allorigins.win/get')) {
-                        try { text = JSON.parse(text).contents || text; } catch(e) {}
-                    }
                     if (!text || /SERVICE ERROR|Unauthorized|Forbidden/i.test(text)) throw new Error('공공데이터 응답 오류');
                     try { return { type: 'json', data: JSON.parse(text), raw: text }; }
                     catch(e) { return { type: 'xml', data: new DOMParser().parseFromString(text, 'text/xml'), raw: text }; }
@@ -1184,15 +1203,21 @@
             return hit ? hit.code : '';
         }
 
-        function buildHiraBasisUrl(cleanDong, pageNo, rowsPerPage, sidoCd) {
-            const url = new URL('https://apis.data.go.kr/B551182/hospInfoServicev2/getHospBasisList');
-            url.searchParams.set('serviceKey', CONFIG.PUBLIC_DATA_KEY);
-            url.searchParams.set('pageNo', String(pageNo));
-            url.searchParams.set('numOfRows', String(rowsPerPage));
-            url.searchParams.set('emdongNm', cleanDong);
-            if (sidoCd) url.searchParams.set('sidoCd', sidoCd);
-            url.searchParams.set('_type', 'json');
-            return url.toString();
+        function buildHiraBasisUrl(cleanDong, pageNo, rowsPerPage, sidoCd, kakaoCoordinateObj) {
+            const params = {
+                pageNo,
+                numOfRows: rowsPerPage,
+                sidoCd,
+                emdongNm: cleanDong
+            };
+            const x = Number(kakaoCoordinateObj?.x);
+            const y = Number(kakaoCoordinateObj?.y);
+            if (Number.isFinite(x) && Number.isFinite(y)) {
+                params.xPos = x;
+                params.yPos = y;
+                params.radius = HIRA_BASIS_RADIUS_M;
+            }
+            return buildApiProxyUrl('/api/hira/basis', params);
         }
 
         /* [v3.1.1] 실측 검증 반영
@@ -1203,16 +1228,16 @@
         const HIRA_BASIS_ROWS_PER_PAGE = 1000;
         const HIRA_BASIS_MAX_PAGES = 3;
 
-        async function fetchHiraBasisPages(cleanDong, sidoCd) {
+        async function fetchHiraBasisPages(cleanDong, sidoCd, kakaoCoordinateObj) {
             const rowsPerPage = HIRA_BASIS_ROWS_PER_PAGE;
-            const firstPayload = await fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, 1, rowsPerPage, sidoCd));
+            const firstPayload = await fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, 1, rowsPerPage, sidoCd, kakaoCoordinateObj));
             const items = getPayloadItems(firstPayload);
             const totalCount = getPayloadTotalCount(firstPayload);
             const neededPages = Math.max(1, Math.ceil(totalCount / rowsPerPage));
             const totalPages = Math.min(HIRA_BASIS_MAX_PAGES, neededPages);
             if (totalPages > 1) {
                 const pagePayloads = await Promise.all(Array.from({ length: totalPages - 1 }, (_, index) =>
-                    fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, index + 2, rowsPerPage, sidoCd)).catch(() => null)
+                    fetchPublicApiPayload(buildHiraBasisUrl(cleanDong, index + 2, rowsPerPage, sidoCd, kakaoCoordinateObj)).catch(() => null)
                 ));
                 pagePayloads.filter(Boolean).forEach(payload => { items.push(...getPayloadItems(payload)); });
             }
@@ -1222,12 +1247,12 @@
         async function executeHiraFetch(cleanDong, kakaoCoordinateObj) {
             try {
                 const sidoCd = resolveHiraSidoCd();
-                let result = await fetchHiraBasisPages(cleanDong, sidoCd);
+                let result = await fetchHiraBasisPages(cleanDong, sidoCd, kakaoCoordinateObj);
                 let appliedSidoCd = sidoCd;
                 if (sidoCd && !result.items.length) {
                     // 시도코드가 맞지 않는 경우를 대비한 폴백 (기존 v3.0.0 동작)
                     console.warn('심평원 sidoCd 필터 결과 0건 → 시도 필터 없이 재조회합니다.', sidoCd);
-                    result = await fetchHiraBasisPages(cleanDong, '');
+                    result = await fetchHiraBasisPages(cleanDong, '', kakaoCoordinateObj);
                     appliedSidoCd = '';
                 }
                 Object.assign(GLOBAL_CALC_DATA, {
@@ -1533,7 +1558,11 @@
         async function fetchHiraSubjectItems(facility) {
             const cached = readHiraDetailCache(facility.ykiho);
             if (cached) return { facility, items: cached, cached: true };
-            const url = `${CONFIG.HIRA_DETAIL_BASE_URL}/getDgsbjtInfo2.8?serviceKey=${CONFIG.PUBLIC_DATA_KEY}&ykiho=${encodeURIComponent(facility.ykiho)}&pageNo=1&numOfRows=100&_type=json`;
+            const url = buildApiProxyUrl('/api/hira/detail', {
+                ykiho: facility.ykiho,
+                pageNo: 1,
+                numOfRows: 100
+            });
             const payload = await fetchPublicApiPayload(url, 15000);
             const items = getPayloadItems(payload).map(item => ({
                 subjectCode: String(pickRowValue(item, ['dgsbjtCd'], '')),
@@ -2930,8 +2959,13 @@
         }
 
         function buildSeoulApiUrl(service, startIndex, endIndex, extraPath = []) {
-            const suffix = (extraPath || []).filter(value => value !== undefined && value !== null && value !== '').map(value => encodeURIComponent(String(value))).join('/');
-            return `${CONFIG.SEOUL_OPEN_API_BASE}/${CONFIG.SEOUL_OPEN_DATA_KEY}/json/${service}/${startIndex}/${endIndex}/${suffix ? `${suffix}/` : ''}`;
+            const quarter = (extraPath || []).find(value => value !== undefined && value !== null && value !== '');
+            return buildApiProxyUrl('/api/seoul', {
+                service,
+                start: startIndex,
+                end: endIndex,
+                quarter
+            });
         }
 
         function extractSeoulEnvelope(payload, service) {
@@ -3375,17 +3409,16 @@
         }
 
         async function fetchBuildingLedgerRows(query) {
-            const url = new URL(`${CONFIG.BUILDING_LEDGER_BASE_URL}/getBrTitleInfo`);
-            url.searchParams.set('serviceKey', CONFIG.PUBLIC_DATA_KEY);
-            url.searchParams.set('sigunguCd', query.sigunguCd);
-            url.searchParams.set('bjdongCd', query.bjdongCd);
-            url.searchParams.set('platGbCd', query.platGbCd);
-            url.searchParams.set('bun', query.bun);
-            url.searchParams.set('ji', query.ji);
-            url.searchParams.set('_type', 'json');
-            url.searchParams.set('numOfRows', '100');
-            url.searchParams.set('pageNo', '1');
-            const payload = await fetchPublicApiPayload(url.toString(), 15000);
+            const url = buildApiProxyUrl('/api/building/ledger', {
+                sigunguCd: query.sigunguCd,
+                bjdongCd: query.bjdongCd,
+                platGbCd: query.platGbCd,
+                bun: query.bun,
+                ji: query.ji,
+                numOfRows: 100,
+                pageNo: 1
+            });
+            const payload = await fetchPublicApiPayload(url, 15000);
             return getPayloadItems(payload);
         }
 
@@ -3643,17 +3676,17 @@
             let lastError = null;
             for (const operation of operations) {
                 try {
-                    const url = new URL(`${CONFIG.BUILDING_PERMIT_BASE_URL}/${operation}`);
-                    url.searchParams.set('serviceKey', CONFIG.PUBLIC_DATA_KEY);
-                    url.searchParams.set('sigunguCd', query.sigunguCd);
-                    url.searchParams.set('bjdongCd', query.bjdongCd);
-                    url.searchParams.set('platGbCd', query.platGbCd);
-                    url.searchParams.set('bun', query.bun);
-                    url.searchParams.set('ji', query.ji);
-                    url.searchParams.set('_type', 'json');
-                    url.searchParams.set('numOfRows', '100');
-                    url.searchParams.set('pageNo', '1');
-                    const payload = await fetchPublicApiPayload(url.toString(), 15000);
+                    const url = buildApiProxyUrl('/api/building/permit', {
+                        operation,
+                        sigunguCd: query.sigunguCd,
+                        bjdongCd: query.bjdongCd,
+                        platGbCd: query.platGbCd,
+                        bun: query.bun,
+                        ji: query.ji,
+                        numOfRows: 100,
+                        pageNo: 1
+                    });
+                    const payload = await fetchPublicApiPayload(url, 15000);
                     const rows = getPayloadItems(payload);
                     if (rows.length) return rows;
                 } catch (error) { lastError = error; }
