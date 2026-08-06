@@ -1,7 +1,7 @@
 name: SGIS 인구통계 수집
 
 # SGIS 인구주택총조사 통계는 연 1회 갱신됩니다.
-# 정기 실행은 매년 1회이며, 필요할 때 Actions 탭에서 수동 실행할 수 있습니다.
+# 정기 실행은 매년 1회이며, 필요할 때 수동 실행할 수 있습니다.
 on:
   schedule:
     - cron: '0 18 20 3 *'   # UTC 18:00 = 매년 3월 21일 새벽 3시 (KST)
@@ -26,12 +26,13 @@ jobs:
 
     steps:
       - name: 저장소 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Node.js 설정
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
+          package-manager-cache: false
 
       - name: SGIS 통계 수집
         env:
@@ -43,13 +44,14 @@ jobs:
 
       - name: 변경분 확인
         id: diff
+        shell: bash
         run: |
-          if git diff --quiet -- data/sgis; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "변경 없음 - 커밋을 건너뜁니다."
-          else
+          if [ -n "$(git status --porcelain -- data/sgis)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             node -e "const d=require('./data/sgis/index.json');console.log('기준연도',d.year,'| 시도',d.sidos.length,'| 부분수집',d.partial);"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "변경 없음 - 커밋을 건너뜁니다."
           fi
 
       - name: 커밋 및 푸시

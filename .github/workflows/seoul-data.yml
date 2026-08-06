@@ -1,11 +1,11 @@
 name: 서울 상권데이터 수집
 
 # 서울 상권분석 데이터는 분기 단위로 갱신되지만 공개 시점이 일정하지 않습니다.
-# 매월 1회 확인해 변경이 있을 때만 커밋합니다. (Public repo → Actions 무제한 무료)
+# 매월 1회 확인해 변경이 있을 때만 커밋합니다.
 on:
   schedule:
     - cron: '0 17 5 * *'   # UTC 17:00 = 매월 6일 새벽 2시 (KST)
-  workflow_dispatch:        # Actions 탭에서 수동 실행 가능
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,12 +17,13 @@ jobs:
 
     steps:
       - name: 저장소 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Node.js 설정
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
+          package-manager-cache: false
 
       - name: 서울 데이터 수집
         env:
@@ -31,13 +32,14 @@ jobs:
 
       - name: 변경분 확인
         id: diff
+        shell: bash
         run: |
-          if git diff --quiet -- data/seoul-commercial.json; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "변경 없음 - 커밋을 건너뜁니다."
-          else
+          if [ -n "$(git status --porcelain -- data/seoul-commercial.json)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             node -e "const d=require('./data/seoul-commercial.json');console.log('기준분기',d.quarter,'| 행정동',d.counts.dongs);"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "변경 없음 - 커밋을 건너뜁니다."
           fi
 
       - name: 커밋 및 푸시
