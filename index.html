@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.0.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.0.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -231,7 +231,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.0.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.0.1</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -879,7 +879,7 @@
                                 <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.0.0</strong></p>
+                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.0.1</strong></p>
                                 <p id="report-data-basis" class="mt-1 leading-relaxed">데이터 기준: 분석 실행 후 표시됩니다.</p>
                             </div>
                         </div>
@@ -903,7 +903,7 @@
                     </div>
                     <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>본 자료는 약국 개설 후보지의 1차 검토용입니다. 서울시 공식 추정데이터·SGIS 지역통계·내부 추정모형을 특정 약국의 실제 처방·매출 또는 수익 보장값으로 해석해서는 안 됩니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.0.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.0.1</span></p>
                     </div>
                 </div>
 
@@ -991,8 +991,9 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.0.0";
+        const SYSTEM_VERSION = "5.0.1";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
