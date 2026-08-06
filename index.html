@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.0.2</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.0.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -238,7 +238,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.0.2</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.0.3</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -866,7 +866,7 @@
                                 <p id="report-print-time-footer" class="font-bold text-slate-700"></p>
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
-                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.0.2</strong></p>
+                                <p>시스템 버전: <strong class="text-slate-700" id="lbl-report-version">v5.0.3</strong></p>
                                 <p id="report-data-basis" class="mt-1 leading-relaxed">데이터 기준: 분석 실행 후 표시됩니다.</p>
                             </div>
                         </div>
@@ -889,7 +889,7 @@
                     </div>
                     <div class="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.0.2</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.0.3</span></p>
                     </div>
                 </div>
 
@@ -977,10 +977,11 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v5.0.3] 리포트 단순화 후 남은 요소 참조 오류를 수정하고 API 지연 시 1회 재시도합니다.
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.0.2";
+        const SYSTEM_VERSION = "5.0.3";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -1122,19 +1123,25 @@
         async function fetchPublicApiPayload(url, timeoutMs = 12000) {
             // [v5.0.0] 브라우저에서는 허용된 Cloudflare Worker 경로만 호출합니다.
             /* [v5.0.0] 무료 공개 프록시 의존을 제거하고 전용 Worker만 사용합니다. */
-            const attempts = [url];
+            // [v5.0.3] 공공 API가 일시적으로 늦을 때 한 번 더 기다린 뒤 재시도합니다.
+            const attemptTimeouts = [timeoutMs, Math.max(timeoutMs, 18000)];
             let lastError = null;
-            for (const target of attempts) {
+            for (let attemptIndex = 0; attemptIndex < attemptTimeouts.length; attemptIndex += 1) {
                 const controller = new AbortController();
-                const timer = setTimeout(() => controller.abort(), timeoutMs);
+                const timer = setTimeout(() => controller.abort(), attemptTimeouts[attemptIndex]);
                 try {
-                    const response = await fetch(target, { signal: controller.signal });
+                    const response = await fetch(url, { signal: controller.signal });
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     let text = await response.text();
                     if (!text || /SERVICE ERROR|Unauthorized|Forbidden/i.test(text)) throw new Error('공공데이터 응답 오류');
                     try { return { type: 'json', data: JSON.parse(text), raw: text }; }
                     catch(e) { return { type: 'xml', data: new DOMParser().parseFromString(text, 'text/xml'), raw: text }; }
-                } catch(e) { lastError = e; }
+                } catch(e) {
+                    lastError = e;
+                    const retryable = e?.name === 'AbortError' || /HTTP 5\d\d|Failed to fetch|NetworkError/i.test(String(e?.message || e));
+                    if (!retryable || attemptIndex === attemptTimeouts.length - 1) break;
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                }
                 finally { clearTimeout(timer); }
             }
             throw lastError || new Error('공공데이터 API 호출 실패');
@@ -1384,14 +1391,6 @@
             document.getElementById('lbl-score-formula').innerText = isReal
                 ? `35점 + 의료공급 ${supplyPoints.toFixed(1)}점 + 의사/약국 균형 ${balancePoints.toFixed(1)}점 - 경쟁위험 ${competitionPenalty.toFixed(1)}점 ${dataAdjustment >= 0 ? '+' : '-'} 데이터보정 ${Math.abs(dataAdjustment)}점 = ${baseScore}점`
                 : '건강보험심사평가원 의료기관 데이터를 조회하지 못해 입지 모형점수를 산출하지 않았습니다. 임의 추정값을 대신 표시하지 않습니다.';
-
-            const guideDefault = "p-2.5 bg-white rounded-lg border border-slate-100 opacity-60";
-            document.getElementById('guide-high').className = guideDefault;
-            document.getElementById('guide-mid').className = guideDefault;
-            document.getElementById('guide-low').className = guideDefault;
-            if (confidence >= 80) document.getElementById('guide-high').className = "p-2.5 bg-emerald-50 rounded-lg border-2 border-emerald-400 font-medium";
-            else if (confidence >= 50) document.getElementById('guide-mid').className = "p-2.5 bg-blue-50 rounded-lg border-2 border-blue-400 font-medium";
-            else document.getElementById('guide-low').className = "p-2.5 bg-amber-50 rounded-lg border-2 border-amber-400 font-medium";
 
             const statusBar = document.getElementById('lbl-data-status-bar');
             statusBar.innerHTML = isReal
