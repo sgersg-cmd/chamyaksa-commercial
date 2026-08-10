@@ -20,8 +20,10 @@
  */
 
 const API_KEY = process.env.PUBLIC_DATA_KEY;
-const ROWS = 1000;
-const MAX_PAGES = 200;
+const ROWS = 500;        // 1,000행 요청은 상위 서버 응답이 30초를 넘겨 타임아웃이 잦았습니다.
+const MAX_PAGES = 400;
+const CONCURRENCY = 3;   // 동시 요청을 늘리면 타임아웃이 늘어나므로 3건으로 제한합니다.
+const REQUEST_TIMEOUT_MS = 45000;
 const OUTPUT_PATH = 'data/pharmacy-density.json';
 
 const PHARMACY_URL = 'https://apis.data.go.kr/B551182/pharmacyInfoService/getParmacyBasisList';
@@ -89,25 +91,42 @@ async function callPage(baseUrl, pageNo) {
   let lastError = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
+      const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return parseItems(await response.text());
     } catch (error) {
       lastError = error;
       // 인증키가 쿼리에 포함되므로 오류 메시지에 URL을 출력하지 않습니다.
       console.warn(`  [재시도 ${attempt}/3] page ${pageNo}: ${error.message}`);
-      await sleep(1500 * attempt);
+      await sleep(1000 * attempt);
     }
   }
   throw new Error(`page ${pageNo} 실패 — ${lastError?.message}`);
 }
 
-/** 전국을 페이지 순회하며 시군구 단위로 집계합니다. */
+/** 동시 실행 수를 제한하며 작업을 처리합니다. */
+async function runPool(items, worker, concurrency) {
+  let cursor = 0;
+  const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      await worker(items[index]);
+    }
+  });
+  await Promise.all(runners);
+}
+
+/* 전국을 페이지 순회하며 시군구 단위로 집계합니다.
+   1,000행 응답은 용량이 커서 공공데이터포털 응답이 페이지당 5~10초 걸립니다.
+   순차 처리하면 100페이지 기준 15~25분이 소요되므로 동시 실행으로 단축합니다.
+   일일 한도(10,000회) 대비 호출량이 100여 회에 불과해 부담이 없습니다. */
 async function collectByDistrict(baseUrl, label, accumulate) {
+  const startedAt = Date.now();
   const first = await callPage(baseUrl, 1);
   const total = Math.max(first.rows.length, first.total);
   const pages = Math.min(MAX_PAGES, Math.max(1, Math.ceil(total / ROWS)));
-  console.log(`  ${label}: 총 ${total.toLocaleString()}건 / ${pages}페이지`);
+  console.log(`  ${label}: 총 ${total.toLocaleString()}건 / ${pages}페이지 (동시 ${CONCURRENCY}건 처리)`);
 
   const districts = new Map();
   const absorb = (rows) => {
@@ -124,13 +143,19 @@ async function collectByDistrict(baseUrl, label, accumulate) {
   };
 
   absorb(first.rows);
-  for (let page = 2; page <= pages; page += 1) {
+  const remaining = Array.from({ length: Math.max(0, pages - 1) }, (_, index) => index + 2);
+  let done = 1;
+  await runPool(remaining, async (page) => {
     const result = await callPage(baseUrl, page);
     absorb(result.rows);
-    if (page % 10 === 0) console.log(`    ... ${page}/${pages}페이지 (시군구 ${districts.size}개)`);
-    await sleep(200);
-  }
-  console.log(`  → ${label} 집계 완료: 시군구 ${districts.size}개`);
+    done += 1;
+    if (done % 20 === 0 || done === pages) {
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(0);
+      console.log(`    ... ${done}/${pages}페이지 · 시군구 ${districts.size}개 · 경과 ${elapsed}초`);
+    }
+  }, CONCURRENCY);
+
+  console.log(`  → ${label} 집계 완료: 시군구 ${districts.size}개 (${((Date.now() - startedAt) / 1000).toFixed(0)}초)`);
   return districts;
 }
 
