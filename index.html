@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.2.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -290,7 +290,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.2.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.3.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -437,7 +437,7 @@
                                     <td class="p-3.5 pl-4 font-bold text-slate-900 whitespace-nowrap">핵심 병원 (내과 / 이비인후과)</td>
                                     <td class="p-3.5 text-right font-bold text-blue-600 text-sm" id="tbl-main-medical">0 개소</td>
                                     <td class="p-3.5 text-right font-bold text-blue-800 text-sm" id="tbl-main-doctors">0 명</td>
-                                    <td class="p-3.5 pl-6 text-slate-500">처방 유입의 핵심 축 · 의사 1인당 일 75건 가정</td>
+                                    <td class="p-3.5 pl-6 text-slate-500">처방 유입의 핵심 축 · 의사 1인당 처방건수는 참고 범위(50~90건)에서 사용자가 확인</td>
                                 </tr>
                                 <tr>
                                     <td class="p-3.5 pl-4 font-bold text-slate-900 whitespace-nowrap">안정 병원 (가정 / 소아 / 산부인과)</td>
@@ -644,14 +644,27 @@
                             <p class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-sliders text-blue-500 mr-1"></i> 처방 모델 입력값</p>
                             <p id="lbl-prescription-model-basis" class="text-[10px] text-slate-500 font-semibold">경쟁 약국 수를 기준으로 자동 점유율을 적용합니다.</p>
                         </div>
+                        <div class="px-4 py-3 border-b border-slate-200 bg-white space-y-2">
+                            <p class="text-[11px] text-slate-600 leading-relaxed">
+                                <strong class="text-emerald-700">조제 수입</strong>은 공식 산식으로 계산된 값이고,
+                                <strong class="text-amber-700">처방건수</strong>는 공식 통계가 없어 <strong>참고 범위</strong>로만 제시합니다.
+                                후보지 실제 상황에 맞게 수정한 뒤 아래를 확인해 주십시오.
+                            </p>
+                            <p id="lbl-official-fee-formula" class="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 leading-relaxed"></p>
+                            <label class="flex items-start gap-2 text-[11px] font-bold text-slate-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 cursor-pointer">
+                                <input type="checkbox" id="input-prescription-confirmed" onchange="onPrescriptionConfirmedChanged()" class="mt-0.5 w-4 h-4 accent-blue-600 shrink-0">
+                                <span>위 처방건수와 조제 수입, 매약 매출을 검토했으며 <strong class="text-blue-700">이 값으로 처방·매출 전망을 계산</strong>합니다.
+                                <span class="block font-medium text-slate-500 mt-0.5">확인 전에는 전망치를 산출하지 않습니다. 입력값을 수정하면 확인이 자동 해제됩니다.</span></span>
+                            </label>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full min-w-[760px] text-xs border-collapse table-fixed">
                                 <thead class="bg-white text-slate-500 font-bold border-b border-slate-200">
                                     <tr>
                                         <th class="p-3 text-left w-[27%]">진료과군</th>
                                         <th class="p-3 text-center w-[11%]">의사 수</th>
-                                        <th class="p-3 text-center w-[21%]">의사 1인당 예상 처방<br><span class="text-[10px] font-medium">건 / 일</span></th>
-                                        <th class="p-3 text-center w-[21%]">평균 조제 수입<br><span class="text-[10px] font-medium">원 / 건</span></th>
+                                        <th class="p-3 text-center w-[21%]">의사 1인당 예상 처방<br><span class="text-[10px] font-medium text-amber-700">참고값 · 건 / 일</span></th>
+                                        <th class="p-3 text-center w-[21%]">평균 조제 수입<br><span class="text-[10px] font-medium text-emerald-700">공식 산식 · 원 / 건</span></th>
                                         <th class="p-3 text-right w-[20%]">신규 약국 예상 몫<br><span class="text-[10px] font-medium">건 / 일</span></th>
                                     </tr>
                                 </thead>
@@ -659,22 +672,22 @@
                                     <tr>
                                         <td class="p-3"><strong class="text-slate-900 block">핵심 처방과</strong><span class="text-[10px] text-slate-400">내과·이비인후과</span></td>
                                         <td class="p-3 text-center font-black text-blue-700" id="rx-main-doctors">0명</td>
-                                        <td class="p-3 text-center"><input type="number" id="rx-main-per-doctor" value="75" min="0" oninput="reCalculateProfit()" class="number-input-compact w-20 text-center font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
-                                        <td class="p-3 text-center"><input type="number" id="rx-main-unit-fee" value="11450" min="0" step="500" oninput="reCalculateProfit()" class="number-input-compact w-24 text-right font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-blue-700"></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-main-per-doctor" value="65" min="0" oninput="onPrescriptionInputChanged()" class="number-input-compact w-20 text-center font-bold border border-amber-300 bg-amber-50 rounded-lg px-2 py-1.5 text-slate-800"><span class="block text-[9px] text-amber-700 font-semibold mt-1">참고 50~90건</span></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-main-unit-fee" value="11450" min="0" step="10" oninput="onPrescriptionInputChanged()" class="number-input-compact w-24 text-right font-bold border border-emerald-300 bg-emerald-50 rounded-lg px-2 py-1.5 text-blue-700"><span class="block text-[9px] text-emerald-700 font-semibold mt-1">공식 14일 기준</span></td>
                                         <td class="p-3 text-right font-black text-blue-700" id="rx-main-share">0건</td>
                                     </tr>
                                     <tr>
                                         <td class="p-3"><strong class="text-slate-900 block">안정 처방과</strong><span class="text-[10px] text-slate-400">가정의학·소아·산부인과</span></td>
                                         <td class="p-3 text-center font-black text-slate-700" id="rx-stable-doctors">0명</td>
-                                        <td class="p-3 text-center"><input type="number" id="rx-stable-per-doctor" value="50" min="0" oninput="reCalculateProfit()" class="number-input-compact w-20 text-center font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
-                                        <td class="p-3 text-center"><input type="number" id="rx-stable-unit-fee" value="8660" min="0" step="500" oninput="reCalculateProfit()" class="number-input-compact w-24 text-right font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-stable-per-doctor" value="45" min="0" oninput="onPrescriptionInputChanged()" class="number-input-compact w-20 text-center font-bold border border-amber-300 bg-amber-50 rounded-lg px-2 py-1.5 text-slate-800"><span class="block text-[9px] text-amber-700 font-semibold mt-1">참고 35~65건</span></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-stable-unit-fee" value="8660" min="0" step="10" oninput="onPrescriptionInputChanged()" class="number-input-compact w-24 text-right font-bold border border-emerald-300 bg-emerald-50 rounded-lg px-2 py-1.5 text-slate-800"><span class="block text-[9px] text-emerald-700 font-semibold mt-1">공식 7일 기준</span></td>
                                         <td class="p-3 text-right font-black text-slate-700" id="rx-stable-share">0건</td>
                                     </tr>
                                     <tr>
                                         <td class="p-3"><strong class="text-slate-900 block">보조 처방과</strong><span class="text-[10px] text-slate-400">치과·피부·안과 등</span></td>
                                         <td class="p-3 text-center font-black text-slate-600" id="rx-support-doctors">0명</td>
-                                        <td class="p-3 text-center"><input type="number" id="rx-support-per-doctor" value="35" min="0" oninput="reCalculateProfit()" class="number-input-compact w-20 text-center font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
-                                        <td class="p-3 text-center"><input type="number" id="rx-support-unit-fee" value="7020" min="0" step="500" oninput="reCalculateProfit()" class="number-input-compact w-24 text-right font-bold border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800"></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-support-per-doctor" value="30" min="0" oninput="onPrescriptionInputChanged()" class="number-input-compact w-20 text-center font-bold border border-amber-300 bg-amber-50 rounded-lg px-2 py-1.5 text-slate-800"><span class="block text-[9px] text-amber-700 font-semibold mt-1">참고 20~50건</span></td>
+                                        <td class="p-3 text-center"><input type="number" id="rx-support-unit-fee" value="7020" min="0" step="10" oninput="onPrescriptionInputChanged()" class="number-input-compact w-24 text-right font-bold border border-emerald-300 bg-emerald-50 rounded-lg px-2 py-1.5 text-slate-800"><span class="block text-[9px] text-emerald-700 font-semibold mt-1">공식 3일 기준</span></td>
                                         <td class="p-3 text-right font-black text-slate-600" id="rx-support-share">0건</td>
                                     </tr>
                                 </tbody>
@@ -708,7 +721,7 @@
                                 <span class="text-[10px] font-bold text-slate-400">월 운영일수 자동 반영</span>
                             </div>
                             <div class="flex justify-between text-xs"><span class="text-slate-500">예상 월 조제 수입</span><span id="lbl-month-presc-rev-detail" class="font-bold text-slate-800">0원</span></div>
-                            <div class="flex justify-between items-center text-xs gap-2"><span class="text-slate-500">예상 월 매약 매출 <em class="not-italic text-[9px] text-amber-600 font-bold">내부 가정값·수정 가능</em></span><span class="flex items-center gap-1"><input type="number" id="input-otc-revenue" value="0" min="0" step="10" oninput="onOtcRevenueChanged()" class="number-input-compact w-20 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span><span id="lbl-month-otc-rev" class="hidden">0원</span></span></div>
+                            <div class="flex justify-between items-center text-xs gap-2"><span class="text-slate-500">예상 월 매약 매출 <em class="not-italic text-[9px] text-amber-600 font-bold">내부 가정값·수정 가능</em></span><span class="flex items-center gap-1"><input type="number" id="input-otc-revenue" value="0" min="0" step="10" oninput="onOtcRevenueChanged(); onPrescriptionInputChanged();" class="number-input-compact w-20 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span><span id="lbl-month-otc-rev" class="hidden">0원</span></span></div>
                             <div class="flex justify-between text-xs bg-slate-50 rounded-lg p-3"><span class="font-bold text-slate-700">예상 월 총매출</span><span id="lbl-month-total-rev" class="font-black text-blue-700">0원</span></div>
                         </div>
                         <div id="cost-analysis-output" class="hidden print-card border border-slate-800 rounded-xl p-5 bg-slate-900 text-white card-shadow space-y-3">
@@ -912,7 +925,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.2.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.3.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -934,7 +947,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.2.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.3.0</span></p>
                     </div>
                 </div>
 
@@ -1022,6 +1035,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v5.3.0] 조제료 공식 산식 실장, 처방건수 참고값 전환, 처방·손익 품질 게이트 추가.
         // [v5.2.0] PDF 핵심 후보만 출력, 정상 응답 스냅샷 재사용·장애 시 대체, 일시 오류 3회 자동 재시도.
         // [v5.1.1] PDF 후보지 목록 전체 출력, 출처·확인사항 영역 압축.
         // [v5.1.0] 화면·PDF 가독성 개선, 출력 시 산정 기준 자동 펼침, 데이터 실패 원인 세분화.
@@ -1029,7 +1043,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.2.0";
+        const SYSTEM_VERSION = "5.3.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -1050,11 +1064,57 @@
             resetPrescriptionModel, reCalculateProfit, recalculateLocationScoreFromCurrentData,
             generateMergedReportReason, renderReportDataBasis, loadSeoulCommercialForCurrentAddress,
             loadSgisForCurrentAddress;
+        /* [v5.3.0] 조제수입 = 공식 산식 / 처방건수 = 참고값(사용자 확인 필요)
+           두 값의 성격이 전혀 다르므로 화면과 리포트에서 반드시 구분합니다. */
+        const PHARMACY_FEE_BASIS = {
+            label: '약국 조제료 공식 산식',
+            source: '심평원 약국 상대가치점수 · 국민건강보험공단 2026년 약국 환산지수',
+            sourceUrls: {
+                conversionIndex: 'https://www.nhis.or.kr/announce/wbhaec11413m01.do',
+                relativeValue: 'https://www.hira.or.kr/ebooksc/2024/03/BZ202403119716417.pdf'
+            },
+            conversionIndex: 105.5,                       // 2026년 약국 환산지수 (원/점)
+            fixedScores: [7.45, 16.26, 10.94, 6.42],      // 처방일수와 무관한 기본 조제 상대가치점수 4개 항목
+            dayScores: { 3: 25.45, 7: 40.97, 14: 67.46 }  // 투약일수별 조제 상대가치점수
+        };
+
+        function getFixedScoreSum() {
+            return PHARMACY_FEE_BASIS.fixedScores.reduce((sum, score) => sum + score, 0);
+        }
+
+        // 공식 산식: (기본 점수 합 + 투약일수별 점수) × 환산지수, 10원 단위 반올림
+        function computeOfficialUnitFee(days) {
+            const dayScore = PHARMACY_FEE_BASIS.dayScores[days];
+            if (dayScore === undefined) return null;
+            return Math.round((getFixedScoreSum() + dayScore) * PHARMACY_FEE_BASIS.conversionIndex / 10) * 10;
+        }
+
+        function describeOfficialUnitFee(days) {
+            const dayScore = PHARMACY_FEE_BASIS.dayScores[days];
+            if (dayScore === undefined) return '공식 산식 미적용';
+            const fixed = getFixedScoreSum();
+            return `(기본 ${fixed.toFixed(2)}점 + ${days}일 조제 ${dayScore}점) × ${PHARMACY_FEE_BASIS.conversionIndex}원 = ${computeOfficialUnitFee(days).toLocaleString()}원`;
+        }
+
+        /* 의사 1인당 처방건수는 공식 통계가 없습니다.
+           과거 적용하던 75건은 약사 차등수가 기준이며 의사 1인의 처방 수요 근거가 아니므로
+           v5.3.0부터 '참고 범위의 중앙값'으로만 제시하고, 사용자가 확인해야 계산에 반영합니다. */
+        const PRESCRIPTION_REFERENCE = {
+            main:    { low: 50, mid: 65, high: 90, days: 14 },
+            stable:  { low: 35, mid: 45, high: 65, days: 7 },
+            support: { low: 20, mid: 30, high: 50, days: 3 }
+        };
+
         const PRESCRIPTION_MODEL_DEFAULTS = {
-            // 처방건수는 시장에서 통용되는 진료과군 기준범위의 중앙값, 건당 수입은 2026년 공식 약국 수가를 대표 처방일수로 환산한 기본값입니다.
-            main: { perDoctor: 75, unitFee: 11450, representativeDays: 14 },
-            stable: { perDoctor: 50, unitFee: 8660, representativeDays: 7 },
-            support: { perDoctor: 35, unitFee: 7020, representativeDays: 3 }
+            main:    { perDoctor: PRESCRIPTION_REFERENCE.main.mid,    unitFee: computeOfficialUnitFee(14), representativeDays: 14 },
+            stable:  { perDoctor: PRESCRIPTION_REFERENCE.stable.mid,  unitFee: computeOfficialUnitFee(7),  representativeDays: 7 },
+            support: { perDoctor: PRESCRIPTION_REFERENCE.support.mid, unitFee: computeOfficialUnitFee(3),  representativeDays: 3 }
+        };
+
+        // 참고 시장가격: 공식 통계가 없어 사용자가 확인·수정해야 하는 값입니다.
+        const MARKET_REFERENCE = {
+            otcMonthlyRevenue: { low: 6000000, mid: 9000000, high: 16000000, unit: '원 / 월' },
+            avgTicket:         { low: 15000,   mid: 19500,   high: 25000,    unit: '원 / 건' }
         };
         let GLOBAL_CALC_DATA = { mainMedical: 0, mainDoctors: 0, subMedical1: 0, subDoctors1: 0, subMedical2: 0, subDoctors2: 0, isSeoul: false, monthOtcRevenue: 0, baseScore: 0, existingPharmacy: 0, existingPharmacyAdminDong: 0, competitionEquivalent: 0, nearbySearchReal: false, nearbyHospitals300: 0, nearbyHospitals500: 0, nearbyPharmacies300: 0, nearbyPharmacies500: 0, isRealData: false, hiraDetailReal: false, hiraDetailCoverage: 0, hiraDetailScope: "", hiraFacilities: [], hiraSubjectSummary: [], address: "", potentialCustomers: 0, residentCount: 0, computedMonthRev: 0 };
         let GLOBAL_KAKAO_MAP = null;
@@ -1718,11 +1778,11 @@
             const competitionDiscountRate = Math.min(0.45, getCompetitionEquivalent() * 0.08);
             const computedMonthRevenueWon = isReal ? Math.max(10000000, Math.round((baseSales + medicalContribution) * (1 - competitionDiscountRate))) : 0;
             const computedMonthRev = Math.round(computedMonthRevenueWon / 10000);
-            const computedCardCnt = computedMonthRevenueWon > 0 ? Math.round(computedMonthRevenueWon / 19500) : 0;
+            const computedCardCnt = computedMonthRevenueWon > 0 ? Math.round(computedMonthRevenueWon / MARKET_REFERENCE.avgTicket.mid) : 0;
 
             document.getElementById('stat-month-rev').innerText = isReal ? `약 ${computedMonthRev.toLocaleString()}만 원` : '산출 불가';
             document.getElementById('stat-card-cnt').innerText = isReal ? `약 ${computedCardCnt.toLocaleString()}건 / 월` : '산출 불가';
-            document.getElementById('stat-avg-cost').innerText = isReal ? '19,500원 (내부 가정단가)' : '산출 불가';
+            document.getElementById('stat-avg-cost').innerText = isReal ? `${MARKET_REFERENCE.avgTicket.mid.toLocaleString()}원 (참고 ${MARKET_REFERENCE.avgTicket.low.toLocaleString()}~${MARKET_REFERENCE.avgTicket.high.toLocaleString()}원 · 공식 통계 아님)` : '산출 불가';
 
             // v2.10.1: 주소 해시 기반 임의 추정(seededEstimate) 인구·가구값 표시를 제거했습니다.
             //          배후 인구·가구·주택 지표는 SGIS 실데이터 조회 결과로만 채웁니다.
@@ -2154,7 +2214,7 @@
             }
             const computedMonthRevenueWon = Math.max(10000000, Math.round((baseSales + medicalContribution) * (1 - competitionDiscountRate)));
             const computedMonthRev = Math.round(computedMonthRevenueWon / 10000);
-            const computedCardCnt = Math.round(computedMonthRevenueWon / 19500);
+            const computedCardCnt = Math.round(computedMonthRevenueWon / MARKET_REFERENCE.avgTicket.mid);
             Object.assign(d, { baseSales, medicalContribution, competitionDiscountRate, computedMonthRev, computedCardCnt });
             // v2.10.1: 서울 공식 추정데이터가 이미 적용된 경우 내부 추정치로 덮어쓰지 않습니다.
             if (d.seoulCommercialApplied) return;
@@ -2260,7 +2320,9 @@
         }
 
         // [v3.0.0] 예상 매약 매출을 분석 건마다 수정할 수 있도록 개방합니다. (내부 가정값)
-        const OTC_REVENUE_DEFAULTS = { seoul: 15500000, nonSeoul: 9000000 };
+        /* [v5.3.0] 매약 매출은 공식 통계가 없어 참고값으로만 제시하고,
+           처방 확인 게이트를 통과해야 총매출·손익에 반영됩니다. */
+        const OTC_REVENUE_DEFAULTS = { seoul: MARKET_REFERENCE.otcMonthlyRevenue.high, nonSeoul: MARKET_REFERENCE.otcMonthlyRevenue.mid };
 
         function initializeOtcRevenueInput(isSeoul) {
             const won = isSeoul ? OTC_REVENUE_DEFAULTS.seoul : OTC_REVENUE_DEFAULTS.nonSeoul;
@@ -2347,7 +2409,7 @@
                     otcRevenue: '내부 가정값 (실데이터 아님)',
                     prescriptionVolume: '내부 가정값 (실데이터 아님)'
                 },
-                estimationNotice: '예상 매약 매출과 의사 1인당 처방건수는 내부 가정값입니다. 배후 인구는 SGIS 행정동/시군구 통계이며 후보지 반경 300m 인구가 아닙니다. 서울 매출·생활인구는 행정동 단위 공식 추정데이터이며 특정 약국의 실제 매출이 아닙니다. 서울 외 매출·유동은 내부 추정모형입니다. 조회에 실패한 항목은 값을 생성하지 말고 미확인으로 다루십시오.',
+                estimationNotice: '건당 조제 수입은 심평원 약국 상대가치점수와 2026년 약국 환산지수를 적용한 공식 산식 결과입니다. 반면 의사 1인당 처방건수와 예상 매약 매출, 객단가는 공식 통계가 없어 참고 범위로만 제시하며 사용자 확인 후에만 계산에 반영됩니다. 배후 인구는 SGIS 행정동/시군구 통계이며 후보지 반경 300m 인구가 아닙니다. 서울 매출·생활인구는 행정동 단위 공식 추정데이터이며 특정 약국의 실제 매출이 아닙니다. 서울 외 매출·유동은 내부 추정모형입니다. 조회에 실패한 항목은 값을 생성하지 말고 미확인으로 다루십시오.',
                 aiRule: '시스템이 계산한 값만 해석하고 새로운 숫자를 만들지 마십시오.',
                 requiredOutput: ['결론', '핵심 근거', '리스크', '임장 확인사항', '계약 전 조건']
             };
@@ -2876,6 +2938,59 @@
 
         function selectNewSiteScenario(key) { GLOBAL_SITE_CONTEXT.activeScenario = key; renderScenarioCards(); applySiteModeData(); }
 
+        /* [v5.3.0] 처방·매출 전망 품질 게이트
+           의사 수·처방건수·조제단가·운영일수가 모두 확인되고
+           사용자가 입력값을 확인했을 때만 전망치를 산출합니다. */
+        function isPrescriptionConfirmed() {
+            return Boolean(document.getElementById('input-prescription-confirmed')?.checked);
+        }
+
+        function evaluatePrescriptionGate(result) {
+            const missing = [];
+            const totalDoctors = (result.categoryResults || []).reduce((sum, row) => sum + Number(row.doctors || 0), 0);
+            if (!GLOBAL_CALC_DATA.isRealData) missing.push('심평원 의료기관 조회 실패');
+            if (totalDoctors <= 0) missing.push('유효 범위 내 확인된 의사 수 없음');
+            if ((result.categoryResults || []).some(row => row.doctors > 0 && !(row.perDoctor > 0))) missing.push('처방건수 미입력');
+            if ((result.categoryResults || []).some(row => row.doctors > 0 && !(row.unitFee > 0))) missing.push('조제 수입 미입력');
+            if (!(result.operatingDays > 0)) missing.push('월 운영일수 미입력');
+            if (!isPrescriptionConfirmed()) missing.push('입력값 확인 필요');
+            return { ready: missing.length === 0, missing };
+        }
+
+        function setPrescriptionPendingUi(gate) {
+            const pendingText = gate.missing.includes('입력값 확인 필요') && gate.missing.length === 1
+                ? '입력 확인 필요' : '계산 보류';
+            ['rx-main-share', 'rx-stable-share', 'rx-support-share'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.innerText = pendingText;
+            });
+            ['lbl-total-prescription-supply', 'lbl-presc-count', 'lbl-applied-cost',
+             'lbl-month-presc-rev', 'lbl-month-presc-rev-detail', 'lbl-month-total-rev'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.innerText = pendingText;
+            });
+            const basis = document.getElementById('lbl-prescription-model-basis');
+            if (basis) basis.innerText = `전망 미산출 — ${gate.missing.join(' · ')}`;
+        }
+
+        // 입력값을 수정하면 확인 상태를 자동 해제합니다. (인수인계서 8장 요구사항)
+        function onPrescriptionInputChanged() {
+            const checkbox = document.getElementById('input-prescription-confirmed');
+            if (checkbox && checkbox.checked) checkbox.checked = false;
+            const costs = document.getElementById('input-costs-confirmed');
+            if (costs && costs.checked) costs.checked = false;
+            reCalculateProfit();
+        }
+
+        function onPrescriptionConfirmedChanged() { reCalculateProfit(); }
+
+        function renderOfficialFeeFormula() {
+            const el = document.getElementById('lbl-official-fee-formula');
+            if (!el) return;
+            el.innerHTML = `<strong>조제 수입 공식 산식</strong> — ${escapeHtml(PHARMACY_FEE_BASIS.source)}<br>`
+                + `핵심(14일) ${escapeHtml(describeOfficialUnitFee(14))}<br>`
+                + `안정(7일) ${escapeHtml(describeOfficialUnitFee(7))}<br>`
+                + `보조(3일) ${escapeHtml(describeOfficialUnitFee(3))}`;
+        }
+
         function calculateModelResult(sourceModels, useDomValues = true) {
             const operatingDays = Math.min(31, Math.max(1, parseInt(document.getElementById('input-operating-days')?.value || 25)));
             const inputs = {
@@ -2975,19 +3090,44 @@
             document.getElementById('rx-stable-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.stable.perDoctor; document.getElementById('rx-stable-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.stable.unitFee;
             document.getElementById('rx-support-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.support.perDoctor; document.getElementById('rx-support-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.support.unitFee;
             document.getElementById('input-operating-days').value = 25;
+            // [v5.3.0] 새 분석마다 확인 상태를 해제해 이전 후보지의 확인이 이어지지 않게 합니다.
+            const confirmBox = document.getElementById('input-prescription-confirmed');
+            if (confirmBox) confirmBox.checked = false;
             if (recalculate) reCalculateProfit();
         };
 
         reCalculateProfit = function() {
             const sourceModels = getActiveSourceModels();
             const result = calculateModelResult(sourceModels, true);
-            result.categoryResults.forEach(row => { const el = document.getElementById(row.outputId); if (el) el.innerText = `${Math.round(row.myShare).toLocaleString()}건`; });
             document.getElementById('rx-main-doctors').innerText = `${result.categoryResults[0].doctors}명`; document.getElementById('rx-stable-doctors').innerText = `${result.categoryResults[1].doctors}명`; document.getElementById('rx-support-doctors').innerText = `${result.categoryResults[2].doctors}명`;
+            renderOfficialFeeFormula();
+
+            // [v5.3.0] 품질 게이트 — 미충족 시 0건이 아니라 '계산 보류'로 표시하고 손익도 잠급니다.
+            const gate = evaluatePrescriptionGate(result);
+            GLOBAL_ANALYSIS_METRICS.prescriptionGate = gate;
+            if (!gate.ready) {
+                setPrescriptionPendingUi(gate);
+                Object.assign(GLOBAL_ANALYSIS_METRICS, {
+                    totalGross: 0, myShare: 0, prescRev: 0, totalRev: 0, netProfit: 0,
+                    breakEvenPrescriptions: 0, safetyMarginPrescriptions: 0, weightedCost: 0,
+                    marketShareRate: 0, operatingDays: result.operatingDays,
+                    costsConfirmed: false, categoryResults: result.categoryResults
+                });
+                document.getElementById('cost-analysis-output').classList.add('hidden');
+                document.getElementById('cost-analysis-guidance').classList.remove('hidden');
+                document.getElementById('lbl-effective-capture-rate').innerText = '-';
+                document.getElementById('lbl-month-otc-rev').innerText = '입력 확인 필요';
+                updateOptionalCostUi(); renderScenarioCards();
+                if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
+                return;
+            }
+
+            result.categoryResults.forEach(row => { const el = document.getElementById(row.outputId); if (el) el.innerText = `${Math.round(row.myShare).toLocaleString()}건`; });
             const totalRev = result.prescRev + GLOBAL_CALC_DATA.monthOtcRevenue;
             const staffCount = parseInt(document.getElementById('count-staff').innerText || 0); const fullPharmCount = parseInt(document.getElementById('count-full-pharm').innerText || 0); const halfPharmCount = parseInt(document.getElementById('count-half-pharm').innerText || 0);
             const rent = parseFloat(document.getElementById('fixed-rent-cost').value || 0) * 10000; const maint = parseFloat(document.getElementById('fixed-maintenance-cost').value || 0) * 10000; const utility = parseFloat(document.getElementById('fixed-utility-cost').value || 0) * 10000;
             const humanCost = (staffCount * CONFIG.COST_STAFF) + (fullPharmCount * CONFIG.COST_FULL_PHARM) + (halfPharmCount * CONFIG.COST_HALF_PHARM); const totalFixedCost = rent + maint + utility + humanCost;
-            const netProfit = Math.round((totalRev * CONFIG.NET_MARGIN_RATE) - totalFixedCost); const requiredTotalRevenue = totalFixedCost / CONFIG.NET_MARGIN_RATE; const requiredPrescriptionRevenue = Math.max(0, requiredTotalRevenue - GLOBAL_CALC_DATA.monthOtcRevenue); const breakEvenPrescriptions = result.weightedCost > 0 ? Math.ceil(requiredPrescriptionRevenue / result.weightedCost / result.operatingDays) : 0; const safetyMarginPrescriptions = result.myShare - breakEvenPrescriptions; const costsConfirmed = document.getElementById('input-costs-confirmed').checked;
+            const netProfit = Math.round((totalRev * CONFIG.NET_MARGIN_RATE) - totalFixedCost); const requiredTotalRevenue = totalFixedCost / CONFIG.NET_MARGIN_RATE; const requiredPrescriptionRevenue = Math.max(0, requiredTotalRevenue - GLOBAL_CALC_DATA.monthOtcRevenue); const breakEvenPrescriptions = result.weightedCost > 0 ? Math.ceil(requiredPrescriptionRevenue / result.weightedCost / result.operatingDays) : 0; const safetyMarginPrescriptions = result.myShare - breakEvenPrescriptions; const costsConfirmed = document.getElementById('input-costs-confirmed').checked && gate.ready;
             Object.assign(GLOBAL_ANALYSIS_METRICS, { totalGross: result.totalGross, myShare: result.myShare, prescRev: result.prescRev, totalRev, totalFixedCost, netProfit, breakEvenPrescriptions, safetyMarginPrescriptions, weightedCost: result.weightedCost, marketShareRate: result.captureRate * 100, operatingDays: result.operatingDays, rent, maint, utility, humanCost, staffCount, fullPharmCount, halfPharmCount, costsConfirmed, categoryResults: result.categoryResults });
             document.getElementById('input-market-share-rate').value = (result.captureRate * 100).toFixed(1); document.getElementById('lbl-effective-capture-rate').innerText = result.totalGross > 0 ? `${(result.captureRate * 100).toFixed(1)}%` : '-';
             const modeBasis = GLOBAL_SITE_CONTEXT.mode === 'new-simulation' ? '신규부지 가정 시나리오' : GLOBAL_SITE_CONTEXT.mode === 'new-planned' ? '입점 예정정보' : GLOBAL_SITE_CONTEXT.mode === 'existing-manual' ? '수동 보정 병원정보' : `${GLOBAL_SITE_CONTEXT.effectiveRadius}m 유효 범위 병원별 배분`;
