@@ -64,12 +64,19 @@ jobs:
       - name: 변경분 확인
         id: diff
         run: |
-          if git diff --quiet -- data/pharmacy-density.json; then
+          # git diff 는 새로 생성된 파일(untracked)을 감지하지 못합니다.
+          # 첫 실행에서 커밋이 통째로 건너뛰어지므로 반드시 git status 로 판정합니다.
+          if [ ! -f "data/pharmacy-density.json" ]; then
+            echo "::error::수집 결과 파일이 생성되지 않았습니다."
+            exit 1
+          fi
+          node -e "const d=require('./data/pharmacy-density.json');console.log('시군구',d.national.districtCount,'| 인구매칭',d.national.matchedCount,'| 약국',d.national.totalPharmacies,'| 배후인구 중앙값',d.national.medianPopulationPerPharmacy);"
+          if [ -n "$(git status --porcelain -- data/pharmacy-density.json)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "변경 감지 - 커밋을 진행합니다."
+          else
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "변경 없음 - 커밋을 건너뜁니다."
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            node -e "const d=require('./data/pharmacy-density.json');console.log('시군구',d.national.districtCount,'| 인구매칭',d.national.matchedCount,'| 약국',d.national.totalPharmacies,'| 배후인구 중앙값',d.national.medianPopulationPerPharmacy);"
           fi
 
       - name: 커밋 및 푸시
