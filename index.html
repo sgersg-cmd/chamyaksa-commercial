@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.8.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v6.0.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -271,7 +271,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v5.8.0] 전국 시군구 약국 포화도 (GitHub Actions 반기 수집)
+            // [v6.0.0] 후보지 비교 기능 추가 (최대 4곳 스냅샷 비교, 항목별 최적값 표시).
+        // [v5.8.0] 전국 시군구 약국 포화도 (GitHub Actions 반기 수집)
             DENSITY_STATIC_URL: "data/pharmacy-density.json",
             SEOUL_STATIC_TIMEOUT_MS: 8000,
             SEOUL_COMMERCIAL_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
@@ -289,7 +290,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.8.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.0.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -341,6 +342,9 @@
         <div id="report-zone" class="hidden space-y-6">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 no-print bg-slate-800 text-white p-4 rounded-xl shadow-sm">
                 <span id="lbl-data-status-bar" class="text-sm font-medium sm:pl-1 text-slate-200 flex-1"></span>
+                <button onclick="addCurrentToComparison()" class="bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 border border-slate-300">
+                    <i class="fa-solid fa-layer-group text-blue-600"></i> 비교함에 담기 <span id="compare-count-badge" class="ml-0.5 text-[10px] font-black bg-blue-600 text-white rounded-full px-1.5 py-0.5">0</span>
+                </button>
                 <button onclick="openPdfSelection()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0">
                     <i class="fa-solid fa-list-check"></i> PDF 항목 선택
                 </button>
@@ -605,6 +609,33 @@
                 </section>
 
                 <!-- 3. 진료과군별 예상 처방 및 손익 시뮬레이션 -->
+                <section data-print-section="compare" class="space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">후보지 비교</h3>
+                        <div class="flex items-center gap-2">
+                            <span id="compare-status" class="source-chip source-input self-start">담긴 후보지 없음</span>
+                            <button type="button" onclick="clearComparison()" class="no-print text-[10px] font-bold text-slate-500 hover:text-red-600 border border-slate-300 rounded-lg px-2 py-1">전체 비우기</button>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
+                        후보지를 하나씩 분석하신 뒤 <strong>비교함에 담기</strong>를 누르시면 이 표에 쌓입니다.
+                        <strong>같은 계산 기준으로 나란히</strong> 비교할 수 있으며, 항목마다 가장 좋은 값에 표시가 붙습니다.
+                        최대 4곳까지 담을 수 있고, 브라우저를 닫아도 유지됩니다.
+                    </p>
+                    <div id="compare-empty" class="border border-dashed border-slate-300 rounded-xl p-6 text-center text-[11px] text-slate-400">
+                        아직 담긴 후보지가 없습니다. 분석을 마친 뒤 위쪽 <strong>비교함에 담기</strong> 버튼을 눌러 주십시오.
+                    </div>
+                    <div id="compare-wrap" class="hidden border border-slate-200 rounded-xl overflow-hidden bg-white print-keep-together">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs border-collapse">
+                                <thead id="compare-head" class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200"></thead>
+                                <tbody id="compare-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <p id="compare-note" class="px-4 py-2.5 text-[10px] text-slate-500 bg-slate-50 border-t border-slate-200 leading-relaxed"></p>
+                    </div>
+                </section>
+
                 <section data-print-section="density" class="space-y-3">
                     <div class="flex items-center justify-between">
                         <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">약국 포화도 (전국 비교)</h3>
@@ -1063,7 +1094,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.8.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.0.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1085,7 +1116,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.8.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.0.0</span></p>
                     </div>
                 </div>
 
@@ -1159,6 +1190,7 @@
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="map"></span><strong class="text-sm text-slate-800 block">후보지 지도</strong><small class="text-xs text-slate-500">개설 후보지 위치 지형도</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="medical"></span><strong class="text-sm text-slate-800 block">메디컬 인프라</strong><small class="text-xs text-slate-500">병원·의사·경쟁 약국 현황</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="market"></span><strong class="text-sm text-slate-800 block">매출·배후 인구</strong><small class="text-xs text-slate-500">약국 매출 및 주거 수요</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="compare"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="compare"></span><strong class="text-sm text-slate-800 block">후보지 비교표</strong><small class="text-xs text-slate-500">비교함에 담은 후보지 나란히 보기</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="density" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="density"></span><strong class="text-sm text-slate-800 block">약국 포화도</strong><small class="text-xs text-slate-500">전국 대비 약국 밀도 비교</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="profit" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="profit"></span><strong class="text-sm text-slate-800 block">예상 손익</strong><small class="text-xs text-slate-500">처방·매약 매출과 순이익</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="investment"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="investment"></span><strong class="text-sm text-slate-800 block">초기 투자·고정비</strong><small class="text-xs text-slate-500">선택 입력값이 있을 때 포함</small></span></label>
@@ -1187,6 +1219,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v6.0.0] 후보지 비교 기능 추가 (최대 4곳 스냅샷 비교, 항목별 최적값 표시).
         // [v5.8.0] 전국 시군구 약국 포화도 지표 추가 (서울 외 지역도 실데이터 비교).
         // [v5.7.0] PDF 출력 항목별 공유 가이드라인(신호등)과 약사님 공유용 프리셋 추가.
         // [v5.6.0] 처방 범위 시나리오(적을 때·예상대로·많을 때) 추가.
@@ -1201,7 +1234,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.8.0";
+        const SYSTEM_VERSION = "6.0.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2721,6 +2754,174 @@
             updateReportDataStatus();
         }
 
+        /* ==========================================================================
+           v6.0.0  후보지 비교
+           --------------------------------------------------------------------------
+           후보지를 하나씩 분석한 뒤 스냅샷으로 담아 두고 같은 기준으로 나란히 봅니다.
+           분석 엔진을 건드리지 않고 결과만 보관하므로 계산 기준이 어긋날 위험이 없습니다.
+           각 스냅샷에는 담은 시점의 자료 기준일을 함께 저장해 비교 근거를 남깁니다.
+           ========================================================================== */
+        const COMPARE_STORAGE_KEY = 'chamyaksa-compare-v1';
+        const COMPARE_MAX = 4;
+
+        function readComparison() {
+            try {
+                const raw = localStorage.getItem(COMPARE_STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed.slice(0, COMPARE_MAX) : [];
+            } catch (error) { return []; }
+        }
+
+        function writeComparison(list) {
+            try { localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(list.slice(0, COMPARE_MAX))); }
+            catch (error) { console.warn('비교함 저장 실패:', error); }
+        }
+
+        function buildComparisonSnapshot() {
+            const d = GLOBAL_CALC_DATA;
+            const m = GLOBAL_ANALYSIS_METRICS;
+            const ctx = GLOBAL_SITE_CONTEXT;
+            const gateReady = m.prescriptionGate ? m.prescriptionGate.ready : false;
+            const concentration = gateReady ? computePrescriptionConcentration() : { available: false };
+
+            let low = null, high = null;
+            if (gateReady) {
+                const models = getActiveSourceModels();
+                low = calculateModelResult(models, true, { main: PRESCRIPTION_REFERENCE.main.low, stable: PRESCRIPTION_REFERENCE.stable.low, support: PRESCRIPTION_REFERENCE.support.low });
+                high = calculateModelResult(models, true, { main: PRESCRIPTION_REFERENCE.main.high, stable: PRESCRIPTION_REFERENCE.stable.high, support: PRESCRIPTION_REFERENCE.support.high });
+            }
+
+            return {
+                id: `cmp-${Date.now()}`,
+                savedAt: new Date().toISOString(),
+                address: d.address || ctx.targetAddress || '주소 미확인',
+                buildingName: ctx.buildingName || '',
+                effectiveRadius: ctx.effectiveRadius,
+                medicalReal: Boolean(d.isRealData),
+                hospitals: ctx.effectiveHospitals.length,
+                doctors: (ctx.hospitalModels || []).reduce((sum, h) => sum + Number(h.doctors || 0), 0),
+                pharmacies: ctx.effectivePharmacies.length,
+                score: d.isRealData ? d.baseScore : null,
+                confidence: d.confidence || 0,
+                gateReady,
+                prescLow: low ? Math.round(low.myShare) : null,
+                prescMid: gateReady ? Math.round(m.myShare) : null,
+                prescHigh: high ? Math.round(high.myShare) : null,
+                prescRev: gateReady ? Math.round(m.prescRev) : null,
+                costsConfirmed: Boolean(m.costsConfirmed),
+                netProfit: m.costsConfirmed && gateReady ? Math.round(m.netProfit) : null,
+                breakEven: m.costsConfirmed && gateReady ? m.breakEvenPrescriptions : null,
+                topDependency: concentration.available ? Math.round(concentration.topRatio * 100) : null,
+                densityReal: Boolean(d.densityReal),
+                densityDistrict: d.densityDistrict || '',
+                densityPercentile: d.densityPopulationPercentile ?? null,
+                buildingPurpose: d.buildingLedgerPurpose || ''
+            };
+        }
+
+        function addCurrentToComparison() {
+            if (!GLOBAL_CALC_DATA.address && !GLOBAL_SITE_CONTEXT.targetAddress) {
+                alert('먼저 주소를 분석해 주십시오.');
+                return;
+            }
+            const list = readComparison();
+            const snapshot = buildComparisonSnapshot();
+            const existing = list.findIndex(item => item.address === snapshot.address);
+            if (existing >= 0) {
+                list[existing] = snapshot;
+            } else {
+                if (list.length >= COMPARE_MAX) {
+                    alert(`비교함은 최대 ${COMPARE_MAX}곳까지 담을 수 있습니다. 기존 후보지를 먼저 빼 주십시오.`);
+                    return;
+                }
+                list.push(snapshot);
+            }
+            writeComparison(list);
+            renderComparisonBoard();
+            document.getElementById('compare-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function removeComparisonItem(id) {
+            writeComparison(readComparison().filter(item => item.id !== id));
+            renderComparisonBoard();
+        }
+
+        function clearComparison() {
+            if (!readComparison().length) return;
+            if (!confirm('비교함에 담긴 후보지를 모두 지울까요?')) return;
+            writeComparison([]);
+            renderComparisonBoard();
+        }
+
+        function renderComparisonBoard() {
+            const list = readComparison();
+            const badge = document.getElementById('compare-count-badge');
+            const status = document.getElementById('compare-status');
+            const empty = document.getElementById('compare-empty');
+            const wrap = document.getElementById('compare-wrap');
+            if (badge) badge.innerText = String(list.length);
+            if (status) status.innerText = list.length ? `${list.length}곳 비교 중` : '담긴 후보지 없음';
+
+            if (!list.length) {
+                empty?.classList.remove('hidden');
+                wrap?.classList.add('hidden');
+                return;
+            }
+            empty?.classList.add('hidden');
+            wrap?.classList.remove('hidden');
+
+            const shortAddress = (value) => String(value || '').replace(/^(서울특별시|서울|부산광역시|부산|대구광역시|대구|인천광역시|인천|광주광역시|광주|대전광역시|대전|울산광역시|울산|세종특별자치시|세종|경기도|경기|강원특별자치도|강원|충청북도|충북|충청남도|충남|전북특별자치도|전북|전라남도|전남|경상북도|경북|경상남도|경남|제주특별자치도|제주)\s*/, '');
+
+            document.getElementById('compare-head').innerHTML = '<tr>'
+                + '<th class="p-3 text-left w-[22%]">비교 항목</th>'
+                + list.map(item => `<th class="p-3 text-center align-top">`
+                    + `<span class="block text-slate-900 leading-snug">${escapeHtml(shortAddress(item.address))}</span>`
+                    + (item.buildingName ? `<span class="block text-[9px] font-medium text-slate-400 mt-0.5">${escapeHtml(item.buildingName)}</span>` : '')
+                    + `<button type="button" onclick="removeComparisonItem('${item.id}')" class="no-print mt-1 text-[9px] font-bold text-slate-400 hover:text-red-600">빼기</button>`
+                    + `</th>`).join('')
+                + '</tr>';
+
+            // 항목별로 가장 좋은 값에 표시를 붙입니다. (higher=클수록 좋음, false=작을수록 좋음)
+            const rows = [
+                { label: '처방 유입 거리', sub: '계산에 반영한 범위', get: (i) => `${i.effectiveRadius}m`, best: null },
+                { label: '유효 범위 병원 수', sub: '처방이 오는 병원', get: (i) => i.medicalReal ? `${i.hospitals}개` : '조회 실패', value: (i) => i.medicalReal ? i.hospitals : null, best: 'high' },
+                { label: '유효 범위 의사 수', sub: '처방 공급 규모', get: (i) => i.medicalReal ? `${i.doctors}명` : '조회 실패', value: (i) => i.medicalReal ? i.doctors : null, best: 'high' },
+                { label: '바로 옆 경쟁 약국', sub: '적을수록 유리', get: (i) => i.medicalReal ? `${i.pharmacies}개` : '조회 실패', value: (i) => i.medicalReal ? i.pharmacies : null, best: 'low' },
+                { label: '하루 예상 처방', sub: '적을 때 ~ 많을 때', get: (i) => i.gateReady ? `${i.prescLow}~${i.prescHigh}건<span class="block text-[9px] font-medium text-slate-400">기준 ${i.prescMid}건</span>` : '계산 보류', value: (i) => i.gateReady ? i.prescMid : null, best: 'high' },
+                { label: '한 달 조제 수입', sub: '기준 시나리오', get: (i) => i.gateReady ? `${Math.round(i.prescRev / 10000).toLocaleString()}만원` : '계산 보류', value: (i) => i.gateReady ? i.prescRev : null, best: 'high' },
+                { label: '특정 병원 의존도', sub: '낮을수록 안전', get: (i) => i.topDependency !== null ? `${i.topDependency}%` : '산출 불가', value: (i) => i.topDependency, best: 'low' },
+                { label: '약국 포화도', sub: '전국 백분위·높을수록 여유', get: (i) => i.densityReal && i.densityPercentile !== null ? `${i.densityPercentile}%<span class="block text-[9px] font-medium text-slate-400">${escapeHtml(i.densityDistrict)}</span>` : '조회 실패', value: (i) => i.densityReal ? i.densityPercentile : null, best: 'high' },
+                { label: '입지 참고점수', sub: '후보지 간 상대 지표', get: (i) => i.score !== null ? `${i.score}점` : '판단 보류', value: (i) => i.score, best: 'high' },
+                { label: '공공자료 확보율', sub: '연결된 공공 API 비중', get: (i) => `${i.confidence}%`, value: (i) => i.confidence, best: 'high' },
+                { label: '한 달 예상 순이익', sub: '비용 입력 시에만', get: (i) => i.netProfit !== null ? (i.netProfit >= 0 ? `${Math.round(i.netProfit / 10000).toLocaleString()}만원` : `-${Math.round(Math.abs(i.netProfit) / 10000).toLocaleString()}만원`) : '비용 미입력', value: (i) => i.netProfit, best: 'high' }
+            ];
+
+            document.getElementById('compare-body').innerHTML = rows.map(row => {
+                const values = row.value ? list.map(row.value) : [];
+                const valid = values.filter(v => v !== null && v !== undefined && Number.isFinite(v));
+                let bestValue = null;
+                if (row.best && valid.length > 1) {
+                    bestValue = row.best === 'high' ? Math.max(...valid) : Math.min(...valid);
+                }
+                return '<tr>'
+                    + `<td class="p-3"><strong class="text-slate-900 block">${row.label}</strong><span class="text-[9px] text-slate-400">${row.sub}</span></td>`
+                    + list.map((item, index) => {
+                        const isBest = bestValue !== null && values[index] === bestValue;
+                        return `<td class="p-3 text-center font-bold ${isBest ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700'}">`
+                            + (isBest ? '<i class="fa-solid fa-circle-check text-emerald-500 mr-1 text-[10px]"></i>' : '')
+                            + row.get(item) + '</td>';
+                    }).join('')
+                    + '</tr>';
+            }).join('');
+
+            const note = document.getElementById('compare-note');
+            if (note) {
+                const savedDates = list.map(item => new Intl.DateTimeFormat('ko-KR', { dateStyle: 'short' }).format(new Date(item.savedAt)));
+                note.innerText = `담은 시점: ${savedDates.join(' · ')} · 표시(✓)는 해당 항목에서 가장 좋은 값이라는 뜻이며 종합 순위가 아닙니다. `
+                    + '처방·매출은 참고 가정값을 포함하므로 조회 실패나 계산 보류가 있는 후보지는 같은 조건으로 비교되지 않습니다.';
+            }
+        }
+
         function evaluatePdfSectionGuides() {
             const d = GLOBAL_CALC_DATA;
             const m = GLOBAL_ANALYSIS_METRICS;
@@ -2782,6 +2983,12 @@
             guides.density = d.densityReal
                 ? { grade: 'share', note: '심평원 약국·의사 수와 SGIS 인구로 계산한 실제 자료입니다. 서울 외 지역도 동일합니다.' }
                 : { grade: 'empty', note: '전국 약국 포화도 자료를 불러오지 못했습니다.' };
+            const compareCount = readComparison().length;
+            guides.compare = !compareCount
+                ? { grade: 'empty', note: '비교함에 담긴 후보지가 없습니다.' }
+                : readComparison().some(item => item.gateReady)
+                    ? { grade: 'internal', note: `${compareCount}곳 비교표에 예상 처방·매출이 함께 나갑니다.` }
+                    : { grade: 'share', note: `${compareCount}곳 비교표. 계산 보류 상태라 추정 수치는 나가지 않습니다.` };
             guides.footer = { grade: 'share', note: '자료 출처와 생성 시점입니다.' };
             return guides;
         }
@@ -2816,6 +3023,8 @@
                 banner.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> 선택 가능한 항목이 모두 정상 상태입니다.';
             }
         }
+
+        window.addEventListener('DOMContentLoaded', renderComparisonBoard);
 
         function openPdfSelection() {
             document.getElementById('pdf-selection-modal').classList.remove('hidden');
