@@ -1,0 +1,58 @@
+name: 약국 포화도 지표 수집
+
+# 약국·의료기관 개폐업은 서서히 변하므로 반기 1회면 충분합니다.
+# SGIS 인구 파일(data/sgis)이 먼저 생성되어 있어야 합니다.
+on:
+  schedule:
+    - cron: '0 19 10 1,7 *'   # UTC 19:00 = 1월·7월 11일 새벽 4시 (KST)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: SGIS 인구 파일 확인
+        run: |
+          if [ ! -d "data/sgis" ]; then
+            echo "::error::data/sgis 폴더가 없습니다. 「SGIS 인구통계 수집」 워크플로를 먼저 실행하세요."
+            exit 1
+          fi
+          echo "시도별 파일 $(ls data/sgis/*.json | wc -l)개 확인"
+
+      - name: 약국 포화도 수집
+        env:
+          PUBLIC_DATA_KEY: ${{ secrets.PUBLIC_DATA_KEY }}
+        run: node scripts/fetch-pharmacy-density.mjs
+
+      - name: 변경분 확인
+        id: diff
+        run: |
+          if git diff --quiet -- data/pharmacy-density.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "변경 없음 - 커밋을 건너뜁니다."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            node -e "const d=require('./data/pharmacy-density.json');console.log('시군구',d.national.districtCount,'| 약국',d.national.totalPharmacies,'| 배후인구 중앙값',d.national.medianPopulationPerPharmacy);"
+          fi
+
+      - name: 커밋 및 푸시
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/pharmacy-density.json
+          git commit -m "chore(data): 약국 포화도 지표 갱신"
+          git push
