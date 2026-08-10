@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.5.1</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.7.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -287,7 +287,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.5.1</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.7.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -713,6 +713,29 @@
                         </div>
                     </div>
 
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white print-keep-together">
+                        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                            <p class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-arrows-left-right text-blue-500 mr-1"></i> 처방이 적을 때 / 예상대로일 때 / 많을 때</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">의사 1인당 처방건수는 공식 통계가 없어 정확히 맞힐 수 없습니다. 그래서 <strong>세 가지 경우를 함께</strong> 보여드립니다. <strong class="text-slate-800">적게 잡아도 손익분기를 넘는지</strong>를 먼저 확인하십시오.</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[620px] text-xs border-collapse">
+                                <thead class="bg-white text-slate-500 font-bold border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3 text-left w-[28%]">구분</th>
+                                        <th class="p-3 text-center w-[24%]">적을 때<br><span class="text-[9px] font-medium text-amber-700">보수적</span></th>
+                                        <th class="p-3 text-center w-[24%]">예상대로<br><span class="text-[9px] font-medium text-blue-700">현재 입력값</span></th>
+                                        <th class="p-3 text-center w-[24%]">많을 때<br><span class="text-[9px] font-medium text-emerald-700">낙관적</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scenario-range-body" class="divide-y divide-slate-100">
+                                    <tr><td colspan="4" class="p-4 text-center text-slate-400">처방 입력값을 확인하시면 표시됩니다.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="scenario-range-note" class="px-4 py-2.5 text-[10px] text-slate-500 bg-slate-50 border-t border-slate-200 leading-relaxed"></p>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 print-profit-grid">
                         <div class="print-card border border-slate-200 rounded-xl p-5 bg-white card-shadow space-y-3">
                             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -999,7 +1022,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.5.1</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.7.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1021,7 +1044,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.5.1</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.7.0</span></p>
                     </div>
                 </div>
 
@@ -1071,26 +1094,37 @@
                     </button>
                 </div>
 
-                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-2">
-                    <button type="button" onclick="applyPdfPreset('all')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white">전체 선택</button>
-                    <button type="button" onclick="applyPdfPreset('core')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-100 text-blue-800 border border-blue-200">핵심 요약</button>
-                    <button type="button" onclick="applyPdfPreset('none')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 border border-slate-300">전체 해제</button>
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 space-y-3">
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="applyPdfPreset('share')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white shadow-sm"><i class="fa-solid fa-share-nodes mr-1"></i> 약사님 공유용</button>
+                        <button type="button" onclick="applyPdfPreset('all')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white">전체 선택</button>
+                        <button type="button" onclick="applyPdfPreset('core')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-100 text-blue-800 border border-blue-200">핵심 요약</button>
+                        <button type="button" onclick="applyPdfPreset('none')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 border border-slate-300">전체 해제</button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-bold">
+                        <span class="text-slate-500">표시 기준</span>
+                        <span class="text-emerald-700"><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>공유 가능 (공공기관 실제 자료)</span>
+                        <span class="text-amber-700"><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span>설명 필요 (추정 포함)</span>
+                        <span class="text-red-700"><span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>내부 검토용 (가정값 중심)</span>
+                        <span class="text-slate-500"><span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1"></span>내용 없음 (제외 권장)</span>
+                    </div>
+                    <p id="pdf-guide-banner" class="text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border"></p>
                 </div>
 
                 <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[58vh] overflow-y-auto">
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="header" checked><span><strong class="text-sm text-slate-800 block">리포트 제목·기준월</strong><small class="text-xs text-slate-500">분석 대상과 데이터 기준 정보</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-amber-300 bg-amber-50 cursor-not-allowed"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="disclaimer" checked disabled data-required="true"><span><strong class="text-sm text-amber-900 block">활용 안내·면책 고지 <em class="not-italic text-[10px]">(필수 포함)</em></strong><small class="text-xs text-amber-700">현장 확인·책임 범위 안내는 제외할 수 없습니다.</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="summary" checked><span><strong class="text-sm text-slate-800 block">모형점수·연동률</strong><small class="text-xs text-slate-500">모형점수, 등급, 공공자료 확보율</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><strong class="text-sm text-slate-800 block">후보지 지도</strong><small class="text-xs text-slate-500">개설 후보지 위치 지형도</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><strong class="text-sm text-slate-800 block">메디컬 인프라</strong><small class="text-xs text-slate-500">병원·의사·경쟁 약국 현황</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><strong class="text-sm text-slate-800 block">매출·배후 인구</strong><small class="text-xs text-slate-500">약국 매출 및 주거 수요</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="profit" checked><span><strong class="text-sm text-slate-800 block">예상 손익</strong><small class="text-xs text-slate-500">처방·매약 매출과 순이익</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="investment"><span><strong class="text-sm text-slate-800 block">초기 투자·고정비</strong><small class="text-xs text-slate-500">선택 입력값이 있을 때 포함</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="flow" checked><span><strong class="text-sm text-slate-800 block">유동인구·타겟</strong><small class="text-xs text-slate-500">요일·시간·연령대 분석</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="glossary" checked><span><strong class="text-sm text-slate-800 block">용어 풀이</strong><small class="text-xs text-slate-500">리포트에 나오는 용어 설명</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="legal" checked><span><strong class="text-sm text-slate-800 block">약국 개설 법적 확인사항</strong><small class="text-xs text-slate-500">약사법 개설 제한, 건축물 용도, 특정 병원 의존도</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="briefing" checked><span><strong class="text-sm text-slate-800 block">종합 브리핑·제언</strong><small class="text-xs text-slate-500">판단, 리스크, 현장 확인</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="footer" checked><span><strong class="text-sm text-slate-800 block">출처·인쇄 정보</strong><small class="text-xs text-slate-500">데이터 출처와 생성 시점</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="header" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="header"></span><strong class="text-sm text-slate-800 block">리포트 제목·기준월</strong><small class="text-xs text-slate-500">분석 대상과 데이터 기준 정보</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-amber-300 bg-amber-50 cursor-not-allowed"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="disclaimer" checked disabled data-required="true"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="disclaimer"></span><strong class="text-sm text-amber-900 block">활용 안내·면책 고지 <em class="not-italic text-[10px]">(필수 포함)</em></strong><small class="text-xs text-amber-700">현장 확인·책임 범위 안내는 제외할 수 없습니다.</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="summary" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="summary"></span><strong class="text-sm text-slate-800 block">모형점수·연동률</strong><small class="text-xs text-slate-500">모형점수, 등급, 공공자료 확보율</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="map"></span><strong class="text-sm text-slate-800 block">후보지 지도</strong><small class="text-xs text-slate-500">개설 후보지 위치 지형도</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="medical"></span><strong class="text-sm text-slate-800 block">메디컬 인프라</strong><small class="text-xs text-slate-500">병원·의사·경쟁 약국 현황</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="market"></span><strong class="text-sm text-slate-800 block">매출·배후 인구</strong><small class="text-xs text-slate-500">약국 매출 및 주거 수요</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="profit" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="profit"></span><strong class="text-sm text-slate-800 block">예상 손익</strong><small class="text-xs text-slate-500">처방·매약 매출과 순이익</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="investment"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="investment"></span><strong class="text-sm text-slate-800 block">초기 투자·고정비</strong><small class="text-xs text-slate-500">선택 입력값이 있을 때 포함</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="flow" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="flow"></span><strong class="text-sm text-slate-800 block">유동인구·타겟</strong><small class="text-xs text-slate-500">요일·시간·연령대 분석</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="glossary" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="glossary"></span><strong class="text-sm text-slate-800 block">용어 풀이</strong><small class="text-xs text-slate-500">리포트에 나오는 용어 설명</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="legal" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="legal"></span><strong class="text-sm text-slate-800 block">약국 개설 법적 확인사항</strong><small class="text-xs text-slate-500">약사법 개설 제한, 건축물 용도, 특정 병원 의존도</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="briefing" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="briefing"></span><strong class="text-sm text-slate-800 block">종합 브리핑·제언</strong><small class="text-xs text-slate-500">판단, 리스크, 현장 확인</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="footer" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="footer"></span><strong class="text-sm text-slate-800 block">출처·인쇄 정보</strong><small class="text-xs text-slate-500">데이터 출처와 생성 시점</small></span></label>
                 </div>
 
                 <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 bg-white">
@@ -1111,6 +1145,8 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v5.7.0] PDF 출력 항목별 공유 가이드라인(신호등)과 약사님 공유용 프리셋 추가.
+        // [v5.6.0] 처방 범위 시나리오(적을 때·예상대로·많을 때) 추가.
         // [v5.5.1] 손익분기·안전마진·의사 1인당 처방 용어 원복, 약국정보 XML 응답 대응.
         // [v5.5.0] 경쟁 약국 영업 시작일, 용어 평이화, 유동인구·점수·면책 축소, 용어 풀이 추가.
         // [v5.4.0] 약사법 개설 확인사항·특정 병원 의존도 추가, 등급 품질 게이트, 사장 코드 정리.
@@ -1122,7 +1158,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.5.1";
+        const SYSTEM_VERSION = "5.7.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2498,9 +2534,116 @@
             if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) closePdfSelection();
         });
 
+        /* [v5.7.0] PDF 출력 가이드라인
+           "이 항목을 약사님께 그대로 드려도 되는가"를 출력 직전에 판단해 보여줍니다.
+             share  : 공공기관 실제 자료만 담겨 있어 그대로 공유 가능
+             explain: 추정치가 섞여 있어 설명을 곁들여야 함
+             internal: 가정값 중심이라 내부 검토용
+             empty  : 자료를 못 불러왔거나 계산이 보류되어 내용이 비어 있음 → 제외 권장 */
+        const PDF_GRADE_STYLE = {
+            share:    { label: '공유 가능',   dot: 'bg-emerald-500', text: 'text-emerald-700' },
+            explain:  { label: '설명 필요',   dot: 'bg-amber-500',   text: 'text-amber-700' },
+            internal: { label: '내부 검토용', dot: 'bg-red-500',     text: 'text-red-700' },
+            empty:    { label: '내용 없음',   dot: 'bg-slate-400',   text: 'text-slate-500' }
+        };
+
+        function evaluatePdfSectionGuides() {
+            const d = GLOBAL_CALC_DATA;
+            const m = GLOBAL_ANALYSIS_METRICS;
+            const ctx = GLOBAL_SITE_CONTEXT;
+            const gateReady = m.prescriptionGate ? m.prescriptionGate.ready : false;
+            const costsReady = Boolean(m.costsConfirmed);
+            const guides = {};
+
+            guides.header = { grade: 'share', note: '분석 주소와 자료 기준일만 담깁니다.' };
+            guides.disclaimer = { grade: 'share', note: '반드시 함께 나가야 하는 안내입니다.' };
+            guides.glossary = { grade: 'share', note: '용어 설명이라 문의를 줄여 줍니다.' };
+            guides.legal = { grade: 'share', note: '약사법 개설 제한과 개설 절차 안내입니다.' };
+
+            guides.map = d.nearbySearchReal
+                ? { grade: 'share', note: '카카오 지도 실제 위치입니다.' }
+                : { grade: 'empty', note: '지도를 불러오지 못했습니다.' };
+
+            guides.medical = !d.isRealData
+                ? { grade: 'empty', note: `심평원 ${GLOBAL_DATA_DIAGNOSTICS.hira?.short || '조회 실패'} · 병원·의사 수가 비어 있습니다.` }
+                : d.hiraDetailReal
+                    ? { grade: 'share', note: '심평원 신고 진료과목까지 확인된 실제 자료입니다.' }
+                    : { grade: 'explain', note: '일부 진료과는 기관명으로 분류했다고 설명해 주십시오.' };
+
+            const populationReady = Boolean(d.sgisReal);
+            if (!populationReady && !d.seoulCommercialApplied) {
+                guides.market = { grade: 'empty', note: 'SGIS 인구와 매출 자료를 모두 불러오지 못했습니다.' };
+            } else if (d.seoulCommercialApplied && populationReady) {
+                guides.market = { grade: 'explain', note: '인구는 실제 자료, 매출은 서울시 공식 추정치입니다. "동 단위 추정"임을 함께 말씀해 주십시오.' };
+            } else if (populationReady) {
+                guides.market = { grade: 'explain', note: '인구는 실제 자료지만 매출은 내부 추정입니다. 매출 수치는 참고용이라고 반드시 언급해 주십시오.' };
+            } else {
+                guides.market = { grade: 'explain', note: '인구 자료가 비어 있습니다. 매출만 표시됩니다.' };
+            }
+
+            guides.summary = !d.isRealData
+                ? { grade: 'empty', note: '병원 자료가 없어 점수와 등급이 산출되지 않았습니다.' }
+                : gateReady
+                    ? { grade: 'explain', note: '등급은 참고 순위입니다. 절대 평가가 아니라고 설명해 주십시오.' }
+                    : { grade: 'share', note: '현재 판단 보류 상태라 추정 수치가 나가지 않습니다.' };
+
+            guides.profit = !gateReady
+                ? { grade: 'empty', note: '처방 입력을 확인하지 않아 계산 보류 상태입니다. 빼고 보내셔도 됩니다.' }
+                : { grade: 'internal', note: '처방건수가 가정값이라 오차가 큽니다. 외부 공유 시 제외를 권장합니다.' };
+
+            guides.investment = !costsReady
+                ? { grade: 'empty', note: '비용을 입력·확인하지 않아 내용이 비어 있습니다.' }
+                : { grade: 'internal', note: '투자·고정비는 내부 검토 정보입니다.' };
+
+            guides.flow = d.seoulCommercialApplied
+                ? { grade: 'explain', note: '서울시 공식 추정 생활인구입니다. 후보지 앞 보행자 수가 아닙니다.' }
+                : { grade: 'internal', note: '서울 외 지역은 내부 보정값이라 그대로 보내면 오해를 부릅니다.' };
+
+            guides.briefing = !d.isRealData
+                ? { grade: 'empty', note: '판정 보류 상태의 안내만 담깁니다.' }
+                : gateReady
+                    ? { grade: 'internal', note: '요약 카드에 예상 처방·매출 수치가 함께 나갑니다.' }
+                    : { grade: 'share', note: '계산 보류 상태라 추정 수치 없이 근거와 확인사항만 나갑니다.' };
+
+            guides.footer = { grade: 'share', note: '자료 출처와 생성 시점입니다.' };
+            return guides;
+        }
+
+        function renderPdfSectionGuides() {
+            const guides = evaluatePdfSectionGuides();
+            let emptyCount = 0;
+            let internalCount = 0;
+
+            document.querySelectorAll('.pdf-grade-badge').forEach(badge => {
+                const key = badge.dataset.gradeFor;
+                const guide = guides[key];
+                if (!guide) { badge.innerHTML = ''; return; }
+                const style = PDF_GRADE_STYLE[guide.grade];
+                badge.className = `pdf-grade-badge block text-[10px] font-black mb-0.5 ${style.text}`;
+                badge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full ${style.dot} mr-1 align-middle"></span>${style.label}`
+                    + `<span class="block font-medium text-slate-500 mt-0.5 leading-snug">${escapeHtml(guide.note)}</span>`;
+                if (guide.grade === 'empty') emptyCount += 1;
+                if (guide.grade === 'internal') internalCount += 1;
+            });
+
+            const banner = document.getElementById('pdf-guide-banner');
+            if (!banner) return;
+            const messages = [];
+            if (emptyCount) messages.push(`<strong>내용이 비어 있는 항목이 ${emptyCount}개</strong> 있습니다. 빈 페이지가 인쇄되지 않도록 제외하시길 권합니다.`);
+            if (internalCount) messages.push(`<strong>내부 검토용 항목이 ${internalCount}개</strong> 있습니다. 약사님께 보내실 자료라면 빼시는 편이 안전합니다.`);
+            if (messages.length) {
+                banner.className = 'text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border bg-amber-50 border-amber-200 text-amber-900';
+                banner.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> ${messages.join(' ')} <span class="block mt-1 font-medium">위 <strong>약사님 공유용</strong> 버튼을 누르면 한 번에 정리됩니다.</span>`;
+            } else {
+                banner.className = 'text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border bg-emerald-50 border-emerald-200 text-emerald-900';
+                banner.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> 선택 가능한 항목이 모두 정상 상태입니다.';
+            }
+        }
+
         function openPdfSelection() {
             document.getElementById('pdf-selection-modal').classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
+            renderPdfSectionGuides();
         }
 
         function closePdfSelection() {
@@ -2514,9 +2657,16 @@
 
         function applyPdfPreset(type) {
             const core = new Set(['header', 'summary', 'medical', 'market', 'profit', 'briefing', 'footer']);
+            // [v5.7.0] 약사님 공유용 = 공유 가능·설명 필요 등급만 남기고 내부용·빈 항목은 해제합니다.
+            const guides = evaluatePdfSectionGuides();
             document.querySelectorAll('.pdf-section-checkbox').forEach(checkbox => {
                 if (checkbox.dataset.required === 'true') {
                     checkbox.checked = true;
+                    return;
+                }
+                if (type === 'share') {
+                    const grade = guides[checkbox.value]?.grade;
+                    checkbox.checked = grade === 'share' || grade === 'explain';
                     return;
                 }
                 checkbox.checked = type === 'all' || (type === 'core' && core.has(checkbox.value));
@@ -3111,6 +3261,73 @@
                 : `조회된 주용도: <strong class="text-amber-800">${escapeHtml(purpose)}</strong><br><span class="text-amber-800">근린생활시설이 아닙니다. <strong>용도변경 필요 여부를 반드시 확인</strong>하십시오.</span>`;
         }
 
+        /* [v5.6.0] 처방 범위 시나리오
+           의사 1인당 처방건수는 공식 통계가 없어 단일 숫자로 제시하면 과신을 부릅니다.
+           참고 범위의 하한·상한을 함께 계산해 "적게 잡아도 버티는가"를 먼저 보게 합니다. */
+        function renderScenarioRange(gateReady) {
+            const body = document.getElementById('scenario-range-body');
+            const note = document.getElementById('scenario-range-note');
+            if (!body) return;
+
+            if (!gateReady) {
+                body.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">처방 입력값을 확인하시면 표시됩니다.</td></tr>';
+                if (note) note.innerText = '';
+                return;
+            }
+
+            const models = getActiveSourceModels();
+            const low = { main: PRESCRIPTION_REFERENCE.main.low, stable: PRESCRIPTION_REFERENCE.stable.low, support: PRESCRIPTION_REFERENCE.support.low };
+            const high = { main: PRESCRIPTION_REFERENCE.main.high, stable: PRESCRIPTION_REFERENCE.stable.high, support: PRESCRIPTION_REFERENCE.support.high };
+            const cases = [
+                calculateModelResult(models, true, low),
+                calculateModelResult(models, true, null),
+                calculateModelResult(models, true, high)
+            ];
+
+            const otc = Number(GLOBAL_CALC_DATA.monthOtcRevenue || 0);
+            const fixedCost = Number(GLOBAL_ANALYSIS_METRICS.totalFixedCost || 0);
+            const costsConfirmed = Boolean(GLOBAL_ANALYSIS_METRICS.costsConfirmed);
+            const won = (value) => `${Math.round(value).toLocaleString()}원`;
+            const cellClass = ['text-amber-800', 'text-blue-700 font-black', 'text-emerald-700'];
+
+            const row = (label, sub, values, bold) => `<tr>`
+                + `<td class="p-3"><strong class="text-slate-900 block">${label}</strong>${sub ? `<span class="text-[9px] text-slate-400">${sub}</span>` : ''}</td>`
+                + values.map((v, i) => `<td class="p-3 text-center ${cellClass[i]} ${bold ? 'font-black' : 'font-bold'}">${v}</td>`).join('')
+                + `</tr>`;
+
+            let html = '';
+            html += row('하루 예상 처방', '우리 약국 몫', cases.map(c => `${Math.round(c.myShare).toLocaleString()}건`), true);
+            html += row('한 달 조제 수입', '처방 조제분', cases.map(c => won(c.prescRev)));
+            html += row('한 달 총매출', '조제 + 매약', cases.map(c => won(c.prescRev + otc)));
+
+            if (costsConfirmed && fixedCost > 0) {
+                const nets = cases.map(c => Math.round(((c.prescRev + otc) * CONFIG.NET_MARGIN_RATE) - fixedCost));
+                html += row('한 달 예상 순이익', '입력하신 비용 기준', nets.map(v => v >= 0 ? won(v) : `-${Math.abs(v).toLocaleString()}원`), true);
+
+                const breakEven = cases.map(c => {
+                    const requiredTotal = fixedCost / CONFIG.NET_MARGIN_RATE;
+                    const requiredPresc = Math.max(0, requiredTotal - otc);
+                    return c.weightedCost > 0 ? Math.ceil(requiredPresc / c.weightedCost / c.operatingDays) : 0;
+                });
+                html += row('손익분기 처방건수', '이만큼은 나와야 본전', breakEven.map(v => `${v.toLocaleString()}건`));
+                html += row('처방 안전마진', '예상 − 손익분기', cases.map((c, i) => {
+                    const margin = Math.round(c.myShare) - breakEven[i];
+                    return `<span class="${margin >= 0 ? 'text-emerald-700' : 'text-red-600'}">${margin >= 0 ? '+' : ''}${margin.toLocaleString()}건</span>`;
+                }), true);
+            }
+
+            body.innerHTML = html;
+
+            if (note) {
+                const perDoctorNow = ['main', 'stable', 'support']
+                    .map(key => Number(document.getElementById(`rx-${key}-per-doctor`)?.value || 0));
+                let message = `적을 때는 의사 1인당 ${low.main}·${low.stable}·${low.support}건, 많을 때는 ${high.main}·${high.stable}·${high.support}건을 적용했습니다. `
+                    + `가운데 칸은 현재 입력하신 ${perDoctorNow.join('·')}건 기준입니다. 조제 수입 단가와 월 운영일수는 세 경우 모두 동일하게 적용했습니다.`;
+                if (!costsConfirmed) message += ' 비용을 입력하고 확인하시면 순이익과 손익분기까지 함께 비교할 수 있습니다.';
+                note.innerText = message;
+            }
+        }
+
         function isPrescriptionConfirmed() {
             return Boolean(document.getElementById('input-prescription-confirmed')?.checked);
         }
@@ -3161,12 +3378,14 @@
                 + `보조(3일) ${escapeHtml(describeOfficialUnitFee(3))}`;
         }
 
-        function calculateModelResult(sourceModels, useDomValues = true) {
+        // [v5.6.0] perDoctorOverride를 넘기면 화면 입력값 대신 해당 처방건수로 계산합니다. (범위 시나리오용)
+        function calculateModelResult(sourceModels, useDomValues = true, perDoctorOverride = null) {
             const operatingDays = Math.min(31, Math.max(1, parseInt(document.getElementById('input-operating-days')?.value || 25)));
+            const pick = (key, domValue) => (perDoctorOverride && Number(perDoctorOverride[key]) > 0) ? Number(perDoctorOverride[key]) : Number(domValue);
             const inputs = {
-                main: { perDoctor: Number(useDomValues ? document.getElementById('rx-main-per-doctor')?.value : PRESCRIPTION_MODEL_DEFAULTS.main.perDoctor), unitFee: Number(useDomValues ? document.getElementById('rx-main-unit-fee')?.value : PRESCRIPTION_MODEL_DEFAULTS.main.unitFee) },
-                stable: { perDoctor: Number(useDomValues ? document.getElementById('rx-stable-per-doctor')?.value : PRESCRIPTION_MODEL_DEFAULTS.stable.perDoctor), unitFee: Number(useDomValues ? document.getElementById('rx-stable-unit-fee')?.value : PRESCRIPTION_MODEL_DEFAULTS.stable.unitFee) },
-                support: { perDoctor: Number(useDomValues ? document.getElementById('rx-support-per-doctor')?.value : PRESCRIPTION_MODEL_DEFAULTS.support.perDoctor), unitFee: Number(useDomValues ? document.getElementById('rx-support-unit-fee')?.value : PRESCRIPTION_MODEL_DEFAULTS.support.unitFee) }
+                main: { perDoctor: pick('main', useDomValues ? document.getElementById('rx-main-per-doctor')?.value : PRESCRIPTION_MODEL_DEFAULTS.main.perDoctor), unitFee: Number(useDomValues ? document.getElementById('rx-main-unit-fee')?.value : PRESCRIPTION_MODEL_DEFAULTS.main.unitFee) },
+                stable: { perDoctor: pick('stable', useDomValues ? document.getElementById('rx-stable-per-doctor')?.value : PRESCRIPTION_MODEL_DEFAULTS.stable.perDoctor), unitFee: Number(useDomValues ? document.getElementById('rx-stable-unit-fee')?.value : PRESCRIPTION_MODEL_DEFAULTS.stable.unitFee) },
+                support: { perDoctor: pick('support', useDomValues ? document.getElementById('rx-support-per-doctor')?.value : PRESCRIPTION_MODEL_DEFAULTS.support.perDoctor), unitFee: Number(useDomValues ? document.getElementById('rx-support-unit-fee')?.value : PRESCRIPTION_MODEL_DEFAULTS.support.unitFee) }
             };
             const grouped = { main: { totalSupply: 0, myShare: 0, monthlyRevenue: 0, doctors: 0 }, stable: { totalSupply: 0, myShare: 0, monthlyRevenue: 0, doctors: 0 }, support: { totalSupply: 0, myShare: 0, monthlyRevenue: 0, doctors: 0 } };
             (sourceModels || []).forEach(model => {
@@ -3288,7 +3507,7 @@
                 document.getElementById('cost-analysis-guidance').classList.remove('hidden');
                 document.getElementById('lbl-effective-capture-rate').innerText = '-';
                 document.getElementById('lbl-month-otc-rev').innerText = '입력 확인 필요';
-                renderPrescriptionConcentration(false); renderLegalBuildingPurpose();
+                renderPrescriptionConcentration(false); renderLegalBuildingPurpose(); renderScenarioRange(false);
                 updateOptionalCostUi(); renderScenarioCards();
                 if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
                 return;
@@ -3308,7 +3527,7 @@
             document.getElementById('cost-analysis-output').classList.toggle('hidden', !costsConfirmed); document.getElementById('cost-analysis-guidance').classList.toggle('hidden', costsConfirmed);
             if (costsConfirmed) { document.getElementById('lbl-net-profit').innerText = netProfit >= 0 ? `월 약 ${netProfit.toLocaleString()}원` : `월 약 -${Math.abs(netProfit).toLocaleString()}원`; document.getElementById('lbl-break-even-prescriptions').innerText = `${breakEvenPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').innerText = `${safetyMarginPrescriptions >= 0 ? '+' : ''}${safetyMarginPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').className = safetyMarginPrescriptions >= 0 ? 'text-emerald-300' : 'text-red-300'; }
             document.getElementById('calc-total-fixed-cost').innerText = `${totalFixedCost.toLocaleString()}원`; document.getElementById('lbl-fixed-preview').innerText = formatWonCompact(totalFixedCost); document.getElementById('count-staff-print').innerText = `${staffCount}명`; document.getElementById('count-full-pharm-print').innerText = `${fullPharmCount}명`; document.getElementById('count-half-pharm-print').innerText = `${halfPharmCount}명`;
-            renderPrescriptionConcentration(true); renderLegalBuildingPurpose();
+            renderPrescriptionConcentration(true); renderLegalBuildingPurpose(); renderScenarioRange(true);
             updatePaybackMetrics(); updateOptionalCostUi(); renderScenarioCards(); if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
         };
 
