@@ -1,4 +1,4 @@
-const VERSION = '5.3.0';
+const VERSION = '5.4.0';
 const ALLOWED_ORIGINS = new Set([
   'https://sgersg-cmd.github.io',
   'http://127.0.0.1:8765',
