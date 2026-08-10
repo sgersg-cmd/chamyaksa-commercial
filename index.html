@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v5.7.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v5.8.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -271,6 +271,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
+            // [v5.8.0] 전국 시군구 약국 포화도 (GitHub Actions 반기 수집)
+            DENSITY_STATIC_URL: "data/pharmacy-density.json",
             SEOUL_STATIC_TIMEOUT_MS: 8000,
             SEOUL_COMMERCIAL_CACHE_TTL_MS: 7 * 24 * 60 * 60 * 1000,
             SEOUL_COMMERCIAL_PAGE_SIZE: 1000,
@@ -287,7 +289,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.7.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v5.8.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -603,6 +605,45 @@
                 </section>
 
                 <!-- 3. 진료과군별 예상 처방 및 손익 시뮬레이션 -->
+                <section data-print-section="density" class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase">약국 포화도 (전국 비교)</h3>
+                        <span id="density-status" class="source-chip source-input self-start">조회 대기</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
+                        이 지역에 <strong>약국이 이미 많은지, 아직 여유가 있는지</strong>를 전국과 비교합니다.
+                        약국 수·의료기관 수·의사 수는 심평원 실제 등록 자료이고 인구는 국가데이터처 통계로,
+                        <strong class="text-emerald-700">서울·지방 구분 없이 전국 어디든 실제 자료</strong>입니다.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="print-card border border-slate-200 rounded-xl p-4 bg-white">
+                            <p class="text-[10px] text-slate-400 font-bold">약국 1곳당 배후인구</p>
+                            <p id="density-pop-per-pharmacy" class="text-lg font-black text-slate-800 mt-1">-</p>
+                            <p id="density-pop-compare" class="text-[10px] text-slate-500 mt-1 leading-snug">전국 비교값 조회 중</p>
+                        </div>
+                        <div class="print-card border border-slate-200 rounded-xl p-4 bg-white">
+                            <p class="text-[10px] text-slate-400 font-bold">약국 1곳당 의사 수</p>
+                            <p id="density-doc-per-pharmacy" class="text-lg font-black text-slate-800 mt-1">-</p>
+                            <p id="density-doc-compare" class="text-[10px] text-slate-500 mt-1 leading-snug">전국 비교값 조회 중</p>
+                        </div>
+                        <div class="print-card border border-slate-200 rounded-xl p-4 bg-slate-50">
+                            <p class="text-[10px] text-slate-400 font-bold">해당 시군구 등록 현황</p>
+                            <p id="density-counts" class="text-lg font-black text-slate-800 mt-1">-</p>
+                            <p id="density-scope" class="text-[10px] text-slate-500 mt-1 leading-snug">시군구 단위 집계</p>
+                        </div>
+                    </div>
+                    <p id="density-verdict" class="text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border bg-slate-50 border-slate-200 text-slate-600">전국 약국 포화도 자료를 불러오는 중입니다.</p>
+                    <details class="basis-note report-details text-[11px] text-slate-600 leading-relaxed">
+                        <summary><span><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> 약국 포화도 산정 기준</span></summary>
+                        <div class="report-details-content space-y-1.5">
+                            <p>약국 1곳당 배후인구 = 시군구 인구 ÷ 시군구 약국 수. 값이 <strong>클수록</strong> 약국 한 곳이 담당하는 인구가 많아 여유가 있습니다.</p>
+                            <p>약국 1곳당 의사 수 = 시군구 의사 수 ÷ 시군구 약국 수. 값이 <strong>클수록</strong> 처방을 내는 의사 대비 약국이 적습니다.</p>
+                            <p>전국 백분위는 전국 시군구를 낮은 값부터 줄 세웠을 때의 위치입니다. 상위 30% 안이면 여유 있는 편, 하위 30%면 과밀한 편으로 봅니다.</p>
+                            <p>시군구 단위 집계이므로 <strong>후보지 반경 수치가 아니며 매출을 의미하지도 않습니다.</strong> 같은 구 안에서도 동네별 차이가 큽니다.</p>
+                        </div>
+                    </details>
+                </section>
+
                 <section data-print-section="profit" class="space-y-4">
                     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3 border-l-4 border-blue-600 pl-3">
                         <div>
@@ -1022,7 +1063,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.7.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v5.8.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1044,7 +1085,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.7.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v5.8.0</span></p>
                     </div>
                 </div>
 
@@ -1118,6 +1159,7 @@
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="map"></span><strong class="text-sm text-slate-800 block">후보지 지도</strong><small class="text-xs text-slate-500">개설 후보지 위치 지형도</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="medical"></span><strong class="text-sm text-slate-800 block">메디컬 인프라</strong><small class="text-xs text-slate-500">병원·의사·경쟁 약국 현황</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="market"></span><strong class="text-sm text-slate-800 block">매출·배후 인구</strong><small class="text-xs text-slate-500">약국 매출 및 주거 수요</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="density" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="density"></span><strong class="text-sm text-slate-800 block">약국 포화도</strong><small class="text-xs text-slate-500">전국 대비 약국 밀도 비교</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="profit" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="profit"></span><strong class="text-sm text-slate-800 block">예상 손익</strong><small class="text-xs text-slate-500">처방·매약 매출과 순이익</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="investment"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="investment"></span><strong class="text-sm text-slate-800 block">초기 투자·고정비</strong><small class="text-xs text-slate-500">선택 입력값이 있을 때 포함</small></span></label>
                     <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="flow" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="flow"></span><strong class="text-sm text-slate-800 block">유동인구·타겟</strong><small class="text-xs text-slate-500">요일·시간·연령대 분석</small></span></label>
@@ -1145,6 +1187,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v5.8.0] 전국 시군구 약국 포화도 지표 추가 (서울 외 지역도 실데이터 비교).
         // [v5.7.0] PDF 출력 항목별 공유 가이드라인(신호등)과 약사님 공유용 프리셋 추가.
         // [v5.6.0] 처방 범위 시나리오(적을 때·예상대로·많을 때) 추가.
         // [v5.5.1] 손익분기·안전마진·의사 1인당 처방 용어 원복, 약국정보 XML 응답 대응.
@@ -1158,7 +1201,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "5.7.0";
+        const SYSTEM_VERSION = "5.8.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2547,6 +2590,137 @@
             empty:    { label: '내용 없음',   dot: 'bg-slate-400',   text: 'text-slate-500' }
         };
 
+        /* [v5.8.0] 전국 약국 포화도
+           서울 외 지역에는 공식 추정매출이 없어 매출 항목이 내부모형에 머물러 있었습니다.
+           약국 수·의사 수는 심평원 실데이터, 인구는 SGIS 실데이터이므로
+           "이 지역이 약국 대비 과밀한가"는 전국 어디든 실측으로 답할 수 있습니다. */
+        let GLOBAL_DENSITY_DATASET = null;   // null=미시도, false=사용불가
+
+        async function loadDensityDataset() {
+            if (GLOBAL_DENSITY_DATASET !== null) return GLOBAL_DENSITY_DATASET;
+            try {
+                const data = await fetchStaticJson(CONFIG.DENSITY_STATIC_URL, CONFIG.SEOUL_STATIC_TIMEOUT_MS, '약국 포화도 정기 수집자료');
+                if (!data || !Array.isArray(data.districts) || !data.districts.length) throw new Error('자료 구조 확인 실패');
+                GLOBAL_DENSITY_DATASET = data;
+                console.log(`약국 포화도 자료 로드: 시군구 ${data.districts.length}개 · 약국 ${data.national.totalPharmacies.toLocaleString()}개`);
+            } catch (error) {
+                console.warn('약국 포화도 자료를 불러오지 못했습니다:', error.message);
+                GLOBAL_DENSITY_DATASET = false;
+            }
+            return GLOBAL_DENSITY_DATASET;
+        }
+
+        function matchDensityDistrict(dataset, meta) {
+            const region1 = normalizeSeoulName(meta.region1 || '');
+            const region2 = normalizeSeoulName(meta.region2 || '');
+            if (!region2) return null;
+            const trim = (value) => normalizeSeoulName(String(value || '').replace(/(특별자치도|특별자치시|특별시|광역시|도)$/, ''));
+            const sidoKey = trim(meta.region1 || '');
+
+            let fallback = null;
+            for (const district of dataset.districts) {
+                if (normalizeSeoulName(district.sggu) !== region2) continue;
+                fallback = fallback || district;
+                const districtSido = trim(district.sido);
+                if (!sidoKey || !districtSido) continue;
+                if (districtSido.startsWith(sidoKey) || sidoKey.startsWith(districtSido)) return district;
+            }
+            // "성남시 분당구"처럼 시·구가 함께 오는 경우를 보정합니다.
+            if (!fallback) {
+                const tail = region2.split(' ').pop();
+                for (const district of dataset.districts) {
+                    if (normalizeSeoulName(district.sggu) === tail) { fallback = district; break; }
+                }
+            }
+            return fallback;
+        }
+
+        function setDensityUi(state, message) {
+            const status = document.getElementById('density-status');
+            if (status) {
+                status.className = `source-chip ${state === 'ready' ? 'source-real' : 'source-input'} self-start`;
+                status.innerText = state === 'ready' ? '심평원·SGIS 실데이터' : state === 'loading' ? '조회 중' : '조회 실패';
+            }
+            if (state !== 'ready') {
+                ['density-pop-per-pharmacy', 'density-doc-per-pharmacy', 'density-counts'].forEach(id => {
+                    const el = document.getElementById(id); if (el) el.innerText = state === 'loading' ? '조회 중' : '산출 불가';
+                });
+                ['density-pop-compare', 'density-doc-compare'].forEach(id => {
+                    const el = document.getElementById(id); if (el) el.innerText = '';
+                });
+                const verdict = document.getElementById('density-verdict');
+                if (verdict) {
+                    verdict.className = 'text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border bg-slate-50 border-slate-200 text-slate-600';
+                    verdict.innerText = message || '';
+                }
+            }
+            Object.assign(GLOBAL_CALC_DATA, { densityReal: state === 'ready' });
+        }
+
+        function describePercentile(percentile, higherIsBetter) {
+            if (percentile === null || percentile === undefined) return { label: '비교 불가', tone: 'text-slate-500' };
+            const good = higherIsBetter ? percentile >= 70 : percentile <= 30;
+            const bad = higherIsBetter ? percentile <= 30 : percentile >= 70;
+            return {
+                label: good ? '여유 있는 편' : bad ? '과밀한 편' : '전국 평균 수준',
+                tone: good ? 'text-emerald-700' : bad ? 'text-red-600' : 'text-slate-700'
+            };
+        }
+
+        async function loadDensityForCurrentAddress() {
+            setDensityUi('loading');
+            const dataset = await loadDensityDataset();
+            if (!dataset) {
+                setDensityUi('failed', '전국 약국 포화도 자료가 아직 생성되지 않았습니다. GitHub Actions에서 「약국 포화도 지표 수집」 워크플로를 1회 실행해 주십시오.');
+                updateReportDataStatus();
+                return;
+            }
+
+            const meta = GLOBAL_SITE_CONTEXT.sgisRegionMeta || GLOBAL_SITE_CONTEXT.seoulRegionMeta || {};
+            const district = matchDensityDistrict(dataset, meta);
+            if (!district || !district.populationPerPharmacy) {
+                setDensityUi('failed', `${escapeHtml(meta.region2 || '해당 지역')}의 시군구 집계를 찾지 못했습니다. 주소를 도로명 또는 지번으로 다시 입력해 보십시오.`);
+                updateReportDataStatus();
+                return;
+            }
+
+            const national = dataset.national;
+            const popInfo = describePercentile(district.populationPercentile, true);
+            const docInfo = describePercentile(district.doctorsPercentile, true);
+
+            document.getElementById('density-pop-per-pharmacy').innerText = `${district.populationPerPharmacy.toLocaleString()}명`;
+            document.getElementById('density-pop-compare').innerHTML =
+                `전국 중앙값 ${national.medianPopulationPerPharmacy.toLocaleString()}명 · 하위부터 <strong>${district.populationPercentile}%</strong> 지점 <span class="${popInfo.tone} font-bold">${popInfo.label}</span>`;
+
+            document.getElementById('density-doc-per-pharmacy').innerText = district.doctorsPerPharmacy ? `${district.doctorsPerPharmacy}명` : '집계 없음';
+            document.getElementById('density-doc-compare').innerHTML = district.doctorsPerPharmacy
+                ? `전국 중앙값 ${national.medianDoctorsPerPharmacy}명 · 하위부터 <strong>${district.doctorsPercentile}%</strong> 지점 <span class="${docInfo.tone} font-bold">${docInfo.label}</span>`
+                : '의사 수 집계가 없습니다.';
+
+            document.getElementById('density-counts').innerText = `약국 ${district.pharmacies.toLocaleString()}개`;
+            document.getElementById('density-scope').innerText =
+                `${district.sido} ${district.sggu} · 의료기관 ${district.hospitals.toLocaleString()}개 · 의사 ${district.doctors.toLocaleString()}명 · 인구 ${district.population.toLocaleString()}명`;
+
+            const verdict = document.getElementById('density-verdict');
+            const roomy = district.populationPercentile >= 70;
+            const crowded = district.populationPercentile <= 30;
+            verdict.className = `text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border ${roomy ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : crowded ? 'bg-red-50 border-red-200 text-red-900' : 'bg-slate-50 border-slate-200 text-slate-700'}`;
+            verdict.innerHTML = crowded
+                ? `<strong>${escapeHtml(district.sggu)}는 전국에서 약국이 많은 편입니다.</strong> 약국 1곳이 담당하는 인구가 전국 중앙값보다 적습니다. 특정 병원 처방에 기대는 자리인지 반드시 확인하십시오.`
+                : roomy
+                    ? `<strong>${escapeHtml(district.sggu)}는 전국에서 약국이 적은 편입니다.</strong> 약국 1곳이 담당하는 인구가 전국 중앙값보다 많습니다. 다만 인구가 흩어져 있는 지역일 수도 있으니 현장에서 생활 동선을 확인하십시오.`
+                    : `<strong>${escapeHtml(district.sggu)}는 전국 평균 수준입니다.</strong> 시군구 단위 밀도만으로는 우열을 가리기 어려우니, 후보지 반경의 병원 구성과 경쟁 약국을 함께 보십시오.`;
+
+            Object.assign(GLOBAL_CALC_DATA, {
+                densityReal: true,
+                densityDistrict: `${district.sido} ${district.sggu}`,
+                densityGeneratedAt: dataset.generatedAt,
+                densityPopulationPercentile: district.populationPercentile
+            });
+            setDensityUi('ready');
+            updateReportDataStatus();
+        }
+
         function evaluatePdfSectionGuides() {
             const d = GLOBAL_CALC_DATA;
             const m = GLOBAL_ANALYSIS_METRICS;
@@ -2605,6 +2779,9 @@
                     ? { grade: 'internal', note: '요약 카드에 예상 처방·매출 수치가 함께 나갑니다.' }
                     : { grade: 'share', note: '계산 보류 상태라 추정 수치 없이 근거와 확인사항만 나갑니다.' };
 
+            guides.density = d.densityReal
+                ? { grade: 'share', note: '심평원 약국·의사 수와 SGIS 인구로 계산한 실제 자료입니다. 서울 외 지역도 동일합니다.' }
+                : { grade: 'empty', note: '전국 약국 포화도 자료를 불러오지 못했습니다.' };
             guides.footer = { grade: 'share', note: '자료 출처와 생성 시점입니다.' };
             return guides;
         }
@@ -3465,6 +3642,7 @@
                 drawNearbyPlaceMarkers(mapInstance, hospitals500, pharmacies500);
                 buildHospitalModels(); updateSiteAnalysisPanel(); updateMarketPotentialFromCompetition(); resetPrescriptionModel(false); reCalculateProfit(); recalculateLocationScoreFromCurrentData(); updateReportDataStatus();
                 loadEffectivePharmacyOpenDates();
+                loadDensityForCurrentAddress();
                 if (GLOBAL_SITE_CONTEXT.mode === 'new-pending' && !GLOBAL_SITE_CONTEXT.promptHandled) setTimeout(openNewSiteModal, 200);
             } catch(e) { console.error('카카오 반경 장소 검색 실패:', e); setNearbySearchError('반경 검색 실패', e); }
         };
