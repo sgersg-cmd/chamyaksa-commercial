@@ -1,4 +1,4 @@
-const VERSION = '5.4.0';
+const VERSION = '5.5.1';
 const ALLOWED_ORIGINS = new Set([
   'https://sgersg-cmd.github.io',
   'http://127.0.0.1:8765',
@@ -79,6 +79,21 @@ function buildHiraBasisUrl(source, env) {
   return { target, cacheTtl: 21600 };
 }
 
+/* [v5.5.0] 직접 경쟁 약국의 개설일자 조회
+   심평원 약국정보서비스는 병원정보서비스와 별개 활용신청 대상입니다.
+   미승인 상태에서는 상위 응답이 오류를 반환하므로 화면에서 '조회 불가'로 처리됩니다. */
+function buildPharmacyBasisUrl(source, env) {
+  // End Point: https://apis.data.go.kr/B551182/pharmacyInfoService (데이터포맷 XML)
+  // 상위 응답이 XML이어도 브라우저 측에서 XML/JSON을 모두 처리합니다.
+  const target = new URL('https://apis.data.go.kr/B551182/pharmacyInfoService/getParmacyBasisList');
+  addPublicDataDefaults(target, source, env.PUBLIC_DATA_KEY);
+  copyAllowedParams(source, target, [
+    'emdongNm', 'sidoCd', 'sgguCd', 'yadmNm', 'xPos', 'yPos', 'radius',
+  ]);
+  // 약국 개설일자는 거의 변하지 않으므로 24시간 캐시합니다.
+  return { target, cacheTtl: 86400 };
+}
+
 function buildHiraDetailUrl(source, env) {
   const ykiho = cleanText(source.get('ykiho'), 120);
   if (!ykiho) throw new Error('ykiho가 필요합니다.');
@@ -141,6 +156,8 @@ function resolveUpstream(pathname, source, env) {
       return buildHiraBasisUrl(source, env);
     case '/api/hira/detail':
       return buildHiraDetailUrl(source, env);
+    case '/api/pharmacy/basis':
+      return buildPharmacyBasisUrl(source, env);
     case '/api/building/ledger':
       return buildBuildingLedgerUrl(source, env);
     case '/api/building/permit':
