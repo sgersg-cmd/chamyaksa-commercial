@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v6.9.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v7.1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -128,8 +128,8 @@
                섹션끼리 붙어 보여 어디까지가 한 항목인지 알기 어렵다는 의견을 반영했습니다.
                섹션 간 여백을 넓히고 제목에 구분선을 넣어 시각적으로 끊어 줍니다. */
             #report-card [data-numbered="true"] {
-                margin-top: 9mm !important;
-                padding-top: 4mm !important;
+                margin-top: 14mm !important;
+                padding-top: 5mm !important;
                 border-top: 1pt solid #cbd5e1 !important;
             }
             #report-card [data-numbered="true"]:first-of-type { margin-top: 2mm !important; border-top: none !important; padding-top: 0 !important; }
@@ -263,8 +263,10 @@
                 border-color: #cbd5e1 !important;
             }
             #report-card [data-print-section="briefing"] {
-                border: 1pt solid #94a3b8 !important;
-                padding: 5mm !important;
+                border: none !important;
+                border-top: 1pt solid #cbd5e1 !important;
+                padding: 5mm 0 0 !important;
+                margin-top: 14mm !important;
                 border-radius: 0 !important;
             }
             #report-card [data-print-section="briefing"] > div {
@@ -350,6 +352,28 @@
             #sgis-data-message,
             #density-scope { display: none !important; }
             /* 자료 등급 배지는 판단에 필요하므로 유지하되 조금 더 또렷하게 인쇄합니다. */
+            /* [v7.0.0] 인쇄 색상 통일
+               화면에서는 파랑·초록·보라·하늘·주황이 섞여 있어 인쇄하면 산만해집니다.
+               문서에서는 먹색 본문 + 파랑 제목 + 상태 3색(초록·주황·빨강)만 남깁니다. */
+            #report-card i.fa-solid, #report-card i.fa-regular { color: #94a3b8 !important; }
+            #report-card [data-numbered="true"] > div:first-child i { color: #2563eb !important; }
+            #report-card h3, #report-card h3 * { color: #0f172a !important; }
+            #report-card .border-l-4 { border-left-color: #2563eb !important; }
+            #report-card .bg-blue-50, #report-card .bg-purple-50, #report-card .bg-sky-50,
+            #report-card .bg-emerald-50\/30, #report-card .bg-slate-50\/50, #report-card .bg-indigo-50 {
+                background: #f8fafc !important;
+            }
+            #report-card .border-blue-100, #report-card .border-blue-200,
+            #report-card .border-purple-100, #report-card .border-emerald-200,
+            #report-card .border-sky-200 { border-color: #cbd5e1 !important; }
+            #report-card .text-blue-600, #report-card .text-blue-700, #report-card .text-blue-800,
+            #report-card .text-blue-900, #report-card .text-purple-700, #report-card .text-sky-700,
+            #report-card .text-indigo-700 { color: #1e3a8a !important; }
+            #report-card .text-emerald-600, #report-card .text-emerald-700, #report-card .text-emerald-800 { color: #047857 !important; }
+            #report-card .text-amber-700, #report-card .text-amber-800, #report-card .text-amber-900 { color: #b45309 !important; }
+            #report-card .text-red-600, #report-card .text-red-700, #report-card .text-red-800 { color: #b91c1c !important; }
+            #report-card .card-shadow, #report-card .shadow-sm, #report-card .shadow-md, #report-card .shadow-inner { box-shadow: none !important; }
+            #report-card .rounded-2xl, #report-card .rounded-xl { border-radius: 2mm !important; }
             #report-card .grade-badge { font-size: 9pt !important; padding: 1mm 3mm !important; }
             #report-card .print-only { display: inline-block !important; }
             #report-card .card-shadow, #report-card .shadow-sm, #report-card .shadow-md, #report-card .shadow-inner { box-shadow: none !important; }
@@ -434,7 +458,9 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v6.9.0] 인쇄 시 전체 접기 펼침, 어두운 카드 밝게 전환, PDF 모달 가독성 개선.
+            // [v7.1.0] 중복·빈 항목 제거 (핵심 근거·확보율 카드·현장 확인 중복·건물 판정·용어 4종).
+        // [v7.0.0] 인쇄 색상 팔레트 통일, 섹션 간격 확대, 안내 문구 축약.
+        // [v6.9.0] 인쇄 시 전체 접기 펼침, 어두운 카드 밝게 전환, PDF 모달 가독성 개선.
         // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
         // [v6.7.0] 인쇄 글자 확대, 지도 박스 고정, 개설 절차 삭제, 의존도 이동, 용어 풀이 선택 연동.
         // [v6.6.0] 인쇄본 여백·간격 전면 재조정, 작업용 진단 문구 제외, 섹션 등급 배지 도입.
@@ -463,7 +489,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.9.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v7.1.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -549,7 +575,7 @@
                     <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>핵심 판단</h3>
                         <span class="grade-badge print-only" data-grade-badge-for="summary"></span>
                     <p id="lbl-one-line-summary" class="text-[13px] leading-relaxed font-bold text-slate-800 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg px-4 py-3">주소를 분석하면 이 자리의 핵심 내용을 한 줄로 정리해 드립니다.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
                             <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">입지 참고점수</p>
                             <details class="mt-1 text-left">
@@ -563,20 +589,14 @@
                             <div id="lbl-grade-badge"></div>
                             <p class="text-[9px] text-slate-500 mt-1.5 leading-tight text-center">점수보다 등급과 아래 근거를 우선 확인하십시오.</p>
                         </div>
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
-                            <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">공공자료 확보율</p>
-                            <p class="text-xl font-black text-emerald-600 mt-1" id="lbl-confidence">0%</p>
-                            <p class="text-[9px] text-slate-400 mt-1 leading-tight">연동에 성공한 공공 API의 비중입니다. <strong>예상 매출의 정확도가 아닙니다.</strong></p>
-                        </div>
                     </div>
-                    
-                    <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 text-[11px] text-slate-600">
+
+                    <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 text-[11px] text-slate-600 no-print">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-center font-bold">
                             <span class="rounded-lg bg-blue-50 border border-blue-100 px-2 py-2 text-blue-700">80점 이상 · 먼저 가볼 곳</span>
                             <span class="rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-2 text-emerald-700">60~79점 · 현장 검증</span>
                             <span class="rounded-lg bg-red-50 border border-red-100 px-2 py-2 text-red-700">59점 이하 · 판단 보류</span>
                         </div>
-                        <p class="mt-2 text-center"><strong>공공자료 확보율은 API 연결 상태</strong>이며 예상 매출의 정확도가 아닙니다.</p>
                     </div>
                     <details class="basis-note report-details text-[11px] text-slate-600 leading-relaxed">
                         <summary><span><i class="fa-solid fa-calculator text-blue-500 mr-1"></i> 점수·확보율 산정 기준</span></summary>
@@ -762,9 +782,7 @@
                         <span id="density-status" class="source-chip source-input self-start">조회 대기</span>
                     </div>
                     <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
-                        이 지역에 <strong>약국이 이미 많은지, 아직 여유가 있는지</strong>를 전국과 비교합니다.
-                        약국 수·의료기관 수·의사 수는 심평원 실제 등록 자료이고 인구는 국가데이터처 통계로,
-                        <strong class="text-emerald-700">서울·지방 구분 없이 전국 어디든 실제 자료</strong>입니다.
+                        이 지역에 <strong>약국이 많은지 여유가 있는지</strong>를 전국과 비교합니다. <strong class="text-emerald-700">서울·지방 구분 없이 전국 실제 자료</strong>입니다.
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div class="print-card border border-slate-200 rounded-xl p-4 bg-white">
@@ -903,9 +921,7 @@
                         </div>
                         <div class="px-4 py-3 border-b border-slate-200 bg-white space-y-2">
                             <p class="text-[11px] text-slate-600 leading-relaxed">
-                                <strong class="text-emerald-700">조제 수입</strong>은 공식 산식으로 계산된 값이고,
-                                <strong class="text-amber-700">처방건수</strong>는 공식 통계가 없어 <strong>참고 범위</strong>로만 제시합니다.
-                                후보지 실제 상황에 맞게 수정한 뒤 아래를 확인해 주십시오.
+                                <strong class="text-emerald-700">조제 수입</strong>은 공식 산식, <strong class="text-amber-700">처방건수</strong>는 <strong>참고 범위</strong>입니다. 실제 상황에 맞게 수정 후 확인해 주십시오.
                             </p>
                             <p id="lbl-official-fee-formula" class="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 leading-relaxed"></p>
                             <label class="flex items-start gap-2 text-[11px] font-bold text-slate-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 cursor-pointer">
@@ -979,7 +995,7 @@
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-white print-keep-together">
                         <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
                             <p class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-arrows-left-right text-blue-500 mr-1"></i> 처방이 적을 때 / 예상대로일 때 / 많을 때</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">의사 1인당 처방건수는 공식 통계가 없어 정확히 맞힐 수 없습니다. 그래서 <strong>세 가지 경우를 함께</strong> 보여드립니다. <strong class="text-slate-800">적게 잡아도 손익분기를 넘는지</strong>를 먼저 확인하십시오.</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">처방건수는 공식 통계가 없어 <strong>세 경우를 함께</strong> 봅니다. <strong class="text-slate-800">적게 잡아도 손익분기를 넘는지</strong> 확인하십시오.</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full min-w-[620px] text-xs border-collapse">
@@ -1198,9 +1214,7 @@
                         <span class="source-chip source-model self-start">약사법 · 개설 절차</span>
                     </div>
                     <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
-                        입지 조건이 좋아도 <strong class="text-red-700">약사법상 개설이 불가한 자리</strong>가 있습니다.
-                        임대차 계약 전에 아래 항목을 관할 보건소에 직접 확인하시기 바랍니다.
-                        본 시스템은 지도·건축물 데이터만 확인할 수 있으며 <strong>개설 가능 여부를 판정하지 않습니다.</strong>
+                        입지가 좋아도 <strong class="text-red-700">약사법상 개설이 불가한 자리</strong>가 있습니다. 계약 전 관할 보건소에 직접 확인하십시오. 본 시스템은 <strong>개설 가능 여부를 판정하지 않습니다.</strong>
                     </p>
                     <div class="border border-red-200 rounded-xl overflow-hidden bg-white print-keep-together">
                         <div class="px-4 py-2.5 bg-red-50 border-b border-red-200">
@@ -1208,9 +1222,9 @@
                             <p class="text-[10px] text-red-700 mt-0.5">아래에 하나라도 해당하면 약국 개설등록이 거부될 수 있습니다.</p>
                         </div>
                         <ul class="divide-y divide-slate-100 text-[11px] text-slate-700">
-                            <li class="px-4 py-2.5"><strong class="text-slate-900">① 의료기관의 시설 안 또는 구내</strong><span class="block text-slate-500 mt-0.5">병원 건물 내부, 병원 부지 안에 위치하는 경우</span></li>
-                            <li class="px-4 py-2.5"><strong class="text-slate-900">② 의료기관 시설·부지의 일부를 분할·변경·개수한 장소</strong><span class="block text-slate-500 mt-0.5">병원이 쓰던 공간을 쪼개거나 고쳐서 약국 자리를 만든 경우</span></li>
-                            <li class="px-4 py-2.5"><strong class="text-slate-900">③ 의료기관과 약국 사이 전용 통로·출입구·계단·승강기 설치</strong><span class="block text-slate-500 mt-0.5">특정 약국으로 환자를 유도하는 구조. <strong class="text-red-700">현장에서 반드시 눈으로 확인해야 하는 항목입니다.</strong></span></li>
+                            <li class="px-4 py-2.5"><strong class="text-slate-900">① 의료기관의 시설 안 또는 구내</strong><span class="block text-slate-500 mt-0.5">병원 건물·부지 안</span></li>
+                            <li class="px-4 py-2.5"><strong class="text-slate-900">② 의료기관 시설·부지의 일부를 분할·변경·개수한 장소</strong><span class="block text-slate-500 mt-0.5">병원 공간을 쪼개거나 고쳐 만든 자리</span></li>
+                            <li class="px-4 py-2.5"><strong class="text-slate-900">③ 의료기관과 약국 사이 전용 통로·출입구·계단·승강기 설치</strong><span class="block text-slate-500 mt-0.5">환자를 특정 약국으로 유도하는 구조 · <strong class="text-red-700">현장 확인 필수</strong></span></li>
                             <li class="px-4 py-2.5"><strong class="text-slate-900">④ 그 밖에 의료기관의 시설 또는 부지의 일부를 이용하는 경우</strong></li>
                         </ul>
                     </div>
@@ -1218,7 +1232,7 @@
                         <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200"><p class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-building-circle-check text-blue-500 mr-1"></i> 건축물 용도 대조</p></div>
                         <div class="px-4 py-3 text-[11px] text-slate-700 leading-relaxed">
                             <p id="legal-building-purpose">건축물대장 조회 후 표시됩니다.</p>
-                            <p class="text-[10px] text-slate-500 mt-1.5">약국은 통상 <strong>제1종 근린생활시설</strong>에 해당합니다. 용도가 다르면 용도변경이 필요할 수 있으며, 이는 임대인·관할 구청 확인사항입니다.</p>
+                            <p class="text-[10px] text-slate-500 mt-1.5">약국은 통상 <strong>제1종 근린생활시설</strong>입니다. 용도가 다르면 용도변경 필요 여부를 임대인·구청에 확인하십시오.</p>
                         </div>
                     </div>
                 </section>
@@ -1233,10 +1247,7 @@
                         <span id="lbl-ai-engine-mode" class="source-chip source-model self-start">규칙형 엔진</span>
                     </div>
                     
-                    <div class="text-xs bg-slate-800/70 border border-slate-700 rounded-xl p-4 text-slate-300 leading-relaxed">
-                        <p class="text-[10px] font-bold text-blue-300 mb-1.5">핵심 근거</p>
-                        <p id="lbl-normal-reason"></p>
-                    </div>
+                    <p id="lbl-normal-reason" class="hidden"></p>
                     <div id="lbl-ai-summary-cards" class="hidden"></div>
                     <div class="text-xs text-slate-300 leading-relaxed space-y-5 pt-1" id="lbl-ai-reason"></div>
                     <div id="lbl-external-ai-reason" class="hidden text-xs text-slate-200 leading-relaxed bg-blue-950/40 border border-blue-800/60 rounded-xl p-4"></div>
@@ -1254,9 +1265,7 @@
                         </div>
                     </div>
                     <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
-                        후보지를 하나씩 분석하신 뒤 <strong>비교함에 담기</strong>를 누르시면 이 표에 쌓입니다.
-                        <strong>같은 계산 기준으로 나란히</strong> 비교할 수 있으며, 항목마다 가장 좋은 값에 표시가 붙습니다.
-                        최대 4곳까지 담을 수 있고, 브라우저를 닫아도 유지됩니다.
+                        후보지를 분석한 뒤 <strong>비교함에 담기</strong>를 누르면 쌓입니다. 최대 4곳, 항목마다 가장 좋은 값에 표시가 붙습니다.
                     </p>
                     <div id="compare-empty" class="border border-dashed border-slate-300 rounded-xl p-6 text-center text-[11px] text-slate-400">
                         아직 담긴 후보지가 없습니다. 분석을 마친 뒤 위쪽 <strong>비교함에 담기</strong> 버튼을 눌러 주십시오.
@@ -1275,7 +1284,7 @@
                                 <details data-print-section="glossary" class="border border-slate-200 rounded-2xl bg-white overflow-hidden print-keep-together">
                     <summary class="px-5 py-3 bg-slate-50 text-xs font-extrabold text-slate-800 cursor-pointer select-none">
                         <i class="fa-solid fa-circle-question text-blue-500 mr-1"></i> 이 리포트에 나오는 용어 풀이
-                        <span class="block font-medium text-[10px] text-slate-500 mt-0.5">처음 보시는 분도 바로 이해하실 수 있도록 정리했습니다.</span>
+                        <span class="block font-medium text-[10px] text-slate-500 mt-0.5">처음 보셔도 바로 이해하실 수 있게 정리했습니다.</span>
                     </summary>
                     <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-[11px] text-slate-700 border-t border-slate-200">
                         <p data-glossary-for="medical"><strong class="text-slate-900">처방 유입 거리</strong><br>후보지에서 이 거리 안에 있는 병원의 처방만 실제로 우리 약국에 올 수 있다고 보고 계산한 범위입니다. 일반 상가는 100m, 대형 건물은 150m를 적용합니다. 같은 건물이면 거리와 상관없이 포함합니다.</p>
@@ -1284,10 +1293,6 @@
                         <p data-glossary-for="profit"><strong class="text-slate-900">의사 1인당 예상 처방</strong><br>의사 한 분이 하루에 몇 장의 처방전을 내는지에 대한 <strong>가정값</strong>입니다. 공식 통계가 없어 참고 범위만 제시하며, 확인 버튼을 누르셔야 계산에 들어갑니다.</p>
                         <p data-glossary-for="medical"><strong class="text-slate-900">특정 병원 의존도</strong><br>예상 처방 중 병원 한 곳이 차지하는 비율입니다. 이 비율이 높으면 그 병원이 이사하거나 문을 닫을 때 약국이 크게 흔들립니다.</p>
                         <p data-glossary-for="investment"><strong class="text-slate-900">손익분기 처방건수</strong><br>매달 나가는 임대료·인건비를 다 내고 손해도 이익도 없게 되는 하루 처방 건수입니다. 실제 예상 처방이 이보다 많아야 남습니다.</p>
-                        <p data-glossary-for="summary"><strong class="text-slate-900">공공자료 확보율</strong><br>공공기관 자료를 몇 개나 정상적으로 불러왔는지를 나타냅니다. <strong>예상 매출이 얼마나 정확한지를 뜻하는 것이 아닙니다.</strong></p>
-                        <p data-glossary-for="flow"><strong class="text-slate-900">행정동 · 생활인구</strong><br>행정동은 주민센터 기준의 동 단위 구역입니다. 생활인구는 서울시가 통신사 자료로 추정한 <strong>그 동에 머문 사람 수</strong>로, 후보지 앞을 지나간 사람 수가 아닙니다.</p>
-                        <p data-glossary-for="summary"><strong class="text-slate-900">입지 참고점수</strong><br>후보지끼리 순서를 매기기 위한 상대 숫자입니다. 절대 평가가 아니며 3~5점 차이는 무시하셔도 됩니다.</p>
-                        <p data-glossary-for="summary"><strong class="text-slate-900">1순위 / 2순위 / 보류</strong><br>먼저 가볼 곳, 현장 확인 후 판단할 곳, 추가 확인이 필요한 곳이라는 뜻입니다. 개설 가능 여부를 판정한 것이 아닙니다.</p>
                     </div>
                 </details>
 
@@ -1300,36 +1305,30 @@
                             <span class="source-chip source-input">확인 입력</span>
                         </div>
                     </div>
-                    <div class="footer-print-grid grid grid-cols-1 md:grid-cols-[1.45fr_.95fr] gap-3 p-4 pb-3 text-[10px]">
+                    <div class="footer-print-grid p-4 pb-3 text-[10px]">
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.9.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v7.1.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
                                 <p id="report-footer-data-status"></p>
                             </div>
                         </div>
-                        <div class="bg-slate-900 text-white rounded-xl p-3 print-card">
-                            <p class="font-black text-white text-xs mb-1.5"><i class="fa-solid fa-location-dot text-amber-300 mr-1"></i> 현장 확인 3가지</p>
-                            <ul class="list-disc pl-4 space-y-1 text-slate-300 leading-relaxed">
-                                <li>처방 흐름·보행 동선</li>
-                                <li>경쟁 약국 운영·강점</li>
-                                <li>권리금·보증금·임대조건</li>
-                            </ul>
-                        </div>
+                        
                     </div>
                     <div class="footer-source-strip mx-4 mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
                         <p><strong class="text-slate-700">실제 자료</strong> 심평원 · 카카오 · 건축HUB · SGIS</p>
                         <p class="mt-1"><strong class="text-slate-700">공식 추정</strong> 서울시 상권분석 데이터</p>
                         <p class="mt-1"><strong class="text-slate-700">참고 가정값</strong> 처방건수 · 매약 매출 · 객단가 (사용자 확인 필요)</p>
+                        <p class="mt-1"><strong class="text-slate-700">공공자료 확보율</strong> <span id="lbl-confidence">0%</span> · 연동에 성공한 공공 API 비중이며 예상 매출의 정확도가 아닙니다.</p>
                         <p id="report-data-basis" class="mt-1">기준: 분석 실행 후 표시됩니다.</p>
                         <p id="report-sync-line" class="mt-1.5 leading-relaxed text-slate-500"></p>
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.9.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v7.1.0</span></p>
                     </div>
                 </div>
 
@@ -1433,6 +1432,8 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v7.1.0] 중복·빈 항목 제거 (핵심 근거·확보율 카드·현장 확인 중복·건물 판정·용어 4종).
+        // [v7.0.0] 인쇄 색상 팔레트 통일, 섹션 간격 확대, 안내 문구 축약.
         // [v6.9.0] 인쇄 시 전체 접기 펼침, 어두운 카드 밝게 전환, PDF 모달 가독성 개선.
         // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
         // [v6.7.0] 인쇄 글자 확대, 지도 박스 고정, 개설 절차 삭제, 의존도 이동, 용어 풀이 선택 연동.
@@ -1458,7 +1459,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "6.9.0";
+        const SYSTEM_VERSION = "7.1.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -4635,7 +4636,13 @@
             const checks=['병원 처방 흐름과 후보지 보행 동선','동일 건물 약국의 처방 흡수 여부','입점 병원의 계약·개원 일정과 의사 수', costs?'권리금·보증금 포함 총투자금':'투자금·월 고정비 입력 후 손익 재분석'];
             document.getElementById('lbl-ai-summary-cards').innerHTML=`<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card"><p class="text-[10px] text-slate-400 font-bold">최종 판단</p><p class="text-base font-black mt-1 ${cls}">${decision}</p><p class="text-[10px] text-slate-400 mt-1">점수 ${d.baseScore}점 · 신뢰도 ${d.confidence||0}%</p></div><div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card"><p class="text-[10px] text-slate-400 font-bold">예상 처방·조제수입</p><p class="text-base font-black mt-1 text-blue-300">${m.myShare}건/일</p><p class="text-[10px] text-slate-400 mt-1">월 ${Math.round(m.prescRev).toLocaleString()}원</p></div><div class="bg-slate-800 border border-slate-700 rounded-xl p-4 print-card"><p class="text-[10px] text-slate-400 font-bold">손익분기 분석</p><p class="text-base font-black mt-1 ${costs?'text-emerald-300':'text-slate-300'}">${costs?`${m.breakEvenPrescriptions}건/일`:'비용정보 필요'}</p><p class="text-[10px] text-slate-400 mt-1">${costs?'입력 비용 기준':'현재 결과에서 제외'}</p></div>`;
             const list=(arr,fallback)=> (arr.length?arr:[fallback]).slice(0,2).map(v=>`<li>${v}</li>`).join('');
-            document.getElementById('lbl-ai-reason').innerHTML=`<div class="grid grid-cols-1 md:grid-cols-2 gap-3"><div class="bg-emerald-950/30 border border-emerald-800/50 rounded-xl p-4 print-card"><p class="font-bold text-emerald-300 mb-2">긍정 요인</p><ul class="list-disc pl-4 space-y-1.5">${list(strengths,'뚜렷한 우위 요인 없음')}</ul></div><div class="bg-red-950/25 border border-red-800/40 rounded-xl p-4 print-card"><p class="font-bold text-red-300 mb-2">핵심 리스크</p><ul class="list-disc pl-4 space-y-1.5">${list(risks,'중대 위험 없음 · 현장 확인 필요')}</ul></div></div><div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card"><p class="font-bold text-white mb-2">현장 확인 3가지</p><ol class="list-decimal pl-4 space-y-1.5">${checks.slice(0,3).map(v=>`<li>${v}</li>`).join('')}</ol></div>`;
+            /* [v7.1.0] 내용이 없는 박스는 자리만 차지하므로 그릴 때 제외합니다. */
+            const blocks = [];
+            if (strengths.length) blocks.push(`<div class="bg-emerald-950/30 border border-emerald-800/50 rounded-xl p-4 print-card"><p class="font-bold text-emerald-300 mb-2">긍정 요인</p><ul class="list-disc pl-4 space-y-1.5">${list(strengths,'')}</ul></div>`);
+            if (risks.length) blocks.push(`<div class="bg-red-950/25 border border-red-800/40 rounded-xl p-4 print-card"><p class="font-bold text-red-300 mb-2">핵심 리스크</p><ul class="list-disc pl-4 space-y-1.5">${list(risks,'')}</ul></div>`);
+            const pairHtml = blocks.length ? `<div class="grid grid-cols-1 md:grid-cols-${blocks.length} gap-3">${blocks.join('')}</div>` : '';
+            const checkHtml = checks.length ? `<div class="bg-slate-800/70 border border-slate-700 rounded-xl p-4 print-card"><p class="font-bold text-white mb-2">현장 확인 3가지</p><ol class="list-decimal pl-4 space-y-1.5">${checks.slice(0,3).map(v=>`<li>${v}</li>`).join('')}</ol></div>` : '';
+            document.getElementById('lbl-ai-reason').innerHTML = pairHtml + checkHtml;
         };
 
         // 비용정보 체크 시에만 손익분기 분석을 활성화합니다.
@@ -5542,16 +5549,8 @@
             if (sync && d.buildingLedgerReal && !sync.innerText.includes('건축HUB')) sync.innerText += ' ｜ 건축HUB 건축물대장 표제부';
         };
 
-        // 브리핑에 객관적 건물 판정 근거를 추가합니다.
-        const V28_GENERATE_REPORT_REASON_FOR_BUILDING = generateMergedReportReason;
-        generateMergedReportReason = function() {
-            V28_GENERATE_REPORT_REASON_FOR_BUILDING();
-            const ai = document.getElementById('lbl-ai-reason');
-            const data = GLOBAL_BUILDING_LEDGER_DATA;
-            if (ai && data.real && !ai.innerHTML.includes('[건물·부지 객관판정]')) {
-                ai.innerHTML += `<p class="pt-2 text-cyan-100"><i class="fa-solid fa-city text-cyan-300 mr-1"></i> <strong>[건물 판정]</strong> ${escapeHtml(data.reason)} · 출입구·동선·가시성은 현장 확인</p>`;
-            }
-        };
+        // [v7.1.0] 브리핑의 건물 판정 문구는 「9. 약국 개설 법적 확인사항」의 건축물 용도 대조와
+        //          내용이 겹쳐 제거했습니다.
 
         // Firestore 저장 데이터에 건축물대장 스냅샷을 추가합니다.
         const V28_SAVE_REPORT_HISTORY_FOR_BUILDING = saveReportHistory;
