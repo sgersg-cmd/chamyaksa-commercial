@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v6.1.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v6.2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -284,7 +284,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v6.1.0] 섹션 번호 자동 재계산, 인구/매출 분리, 후보지 비교 맨 뒤 이동, 접기 내용 간략화.
+            // [v6.2.0] 심평원·SGIS·카카오 지역명 표기 차이 보정 (약국 포화도 매칭률 개선).
+        // [v6.1.0] 섹션 번호 자동 재계산, 인구/매출 분리, 후보지 비교 맨 뒤 이동, 접기 내용 간략화.
         // [v6.0.0] 후보지 비교 기능 추가 (최대 4곳 스냅샷 비교, 항목별 최적값 표시).
         // [v5.8.0] 전국 시군구 약국 포화도 (GitHub Actions 반기 수집)
             DENSITY_STATIC_URL: "data/pharmacy-density.json",
@@ -304,7 +305,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.1.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.2.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1121,7 +1122,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.1.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.2.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1143,7 +1144,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.1.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.2.0</span></p>
                     </div>
                 </div>
 
@@ -1248,6 +1249,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v6.2.0] 심평원·SGIS·카카오 지역명 표기 차이 보정 (약국 포화도 매칭률 개선).
         // [v6.1.0] 섹션 번호 자동 재계산, 인구/매출 분리, 후보지 비교 맨 뒤 이동, 접기 내용 간략화.
         // [v6.0.0] 후보지 비교 기능 추가 (최대 4곳 스냅샷 비교, 항목별 최적값 표시).
         // [v5.8.0] 전국 시군구 약국 포화도 지표 추가 (서울 외 지역도 실데이터 비교).
@@ -1264,7 +1266,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "6.1.0";
+        const SYSTEM_VERSION = "6.2.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2673,29 +2675,50 @@
             return GLOBAL_DENSITY_DATASET;
         }
 
-        function matchDensityDistrict(dataset, meta) {
-            const region1 = normalizeSeoulName(meta.region1 || '');
-            const region2 = normalizeSeoulName(meta.region2 || '');
-            if (!region2) return null;
-            const trim = (value) => normalizeSeoulName(String(value || '').replace(/(특별자치도|특별자치시|특별시|광역시|도)$/, ''));
-            const sidoKey = trim(meta.region1 || '');
+        /* [v6.2.0] 지역명 표기 차이 보정
+           카카오는 "분당구", 심평원은 "성남분당구", SGIS는 "성남시 분당구"로 각각 다릅니다.
+           양쪽에서 가능한 표기를 모두 만들어 교집합으로 대조합니다. */
+        const SIDO_FULL_NAME = {
+            '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
+            '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
+            '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
+            '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
+            '제주': '제주특별자치도'
+        };
 
-            let fallback = null;
+        const trimSidoSuffix = (value) => String(value || '').replace(/(특별자치도|특별자치시|특별시|광역시|도)$/, '');
+        const compactRegionName = (value) => String(value || '').replace(/\s+/g, '');
+
+        function sidoNameMatches(a, b) {
+            const shortA = trimSidoSuffix(a);
+            const shortB = trimSidoSuffix(b);
+            if (!shortA || !shortB) return false;
+            return shortA === shortB || SIDO_FULL_NAME[shortA] === b || SIDO_FULL_NAME[shortB] === a;
+        }
+
+        function regionNameAliases(sido, sggu) {
+            const name = compactRegionName(sggu);
+            const aliases = new Set([name]);
+            const short = trimSidoSuffix(sido);
+            if (short && name.startsWith(short) && name.length > short.length) aliases.add(name.slice(short.length));
+            const cityGu = name.match(/^(.+?)시(.+구)$/);
+            if (cityGu) { aliases.add(cityGu[1] + cityGu[2]); aliases.add(cityGu[2]); }
+            return aliases;
+        }
+
+        function matchDensityDistrict(dataset, meta) {
+            if (!meta.region2) return null;
+            const targets = regionNameAliases(meta.region1, meta.region2);
+            let looseHit = null;
             for (const district of dataset.districts) {
-                if (normalizeSeoulName(district.sggu) !== region2) continue;
-                fallback = fallback || district;
-                const districtSido = trim(district.sido);
-                if (!sidoKey || !districtSido) continue;
-                if (districtSido.startsWith(sidoKey) || sidoKey.startsWith(districtSido)) return district;
+                const aliases = regionNameAliases(district.sido, district.sggu);
+                let hit = false;
+                for (const target of targets) { if (aliases.has(target)) { hit = true; break; } }
+                if (!hit) continue;
+                if (sidoNameMatches(meta.region1, district.sido)) return district;
+                looseHit = looseHit || district;
             }
-            // "성남시 분당구"처럼 시·구가 함께 오는 경우를 보정합니다.
-            if (!fallback) {
-                const tail = region2.split(' ').pop();
-                for (const district of dataset.districts) {
-                    if (normalizeSeoulName(district.sggu) === tail) { fallback = district; break; }
-                }
-            }
-            return fallback;
+            return looseHit;
         }
 
         function setDensityUi(state, message) {
