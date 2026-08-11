@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v6.5.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v6.6.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -26,6 +26,7 @@
         .pdf-section-checkbox { accent-color: #2563eb; }
         /* [v6.1.0] 섹션 번호는 화면·PDF에서 표시된 항목만으로 다시 매겨집니다. */
         .section-no { font-variant-numeric: tabular-nums; }
+        .print-only { display: none; }
         .section-no:empty { display: none; }
         .grade-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; border: 1px solid; white-space: nowrap; }
         .grade-real  { background:#ecfdf5; border-color:#6ee7b7; color:#047857; }
@@ -94,7 +95,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 6mm 5mm 7mm;   /* [v6.5.0] 좌우 공백이 과해 본문 폭을 넓혔습니다 */
+            margin: 15mm 16mm 17mm;   /* [v6.6.0] A4에 여백을 충분히 두어 읽는 부담을 줄입니다 */
         }
         
         @media print {
@@ -127,18 +128,24 @@
                섹션끼리 붙어 보여 어디까지가 한 항목인지 알기 어렵다는 의견을 반영했습니다.
                섹션 간 여백을 넓히고 제목에 구분선을 넣어 시각적으로 끊어 줍니다. */
             #report-card [data-numbered="true"] {
-                margin-top: 7mm !important;
-                padding-top: 3mm !important;
-                border-top: 1.2pt solid #cbd5e1 !important;
+                margin-top: 13mm !important;
+                padding-top: 5mm !important;
+                border-top: 1pt solid #cbd5e1 !important;
             }
             #report-card [data-numbered="true"]:first-of-type { margin-top: 2mm !important; border-top: none !important; padding-top: 0 !important; }
             #report-card [data-numbered="true"] > .flex:first-child,
-            #report-card [data-numbered="true"] > div:first-child { margin-bottom: 2.5mm !important; }
+            #report-card [data-numbered="true"] > div:first-child { margin-bottom: 5mm !important; }
             #report-card h3 {
-                font-size: 12pt !important;
+                font-size: 13pt !important;
                 letter-spacing: -0.2px !important;
-                padding-bottom: 1mm !important;
+                padding-bottom: 0 !important;
             }
+            #report-card h3 + .grade-badge { margin-left: 3mm !important; vertical-align: middle !important; }
+            /* 본문 기본 글자를 조금 키워 읽기 편하게 합니다. */
+            #report-card { font-size: 10pt !important; }
+            #report-card .text-\[9px\], #report-card .text-\[10px\] { font-size: 8.5pt !important; }
+            #report-card .text-\[11px\] { font-size: 9.5pt !important; }
+            #report-card .text-xs { font-size: 9.5pt !important; }
             #report-card .section-no { color: #1d4ed8 !important; font-weight: 900 !important; }
             /* 카드 테두리를 또렷하게 (기본 회색은 인쇄에서 거의 사라집니다) */
             #report-card .print-card,
@@ -187,21 +194,34 @@
                 break-after: avoid !important;
                 margin-bottom: 2mm !important;
             }
-            /* [v6.5.0] 바깥 래퍼의 좌우 패딩까지 겹쳐 본문이 좁아지던 문제를 해소합니다. */
-            #report-card { padding-left: 0 !important; padding-right: 0 !important; }
-            #report-card .p-8, #report-card .md\:p-10 { padding: 3mm 0 !important; }
-            #report-card .p-6 { padding: 3mm 3mm !important; }
-            #report-card .p-5 { padding: 2.8mm 3mm !important; }
-            #report-card .p-4 { padding: 2.4mm 2.8mm !important; }
+            /* [v6.6.0] 카드 안쪽 여백을 하나로 통일합니다.
+               항목마다 p-4·p-5·p-6이 섞여 좌우 정렬이 어긋나 보이던 원인입니다. */
+            #report-card { padding: 0 !important; }
+            #report-card .p-8, #report-card .md\:p-10 { padding: 0 !important; }
+            #report-card .p-6,
+            #report-card .p-5,
+            #report-card .p-4,
+            #report-card .p-3,
+            #report-card .px-4, #report-card .px-5, #report-card .px-6 {
+                padding-left: 4mm !important; padding-right: 4mm !important;
+            }
+            #report-card .p-6, #report-card .p-5, #report-card .p-4, #report-card .p-3 {
+                padding-top: 3.5mm !important; padding-bottom: 3.5mm !important;
+            }
+            #report-card .py-2, #report-card .py-2\.5, #report-card .py-3 { padding-top: 3mm !important; padding-bottom: 3mm !important; }
             #report-card .gap-5 { gap: 3mm !important; }
             #report-card .gap-4 { gap: 2.5mm !important; }
             #report-card .gap-3 { gap: 2mm !important; }
-            #report-card .space-y-9 > :not([hidden]) ~ :not([hidden]) { margin-top: 4.5mm !important; }
-            #report-card .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 3.4mm !important; }
-            #report-card .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 2.8mm !important; }
-            #report-card .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 2mm !important; }
-            #report-card p { line-height: 1.55 !important; }
-            #report-card th, #report-card td { padding: 1.9mm 2.2mm !important; }
+            /* [v6.6.0] 숨통이 트이도록 세로 간격을 전반적으로 두 배로 넓혔습니다. */
+            #report-card .space-y-9 > :not([hidden]) ~ :not([hidden]) { margin-top: 9mm !important; }
+            #report-card .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 7mm !important; }
+            #report-card .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 6.5mm !important; }
+            #report-card .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 5.5mm !important; }
+            #report-card .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 4mm !important; }
+            #report-card .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 3mm !important; }
+            #report-card p { line-height: 1.7 !important; }
+            #report-card th, #report-card td { padding: 3mm 3.2mm !important; }
+            #report-card .grid { gap: 5mm !important; }
             #report-card .print-metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
             #report-card #lbl-ai-summary-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
             /* Chrome 인쇄에서 CSS Grid 전체가 다음 페이지로 밀리며 큰 공백이 생기는 현상 방지 */
@@ -243,7 +263,22 @@
             #report-card h3 { font-size: 12pt !important; line-height: 1.35 !important; }
             #report-card h4 { font-size: 11pt !important; line-height: 1.4 !important; }
             #report-card th, #report-card td { font-size: 9.5pt !important; line-height: 1.45 !important; }
-            #report-card .source-chip { font-size: 8.5pt !important; line-height: 1.35 !important; padding: 1mm 2mm !important; }
+            /* [v6.6.0] 인쇄본에서 조회 진행 상태·건수 같은 작업용 문구를 제거합니다.
+               "조회 성공", "40/40개 성공", "검증 저장자료" 등은 화면에서 확인하는 정보이고,
+               자료 출처와 기준일은 이미 문서 맨 아래에 정리되어 있습니다. */
+            #report-card .source-chip,
+            #hira-detail-summary,
+            #hira-basis-scope,
+            #hira-detail-panel > div:first-child,
+            #report-footer-data-status,
+            #nearby-competition-basis,
+            #seoul-market-message,
+            #seoul-flow-message,
+            #sgis-data-message,
+            #density-scope { display: none !important; }
+            /* 자료 등급 배지는 판단에 필요하므로 유지하되 조금 더 또렷하게 인쇄합니다. */
+            #report-card .grade-badge { font-size: 9pt !important; padding: 1mm 3mm !important; }
+            #report-card .print-only { display: inline-block !important; }
             #report-card .card-shadow, #report-card .shadow-sm, #report-card .shadow-md, #report-card .shadow-inner { box-shadow: none !important; }
             #report-card p, #report-card li { orphans: 2; widows: 2; }
             #investment-input-panel { display: block !important; }
@@ -326,7 +361,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
+            // [v6.6.0] 인쇄본 여백·간격 전면 재조정, 작업용 진단 문구 제외, 섹션 등급 배지 도입.
+        // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
         // [v6.4.1] 광주광역시 시도 표기 보정, 신설 행정구역 인구 미제공 대응.
         // [v6.4.0] 연령대 분포·진료과군 비중 시각화, 핵심 판단 한 줄 요약 추가.
         // [v6.3.0] PDF 항목 구분 강화, 산정 기준 일괄 펼치기, 텍스트를 대체하는 SVG 지표 3종 추가.
@@ -351,7 +387,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.5.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.6.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -435,6 +471,7 @@
                 <!-- 1. 핵심 판단 -->
                 <section data-print-section="summary" data-numbered="true" class="space-y-4">
                     <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>핵심 판단</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="summary"></span>
                     <p id="lbl-one-line-summary" class="text-[13px] leading-relaxed font-bold text-slate-800 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg px-4 py-3">주소를 분석하면 이 자리의 핵심 내용을 한 줄로 정리해 드립니다.</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
@@ -477,6 +514,7 @@
                 <!-- 1-2. 지도 인터페이스 -->
                 <section data-print-section="map" data-numbered="true" class="space-y-3 page-break-map">
                     <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>후보지 위치</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="map"></span>
                     <div id="kakao-map" class="w-full h-80 rounded-2xl border border-slate-300 bg-slate-100 shadow-inner overflow-hidden shadow-md mx-auto"></div>
                     <div class="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-bold pl-1">
                         <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> 후보지</span>
@@ -490,6 +528,7 @@
                 <section data-print-section="medical" data-numbered="true" class="space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>의료·경쟁 현황</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="medical"></span>
                         <span id="hira-detail-status" class="source-chip source-input self-start sm:self-auto">상세 진료과 조회 대기</span>
                     </div>
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -636,6 +675,7 @@
                 <section data-print-section="density" data-numbered="true" class="space-y-3">
                     <div class="flex items-center justify-between">
                         <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>약국 포화도 (전국 비교)</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="density"></span>
                         <span id="density-status" class="source-chip source-input self-start">조회 대기</span>
                     </div>
                     <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
@@ -741,6 +781,7 @@
                     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3 border-l-4 border-blue-600 pl-3">
                         <div>
                             <h3 class="text-sm font-extrabold text-blue-900 tracking-wide uppercase"><span class="section-no"></span>처방·매출 전망</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="profit"></span>
                             <p class="text-[11px] text-slate-500 mt-1">의사 수와 가정값으로 산출하며 처방량·평균 단가는 수정할 수 있습니다.</p>
                         </div>
                         <div class="no-print flex flex-wrap items-center gap-2">
@@ -923,6 +964,7 @@
                         <div>
                             <div class="flex flex-wrap items-center gap-2">
                                 <h3 class="text-sm font-extrabold text-blue-900 tracking-wide uppercase"><span class="section-no"></span>비용·손익 입력</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="investment"></span>
                                 <span class="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5">선택 입력</span>
                             </div>
                             <p class="text-[11px] text-slate-500 mt-1">선택 항목 · 실제 비용 입력 시에만 손익을 계산합니다.</p>
@@ -1016,6 +1058,7 @@
                 <section data-print-section="flow" data-numbered="true" class="space-y-3">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>동네 유동인구 (참고)</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="flow"></span>
                         <span id="seoul-flow-status" class="source-chip source-input self-start sm:self-auto">지역 판정 대기</span>
                     </div>
                     <details class="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden">
@@ -1068,6 +1111,7 @@
                         <h3 class="text-xs font-bold text-blue-600 tracking-widest uppercase flex items-center gap-1.5">
                             <i class="fa-solid fa-scale-balanced text-blue-500"></i> <span class="section-no"></span>약국 개설 법적 확인사항
                         </h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="legal"></span>
                         <span class="source-chip source-model self-start">약사법 · 개설 절차</span>
                     </div>
                     <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
@@ -1121,6 +1165,7 @@
                         <h3 class="text-xs font-bold text-blue-400 tracking-widest uppercase flex items-center gap-1.5">
                             <i class="fa-solid fa-brain text-blue-500"></i> <span class="section-no"></span>최종 결론
                         </h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="briefing"></span>
                         <span id="lbl-ai-engine-mode" class="source-chip source-model self-start">규칙형 엔진</span>
                     </div>
                     
@@ -1138,6 +1183,7 @@
 <section data-print-section="compare" data-numbered="true" class="space-y-3">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>후보지 비교</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="compare"></span>
                         <div class="flex items-center gap-2">
                             <span id="compare-status" class="source-chip source-input self-start">담긴 후보지 없음</span>
                             <button type="button" onclick="clearComparison()" class="no-print text-[10px] font-bold text-slate-500 hover:text-red-600 border border-slate-300 rounded-lg px-2 py-1">전체 비우기</button>
@@ -1194,7 +1240,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.5.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.6.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1217,7 +1263,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.5.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.6.0</span></p>
                     </div>
                 </div>
 
@@ -1322,6 +1368,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v6.6.0] 인쇄본 여백·간격 전면 재조정, 작업용 진단 문구 제외, 섹션 등급 배지 도입.
         // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
         // [v6.4.1] 광주광역시 시도 표기 보정, 신설 행정구역 인구 미제공 대응.
         // [v6.4.0] 연령대 분포·진료과군 비중 시각화, 핵심 판단 한 줄 요약 추가.
@@ -1343,7 +1390,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "6.5.0";
+        const SYSTEM_VERSION = "6.6.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2534,6 +2581,7 @@
                     : '실시간 정상 조회');
             // v2.10.1: 매 호출마다 상태바를 반드시 초기화해 하위 레이어 문구가 중복 누적되지 않도록 합니다.
             renderDataSourceStrip();
+            renderPrintGradeBadges();
             const footerStatus = document.getElementById('report-footer-data-status');
             const kakaoAppliedLabel = d.kakaoSnapshotFallback
                 ? `마지막 정상자료 대체 (${formatSnapshotDate(d.kakaoSnapshotAt)})`
@@ -3408,6 +3456,28 @@
         /* [v6.5.0] 자료 연동 상태 표시 재설계
            기존에는 5개 모듈이 문자열을 이어붙여 길이가 제각각이고 줄바꿈이 지저분했습니다.
            항목·상태가 고정된 격자로 그려 한눈에 스캔되도록 바꿉니다. */
+        /* [v6.6.0] 인쇄본 등급 배지
+           화면에서는 상태 칩이 자세한 진행 상황을 보여주지만, 인쇄본에는 그런 작업 정보 대신
+           "이 항목이 실제 자료인가 추정인가"만 남기는 편이 읽기 좋습니다. */
+        const PRINT_GRADE_STYLE = {
+            share:    { label: '실제 자료',    cls: 'grade-real' },
+            explain:  { label: '공식 추정',    cls: 'grade-offic' },
+            internal: { label: '참고 가정값',  cls: 'grade-model' },
+            empty:    { label: '자료 없음',    cls: 'grade-offic' }
+        };
+
+        function renderPrintGradeBadges() {
+            let guides = {};
+            try { guides = evaluatePdfSectionGuides(); } catch (error) { return; }
+            document.querySelectorAll('[data-grade-badge-for]').forEach(badge => {
+                const guide = guides[badge.dataset.gradeBadgeFor];
+                if (!guide) { badge.textContent = ''; return; }
+                const style = PRINT_GRADE_STYLE[guide.grade] || PRINT_GRADE_STYLE.empty;
+                badge.className = `grade-badge print-only ${style.cls}`;
+                badge.textContent = style.label;
+            });
+        }
+
         function renderDataSourceStrip() {
             const box = document.getElementById('lbl-data-status-bar');
             if (!box) return;
@@ -3509,6 +3579,7 @@
             reportDetails.forEach(element => { element.open = true; });
             if (selected.has('investment')) toggleInvestmentPanel(true);
             renumberSections();   // 선택된 항목만으로 번호를 다시 매깁니다.
+            renderPrintGradeBadges();
             syncToggleDetailsLabel();
         }
 
