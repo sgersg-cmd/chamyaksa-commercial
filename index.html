@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v6.3.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v6.4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -311,7 +311,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v6.3.0] PDF 항목 구분 강화, 산정 기준 일괄 펼치기, 텍스트를 대체하는 SVG 지표 3종 추가.
+            // [v6.4.0] 연령대 분포·진료과군 비중 시각화, 핵심 판단 한 줄 요약 추가.
+        // [v6.3.0] PDF 항목 구분 강화, 산정 기준 일괄 펼치기, 텍스트를 대체하는 SVG 지표 3종 추가.
         // [v6.2.0] 심평원·SGIS·카카오 지역명 표기 차이 보정 (약국 포화도 매칭률 개선).
         // [v6.1.0] 섹션 번호 자동 재계산, 인구/매출 분리, 후보지 비교 맨 뒤 이동, 접기 내용 간략화.
         // [v6.0.0] 후보지 비교 기능 추가 (최대 4곳 스냅샷 비교, 항목별 최적값 표시).
@@ -333,7 +334,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.3.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.4.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -417,6 +418,7 @@
                 <!-- 1. 핵심 판단 -->
                 <section data-print-section="summary" data-numbered="true" class="space-y-4">
                     <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>핵심 판단</h3>
+                    <p id="lbl-one-line-summary" class="text-[13px] leading-relaxed font-bold text-slate-800 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg px-4 py-3">주소를 분석하면 이 자리의 핵심 내용을 한 줄로 정리해 드립니다.</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center">
                             <p class="text-[11px] text-slate-400 font-bold tracking-wider uppercase">입지 참고점수</p>
@@ -674,6 +676,12 @@
                             <div class="flex justify-between border-b border-slate-100 pb-1.5"><span>1인 가구</span><span id="stat-single-household" class="font-bold text-slate-700">조회 대기</span></div>
                             <div class="flex justify-between font-bold text-emerald-700 gap-3"><span>약국 우선수요 연령 인구</span><span id="stat-potential-cnt" class="text-right">조회 대기</span></div>
                         </div>
+                        <div id="age-chart-wrap" class="hidden pt-1 print-keep-together">
+                            <p class="text-[10px] font-bold text-slate-500 mb-1.5">연령대별 인구 분포</p>
+                            <div id="age-chart"></div>
+                        </div>
+                        <div class="space-y-2 text-xs font-medium text-slate-600">
+                        </div>
                         <p id="sgis-data-message" class="text-[10px] text-slate-500 leading-relaxed bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">SGIS 행정구역 통계를 조회하고 있습니다.</p>
                     </div>
                     <details class="basis-note report-details text-[11px] text-slate-600 leading-relaxed">
@@ -820,6 +828,11 @@
                             <p class="text-[10px] text-emerald-600 font-bold">한 달 예상 조제 수입</p>
                             <p id="lbl-month-presc-rev" class="text-lg font-black text-emerald-700 mt-1">0원</p>
                         </div>
+                    </div>
+
+                    <div id="group-mix-wrap" class="hidden border border-slate-200 rounded-xl bg-white px-4 py-3.5 print-keep-together">
+                        <p class="text-[10px] font-bold text-slate-500 mb-2">진료과군별 처방 기여 비중</p>
+                        <div id="group-mix-chart"></div>
                     </div>
 
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-white print-keep-together">
@@ -1164,7 +1177,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.3.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.4.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1186,7 +1199,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.3.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.4.0</span></p>
                     </div>
                 </div>
 
@@ -1291,6 +1304,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v6.4.0] 연령대 분포·진료과군 비중 시각화, 핵심 판단 한 줄 요약 추가.
         // [v6.3.0] PDF 항목 구분 강화, 산정 기준 일괄 펼치기, 텍스트를 대체하는 SVG 지표 3종 추가.
         // [v6.2.0] 심평원·SGIS·카카오 지역명 표기 차이 보정 (약국 포화도 매칭률 개선).
         // [v6.1.0] 섹션 번호 자동 재계산, 인구/매출 분리, 후보지 비교 맨 뒤 이동, 접기 내용 간략화.
@@ -1309,7 +1323,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "6.3.0";
+        const SYSTEM_VERSION = "6.4.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2848,6 +2862,7 @@
                 densityPopulationPercentile: district.populationPercentile
             });
             setDensityUi('ready');
+            renderOneLineSummary();
             updateReportDataStatus();
         }
 
@@ -3138,6 +3153,97 @@
         /* [v6.3.0] 텍스트 대신 그림으로 보여주는 지표
            숫자를 문장으로 읽는 것보다 위치와 크기로 보는 편이 훨씬 빠릅니다.
            외부 차트 라이브러리 없이 순수 SVG로 그려 인쇄에서도 그대로 나옵니다. */
+        /* [v6.4.0] 연령대 인구 분포 막대
+           약국은 연령 구성이 수요에 직결되는데 지금까지 "주요 연령대: 60대, 40대" 한 줄뿐이었습니다.
+           9개 구간을 막대로 보여주면 "이 동네는 고령층이 두껍다"가 즉시 읽힙니다. */
+        const PRIORITY_AGE_LABELS = new Set(['50대', '60대', '70대', '80대', '90대']);
+
+        function renderAgeChart(ageGroups) {
+            const wrap = document.getElementById('age-chart-wrap');
+            const box = document.getElementById('age-chart');
+            if (!wrap || !box) return;
+            const rows = (ageGroups || []).filter(row => Number(row.population) > 0);
+            if (rows.length < 2) { wrap.classList.add('hidden'); box.innerHTML = ''; return; }
+
+            const total = rows.reduce((sum, row) => sum + Number(row.population), 0);
+            const max = Math.max(...rows.map(row => Number(row.population)));
+            box.innerHTML = rows.map(row => {
+                const value = Number(row.population);
+                const width = Math.max(1.5, (value / max) * 100);
+                const share = total ? (value / total) * 100 : 0;
+                const priority = PRIORITY_AGE_LABELS.has(row.label);
+                return `<div class="flex items-center gap-1.5 mb-1">
+                    <span class="text-[9px] font-bold text-slate-500 w-8 shrink-0">${escapeHtml(row.label)}</span>
+                    <div class="flex-1 h-3 bg-slate-100 rounded-sm overflow-hidden border border-slate-200">
+                        <div class="h-full ${priority ? 'bg-emerald-500' : 'bg-slate-400'}" style="width:${width.toFixed(1)}%"></div>
+                    </div>
+                    <span class="text-[9px] font-bold ${priority ? 'text-emerald-700' : 'text-slate-500'} w-16 text-right shrink-0">${value.toLocaleString()} · ${share.toFixed(0)}%</span>
+                </div>`;
+            }).join('') + '<p class="text-[9px] text-slate-400 mt-1"><span class="inline-block w-2 h-2 bg-emerald-500 rounded-sm align-middle mr-1"></span>초록은 약국 이용이 잦은 50대 이상입니다.</p>';
+            wrap.classList.remove('hidden');
+        }
+
+        /* 진료과군별 처방 기여를 누적 막대 하나로 보여줍니다. */
+        function renderGroupMixChart(categoryResults) {
+            const wrap = document.getElementById('group-mix-wrap');
+            const box = document.getElementById('group-mix-chart');
+            if (!wrap || !box) return;
+            const rows = (categoryResults || []).filter(row => Number(row.myShare) > 0);
+            const total = rows.reduce((sum, row) => sum + Number(row.myShare), 0);
+            if (!total) { wrap.classList.add('hidden'); box.innerHTML = ''; return; }
+
+            const meta = { main: ['처방 많은 과', '#2563eb'], stable: ['처방 보통 과', '#10b981'], support: ['처방 적은 과', '#f59e0b'] };
+            const segments = rows.map(row => {
+                const [label, color] = meta[row.group] || ['기타', '#94a3b8'];
+                return { label, color, share: (Number(row.myShare) / total) * 100, value: Math.round(row.myShare) };
+            });
+
+            box.innerHTML = `<div class="flex h-5 rounded-md overflow-hidden border border-slate-300">`
+                + segments.map(seg => `<div style="width:${seg.share.toFixed(1)}%;background:${seg.color}" title="${seg.label}"></div>`).join('')
+                + `</div><div class="flex flex-wrap gap-x-4 gap-y-1 mt-2">`
+                + segments.map(seg => `<span class="text-[10px] font-bold text-slate-600"><span class="inline-block w-2.5 h-2.5 rounded-sm align-middle mr-1" style="background:${seg.color}"></span>${seg.label} ${seg.value}건 (${seg.share.toFixed(0)}%)</span>`).join('')
+                + `</div>`;
+            wrap.classList.remove('hidden');
+        }
+
+        /* 흩어져 있던 핵심 정보를 문장 하나로 모읍니다. */
+        function renderOneLineSummary() {
+            const el = document.getElementById('lbl-one-line-summary');
+            if (!el) return;
+            const d = GLOBAL_CALC_DATA;
+            const ctx = GLOBAL_SITE_CONTEXT;
+            const m = GLOBAL_ANALYSIS_METRICS;
+
+            if (!d.isRealData) {
+                el.className = 'text-[13px] leading-relaxed font-bold text-slate-700 bg-slate-100 border-l-4 border-slate-400 rounded-r-lg px-4 py-3';
+                el.innerText = '건강보험심사평가원 의료기관 자료를 불러오지 못해 이 후보지를 판단할 수 없습니다. 주소를 다시 확인해 주십시오.';
+                return;
+            }
+
+            const doctors = (ctx.hospitalModels || []).reduce((sum, h) => sum + Number(h.doctors || 0), 0);
+            const parts = [];
+            const place = ctx.buildingName || (d.address || '').split(' ').slice(-2).join(' ') || '이 후보지';
+            parts.push(`<strong>${escapeHtml(place)}</strong>는 처방 유입 거리 ${ctx.effectiveRadius}m 안에 병원 <strong>${ctx.effectiveHospitals.length}곳·의사 ${doctors}명</strong>이 있고, 경쟁 약국은 <strong>${ctx.effectivePharmacies.length}곳</strong>입니다.`);
+
+            const gateReady = m.prescriptionGate ? m.prescriptionGate.ready : false;
+            const concentration = gateReady ? computePrescriptionConcentration() : { available: false };
+            if (concentration.available && concentration.level === 'high') {
+                parts.push(`다만 <strong class="text-red-700">${escapeHtml(concentration.topName)} 한 곳이 예상 처방의 ${Math.round(concentration.topRatio * 100)}%</strong>를 차지해, 그 병원의 계약 상황을 먼저 확인하셔야 합니다.`);
+            } else if (d.densityReal && d.densityPopulationPercentile !== null && d.densityPopulationPercentile !== undefined) {
+                const roomy = d.densityPopulationPercentile >= 70;
+                const crowded = d.densityPopulationPercentile <= 30;
+                parts.push(crowded
+                    ? `이 지역은 전국에서 <strong class="text-red-700">약국이 많은 편</strong>이라 경쟁 환경을 특히 살펴보셔야 합니다.`
+                    : roomy
+                        ? `이 지역은 전국에서 <strong class="text-emerald-700">약국이 적은 편</strong>이라 배후 수요에 여유가 있습니다.`
+                        : `약국 밀도는 전국 평균 수준입니다.`);
+            }
+            if (!gateReady) parts.push('처방건수를 확인하시면 예상 매출까지 계산됩니다.');
+
+            el.className = 'text-[13px] leading-relaxed font-bold text-slate-800 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg px-4 py-3';
+            el.innerHTML = parts.join(' ');
+        }
+
         function renderScenarioChart(cases, breakEven) {
             const wrap = document.getElementById('scenario-chart-wrap');
             const box = document.getElementById('scenario-chart');
@@ -4133,6 +4239,7 @@
                 document.getElementById('lbl-effective-capture-rate').innerText = '-';
                 document.getElementById('lbl-month-otc-rev').innerText = '입력 확인 필요';
                 renderPrescriptionConcentration(false); renderLegalBuildingPurpose(); renderScenarioRange(false);
+                renderGroupMixChart(null); renderOneLineSummary();
                 updateOptionalCostUi(); renderScenarioCards();
                 if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
                 return;
@@ -4153,6 +4260,7 @@
             if (costsConfirmed) { document.getElementById('lbl-net-profit').innerText = netProfit >= 0 ? `월 약 ${netProfit.toLocaleString()}원` : `월 약 -${Math.abs(netProfit).toLocaleString()}원`; document.getElementById('lbl-break-even-prescriptions').innerText = `${breakEvenPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').innerText = `${safetyMarginPrescriptions >= 0 ? '+' : ''}${safetyMarginPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').className = safetyMarginPrescriptions >= 0 ? 'text-emerald-300' : 'text-red-300'; }
             document.getElementById('calc-total-fixed-cost').innerText = `${totalFixedCost.toLocaleString()}원`; document.getElementById('lbl-fixed-preview').innerText = formatWonCompact(totalFixedCost); document.getElementById('count-staff-print').innerText = `${staffCount}명`; document.getElementById('count-full-pharm-print').innerText = `${fullPharmCount}명`; document.getElementById('count-half-pharm-print').innerText = `${halfPharmCount}명`;
             renderPrescriptionConcentration(true); renderLegalBuildingPurpose(); renderScenarioRange(true); renumberSections();
+            renderGroupMixChart(result.categoryResults); renderOneLineSummary();
             updatePaybackMetrics(); updateOptionalCostUi(); renderScenarioCards(); if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
         };
 
@@ -4375,6 +4483,7 @@
                 const el = document.getElementById(id); if (el) el.innerText = '조회 중';
             });
             const age = document.getElementById('lbl-target-age'); if (age) age.innerText = 'SGIS 조회 중';
+            renderAgeChart(null);
             const message = document.getElementById('sgis-data-message'); if (message) message.innerText = '후보지 행정구역을 확인하고 SGIS 인구주택총조사 통계를 조회하고 있습니다.';
         }
 
@@ -4389,6 +4498,7 @@
                 const el = document.getElementById(id); if (el) el.innerText = diagnostic.short;
             });
             const age = document.getElementById('lbl-target-age'); if (age) age.innerText = `연령 통계 ${diagnostic.short}`;
+            renderAgeChart(null);
             const strategy = document.getElementById('lbl-target-bullseye'); if (strategy) strategy.innerText = '연령별 상품전략은 현장 및 별도 통계 확인 필요';
             const message = document.getElementById('sgis-data-message');
             if (message) message.innerHTML = `SGIS 배후 인구 통계를 적용하지 못했습니다. <strong>임의 추정값은 표시하지 않습니다.</strong><br>${diagnosticReasonHtml(diagnostic)}`;
@@ -4430,6 +4540,8 @@
             document.getElementById('stat-single-household').innerText = data.singleHouseholds !== null
                 ? `${data.singleHouseholds.toLocaleString()}가구${singleRate !== null ? ` (${singleRate.toFixed(1)}%)` : ''}` : '미제공';
             document.getElementById('stat-potential-cnt').innerText = `${data.priorityPopulation.toLocaleString()}명 (${priorityRate.toFixed(1)}%)`;
+            renderAgeChart(data.ageGroups);
+            renderOneLineSummary();
             document.getElementById('sgis-data-message').innerText = `${data.scopeLevel} 단위 통계입니다. 정확한 300m 원형 반경 인구가 아니며, 약국 우선수요 연령 인구는 15세 미만과 50세 이상을 합산한 내부 참고지표입니다.`;
 
             if (topAges.length) {
