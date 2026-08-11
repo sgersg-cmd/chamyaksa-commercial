@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v6.7.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v6.8.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -128,8 +128,8 @@
                섹션끼리 붙어 보여 어디까지가 한 항목인지 알기 어렵다는 의견을 반영했습니다.
                섹션 간 여백을 넓히고 제목에 구분선을 넣어 시각적으로 끊어 줍니다. */
             #report-card [data-numbered="true"] {
-                margin-top: 13mm !important;
-                padding-top: 5mm !important;
+                margin-top: 9mm !important;
+                padding-top: 4mm !important;
                 border-top: 1pt solid #cbd5e1 !important;
             }
             #report-card [data-numbered="true"]:first-of-type { margin-top: 2mm !important; border-top: none !important; padding-top: 0 !important; }
@@ -172,10 +172,10 @@
                 -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
             }
             /* 지도는 인쇄 시 높이를 고정해 중심이 흔들리지 않게 합니다. */
-            /* [v6.7.0] 화면과 인쇄의 지도 박스를 같은 CSS 픽셀 크기로 고정합니다.
-               폭·높이가 달라지면 카카오 지도가 중심을 다시 잡지 못해 후보지가 치우칩니다.
-               672px = 177.8mm, 320px = 84.7mm 로 화면 값과 정확히 일치시킵니다. */
-            #kakao-map { width: 177.8mm !important; max-width: 177.8mm !important; height: 84.7mm !important; margin: 0 auto !important; }
+            /* [v6.8.0] 지도 크기를 인쇄에서 다시 지정하지 않습니다.
+               크기를 바꾸면 카카오 지도가 좌상단을 기준으로 재배치해 후보지가 치우칩니다.
+               화면에서 이미 고정 크기(672×320px)로 그려두었으므로 그대로 인쇄합니다. */
+            #kakao-map { margin: 0 auto !important; }
             #scenario-chart-wrap, #density-gauge-wrap { break-inside: avoid !important; page-break-inside: avoid !important; }
             #report-card thead { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             #report-card th, #report-card td { border-bottom: 0.6pt solid #cbd5e1 !important; }
@@ -191,6 +191,8 @@
                 page-break-inside: auto !important;
                 break-inside: auto !important;
             }
+            /* [v6.8.0] 큰 블록까지 통째로 묶으면 페이지 끝에 큰 공백이 생기고 장수가 늘어납니다.
+               제목·표의 행·작은 카드만 묶고, 섹션과 긴 블록은 자연스럽게 나뉘도록 풉니다. */
             #report-card .print-keep-together,
             #report-card .print-atomic,
             #report-card h2,
@@ -200,6 +202,16 @@
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
+            #report-card [data-print-section],
+            #report-card [data-numbered="true"],
+            #report-card table,
+            #report-card tbody,
+            #report-card .space-y-3,
+            #report-card .space-y-4 {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            #report-card p, #report-card li { orphans: 2 !important; widows: 2 !important; }
             #report-card h3,
             #report-card h4 {
                 page-break-after: avoid !important;
@@ -242,7 +254,19 @@
             #report-card [data-print-section="glossary"] .grid { gap: 4mm 8mm !important; }
             #report-card [data-print-section="glossary"] p { margin-bottom: 1mm !important; }
             #report-card ul > li, #report-card ol > li { padding-top: 1.4mm !important; padding-bottom: 1.4mm !important; }
-            #report-card [data-print-section="footer"] { margin-top: 12mm !important; padding-top: 5mm !important; }
+            #report-card [data-print-section="footer"] { margin-top: 12mm !important; padding-top: 0 !important; }
+            /* [v6.8.0] 출처 영역은 항목이 많아 2열 격자에서 글줄이 엉킵니다. 인쇄에서는 한 열로 폅니다. */
+            #report-card .footer-print-grid { display: block !important; }
+            #report-card .footer-print-grid > * + * { margin-top: 4mm !important; }
+            #report-card [data-print-section="footer"] p,
+            #report-card [data-print-section="footer"] li {
+                word-break: keep-all !important;
+                overflow-wrap: break-word !important;
+                line-height: 1.65 !important;
+            }
+            #report-card .footer-source-strip { margin: 0 4mm 4mm !important; padding: 3.5mm 4mm !important; }
+            #report-card .footer-source-strip p + p { margin-top: 2.5mm !important; }
+            #report-card [data-print-section="footer"] .text-\[9px\] { font-size: 8.5pt !important; }
             #report-card .print-metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
             #report-card #lbl-ai-summary-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
             /* Chrome 인쇄에서 CSS Grid 전체가 다음 페이지로 밀리며 큰 공백이 생기는 현상 방지 */
@@ -382,7 +406,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v6.7.0] 인쇄 글자 확대, 지도 박스 고정, 개설 절차 삭제, 의존도 이동, 용어 풀이 선택 연동.
+            // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
+        // [v6.7.0] 인쇄 글자 확대, 지도 박스 고정, 개설 절차 삭제, 의존도 이동, 용어 풀이 선택 연동.
         // [v6.6.0] 인쇄본 여백·간격 전면 재조정, 작업용 진단 문구 제외, 섹션 등급 배지 도입.
         // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
         // [v6.4.1] 광주광역시 시도 표기 보정, 신설 행정구역 인구 미제공 대응.
@@ -409,7 +434,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.7.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.8.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -537,7 +562,7 @@
                 <section data-print-section="map" data-numbered="true" class="space-y-3 page-break-map">
                     <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>후보지 위치</h3>
                         <span class="grade-badge print-only" data-grade-badge-for="map"></span>
-                    <div id="kakao-map" class="h-80 rounded-2xl border border-slate-300 bg-slate-100 shadow-inner overflow-hidden shadow-md mx-auto" style="width:100%;max-width:672px"></div>
+                    <div id="kakao-map" class="h-80 rounded-2xl border border-slate-300 bg-slate-100 shadow-inner overflow-hidden shadow-md mx-auto" style="width:672px;max-width:100%"></div>
                     <div class="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-bold pl-1">
                         <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> 후보지</span>
                         <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span> 병원·의원</span>
@@ -1240,7 +1265,7 @@
                 <div data-print-section="footer" class="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
                     <div class="px-4 py-3 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <p class="text-xs font-black text-slate-900"><i class="fa-solid fa-shield-halved text-blue-600 mr-1"></i> 데이터 근거·확인사항</p>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 no-print">
                             <span class="source-chip source-real">공식·실측</span>
                             <span class="source-chip source-model">근거형 추정</span>
                             <span class="source-chip source-input">확인 입력</span>
@@ -1250,7 +1275,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.7.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.8.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1267,13 +1292,15 @@
                         </div>
                     </div>
                     <div class="footer-source-strip mx-4 mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
-                        <p><strong class="text-slate-700">구성:</strong> 공식·실측(심평원·카카오·건축HUB·SGIS) · 공식 추정(서울 상권데이터) · 확인 입력/근거형 계산(처방·조제·비용)</p>
+                        <p><strong class="text-slate-700">실제 자료</strong> 심평원 · 카카오 · 건축HUB · SGIS</p>
+                        <p class="mt-1"><strong class="text-slate-700">공식 추정</strong> 서울시 상권분석 데이터</p>
+                        <p class="mt-1"><strong class="text-slate-700">참고 가정값</strong> 처방건수 · 매약 매출 · 객단가 (사용자 확인 필요)</p>
                         <p id="report-data-basis" class="mt-1">기준: 분석 실행 후 표시됩니다.</p>
                         <p id="report-sync-line" class="mt-1.5 leading-relaxed text-slate-500"></p>
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.7.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.8.0</span></p>
                     </div>
                 </div>
 
@@ -1378,6 +1405,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
         // [v6.7.0] 인쇄 글자 확대, 지도 박스 고정, 개설 절차 삭제, 의존도 이동, 용어 풀이 선택 연동.
         // [v6.6.0] 인쇄본 여백·간격 전면 재조정, 작업용 진단 문구 제외, 섹션 등급 배지 도입.
         // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
@@ -1401,7 +1429,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "6.7.0";
+        const SYSTEM_VERSION = "6.8.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2390,13 +2418,21 @@
                     circle500.setMap(mapInstance);
                     circle300.setMap(mapInstance);
                     GLOBAL_KAKAO_OVERLAYS.push(circle500, circle300);
-                    /* [v6.5.0] 리포트 영역이 나타난 직후 지도를 만들면 컨테이너 크기가 확정되지 않아
-                       중심이 틀어집니다. 레이아웃 재계산 후 중심을 다시 잡아 줍니다. */
+                    /* [v6.8.0] 지도 중심 보정
+                       beforeprint 는 인쇄 스타일이 적용되기 "전"에 발생해 화면 크기를 기준으로 계산됩니다.
+                       인쇄 레이아웃이 실제로 적용된 뒤에 다시 잡으려면 matchMedia('print') 변화를 써야 합니다. */
                     const recenterMap = () => { mapInstance.relayout(); mapInstance.setCenter(centerLatLng); };
                     setTimeout(recenterMap, 150);
                     setTimeout(recenterMap, 600);
                     window.addEventListener('resize', recenterMap);
                     window.addEventListener('beforeprint', recenterMap);
+                    window.addEventListener('afterprint', () => setTimeout(recenterMap, 0));
+                    if (window.matchMedia) {
+                        const printMedia = window.matchMedia('print');
+                        const onPrintMedia = () => { recenterMap(); requestAnimationFrame(recenterMap); };
+                        if (printMedia.addEventListener) printMedia.addEventListener('change', onPrintMedia);
+                        else if (printMedia.addListener) printMedia.addListener(onPrintMedia);
+                    }
                     loadKakaoNearbyPlaces(centerLatLng, mapInstance);
                 };
 
