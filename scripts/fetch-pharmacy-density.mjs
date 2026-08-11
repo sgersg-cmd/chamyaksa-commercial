@@ -191,18 +191,58 @@ async function loadSgisPopulation() {
   return { population, year };
 }
 
-/** 심평원 시군구명과 SGIS 시군구명을 이름으로 대조합니다. */
+/* 심평원과 SGIS는 지역명 표기 방식이 다릅니다. 실측으로 확인된 차이는 세 가지입니다.
+     ① 시도명 축약   : 심평원 "경남"        ↔ SGIS "경상남도"
+     ② 시도명 접두   : 심평원 "대구남구"     ↔ SGIS "남구"
+     ③ 시·구 결합    : 심평원 "성남분당구"   ↔ SGIS "성남시 분당구"
+   양쪽에서 가능한 표기를 모두 만들어 교집합으로 대조합니다. */
+const SIDO_FULL_NAME = {
+  '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시', '인천': '인천광역시',
+  '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
+  '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
+  '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
+  '제주': '제주특별자치도'
+};
+
+const trimSidoSuffix = (value) => String(value || '').replace(/(특별자치도|특별자치시|특별시|광역시|도)$/, '');
+const compactName = (value) => String(value || '').replace(/\s+/g, '');
+
+function sidoMatches(hiraSido, sgisSido) {
+  const short = trimSidoSuffix(hiraSido);
+  if (SIDO_FULL_NAME[short] === sgisSido) return true;
+  return trimSidoSuffix(sgisSido) === short;
+}
+
+/** SGIS "성남시 분당구" → ["성남시분당구", "성남분당구", "분당구"] */
+function sgisNameAliases(sggu) {
+  const name = compactName(sggu);
+  const aliases = new Set([name]);
+  const match = name.match(/^(.+?)시(.+구)$/);
+  if (match) { aliases.add(match[1] + match[2]); aliases.add(match[2]); }
+  return aliases;
+}
+
+/** 심평원 "대구남구"(시도 접두) → ["대구남구", "남구"] */
+function hiraNameAliases(sido, sggu) {
+  const name = compactName(sggu);
+  const short = trimSidoSuffix(sido);
+  const aliases = new Set([name]);
+  if (short && name.startsWith(short) && name.length > short.length) aliases.add(name.slice(short.length));
+  return aliases;
+}
+
 function matchPopulation(populationMap, sido, sggu) {
-  const direct = populationMap.get(`${sido}|${sggu}`);
-  if (direct) return direct;
-  // "서울" ↔ "서울특별시" 처럼 표기가 다른 경우를 보정합니다.
+  const candidates = hiraNameAliases(sido, sggu);
+  let looseHit = null;
   for (const [, value] of populationMap) {
-    if (value.sggu !== sggu) continue;
-    const a = value.sido.replace(/(특별자치도|특별자치시|특별시|광역시|도)$/, '');
-    const b = sido.replace(/(특별자치도|특별자치시|특별시|광역시|도)$/, '');
-    if (a && b && (a.startsWith(b) || b.startsWith(a))) return value;
+    const aliases = sgisNameAliases(value.sggu);
+    let hit = false;
+    for (const candidate of candidates) { if (aliases.has(candidate)) { hit = true; break; } }
+    if (!hit) continue;
+    if (sidoMatches(sido, value.sido)) return value;   // 시도까지 일치하면 확정
+    looseHit = looseHit || value;                       // 시군구명만 맞으면 예비 후보
   }
-  return null;
+  return looseHit;
 }
 
 function percentileRank(sortedValues, value) {
@@ -268,6 +308,10 @@ async function main() {
   });
 
   const matchedCount = districts.filter((d) => d.populationPerPharmacy).length;
+  const unmatched = districts.filter((d) => !d.populationPerPharmacy).map((d) => `${d.sido} ${d.sggu}`);
+  if (unmatched.length) {
+    console.log(`  인구 미매칭 ${unmatched.length}건: ${unmatched.slice(0, 20).join(', ')}${unmatched.length > 20 ? ' …' : ''}`);
+  }
   const payload = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
