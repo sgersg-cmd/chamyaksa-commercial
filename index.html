@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v6.8.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v6.9.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -243,11 +243,39 @@
             #report-card .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 5.5mm !important; }
             #report-card .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 4mm !important; }
             #report-card .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 3mm !important; }
+            /* [v6.9.0] 어절 중간에서 끊기지 않게 하고 줄 길이를 고르게 맞춥니다. */
+            #report-card p, #report-card li, #report-card td, #report-card span {
+                word-break: keep-all !important;
+                overflow-wrap: break-word !important;
+                text-wrap: pretty;
+            }
+            #report-card h2, #report-card h3, #report-card strong { text-wrap: balance; }
             #report-card p { line-height: 1.7 !important; }
             #report-card th, #report-card td { padding: 3mm 3.2mm !important; }
             #report-card .grid { gap: 5mm !important; }
             /* [v6.7.0] 결론·비교·용어 풀이 등 후반부 블록이 촘촘하던 문제를 함께 해소합니다. */
-            #report-card [data-print-section="briefing"] { padding: 6mm 5mm !important; }
+            /* [v6.9.0] 어두운 카드는 인쇄하면 페이지 끝에 검은 여백이 크게 남고 잉크도 많이 씁니다.
+               인쇄본에서는 밝은 배경으로 바꿔 문서답게 보이도록 합니다. */
+            #report-card [data-print-section="briefing"],
+            #report-card [data-print-section="briefing"] * {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                border-color: #cbd5e1 !important;
+            }
+            #report-card [data-print-section="briefing"] {
+                border: 1pt solid #94a3b8 !important;
+                padding: 5mm !important;
+                border-radius: 0 !important;
+            }
+            #report-card [data-print-section="briefing"] > div {
+                border: 0.8pt solid #cbd5e1 !important;
+                padding: 3.5mm 4mm !important;
+            }
+            #report-card [data-print-section="footer"] .bg-slate-900,
+            #report-card [data-print-section="footer"] .bg-slate-900 * {
+                background: #f8fafc !important; color: #0f172a !important;
+            }
+            #report-card [data-print-section="footer"] .bg-slate-900 { border: 0.8pt solid #cbd5e1 !important; }
             #report-card [data-print-section="briefing"] > * + * { margin-top: 6mm !important; }
             #report-card [data-print-section="legal"] > * + * { margin-top: 6mm !important; }
             #report-card [data-print-section="compare"] > * + * { margin-top: 6mm !important; }
@@ -406,7 +434,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
+            // [v6.9.0] 인쇄 시 전체 접기 펼침, 어두운 카드 밝게 전환, PDF 모달 가독성 개선.
+        // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
         // [v6.7.0] 인쇄 글자 확대, 지도 박스 고정, 개설 절차 삭제, 의존도 이동, 용어 풀이 선택 연동.
         // [v6.6.0] 인쇄본 여백·간격 전면 재조정, 작업용 진단 문구 제외, 섹션 등급 배지 도입.
         // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
@@ -434,7 +463,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.8.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.9.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1195,7 +1224,7 @@
                 </section>
 
                 <!-- 7. 최종 결론 -->
-                <section data-print-section="briefing" data-numbered="true" class="space-y-4 bg-slate-900 text-slate-100 rounded-2xl p-6 card-shadow">
+                <section data-print-section="briefing" data-numbered="true" class="space-y-5 bg-slate-900 text-slate-100 rounded-2xl p-6 card-shadow">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h3 class="text-xs font-bold text-blue-400 tracking-widest uppercase flex items-center gap-1.5">
                             <i class="fa-solid fa-clipboard-check text-blue-500"></i> <span class="section-no"></span>계약 전 현장 확인사항
@@ -1209,7 +1238,7 @@
                         <p id="lbl-normal-reason"></p>
                     </div>
                     <div id="lbl-ai-summary-cards" class="hidden"></div>
-                    <div class="text-xs text-slate-300 leading-relaxed space-y-4 pt-1" id="lbl-ai-reason"></div>
+                    <div class="text-xs text-slate-300 leading-relaxed space-y-5 pt-1" id="lbl-ai-reason"></div>
                     <div id="lbl-external-ai-reason" class="hidden text-xs text-slate-200 leading-relaxed bg-blue-950/40 border border-blue-800/60 rounded-xl p-4"></div>
                     <p class="text-[10px] text-slate-400 border-t border-slate-800 pt-3">참고용 결과입니다. 계약 전 처방 유입·동선·임대조건을 확인하세요.</p>
                 </section>
@@ -1275,7 +1304,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.8.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.9.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1300,7 +1329,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.8.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.9.0</span></p>
                     </div>
                 </div>
 
@@ -1343,7 +1372,7 @@
                 <div class="px-6 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
                     <div>
                         <h2 id="pdf-modal-title" class="text-base font-black text-slate-900">PDF에 포함할 항목 선택</h2>
-                        <p class="text-xs text-slate-500 mt-1">선택한 항목만 배열하며, 각 항목의 산정 기준은 PDF에서 자동으로 펼쳐집니다.</p>
+                        <p class="text-xs text-slate-500 mt-1">선택한 항목만 출력되며 번호는 자동으로 다시 매겨집니다.</p>
                     </div>
                     <button type="button" onclick="closePdfSelection()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500" aria-label="닫기">
                         <i class="fa-solid fa-xmark"></i>
@@ -1357,33 +1386,32 @@
                         <button type="button" onclick="applyPdfPreset('core')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-100 text-blue-800 border border-blue-200">핵심 요약</button>
                         <button type="button" onclick="applyPdfPreset('none')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 border border-slate-300">전체 해제</button>
                     </div>
-                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-bold">
-                        <span class="text-slate-500">표시 기준</span>
-                        <span class="text-emerald-700"><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>공유 가능 (공공기관 실제 자료)</span>
-                        <span class="text-amber-700"><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span>설명 필요 (추정 포함)</span>
-                        <span class="text-red-700"><span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>내부 검토용 (가정값 중심)</span>
-                        <span class="text-slate-500"><span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1"></span>내용 없음 (제외 권장)</span>
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] font-bold">
+                        <span class="text-emerald-700"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5 align-middle"></span>공유 가능</span>
+                        <span class="text-amber-700"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5 align-middle"></span>설명 필요</span>
+                        <span class="text-red-700"><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 mr-1.5 align-middle"></span>내부 검토용</span>
+                        <span class="text-slate-500"><span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-400 mr-1.5 align-middle"></span>내용 없음</span>
                     </div>
-                    <p id="pdf-guide-banner" class="text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border"></p>
+                    <p id="pdf-guide-banner" class="text-[12px] leading-relaxed rounded-lg px-3.5 py-2.5 border"></p>
                 </div>
 
-                <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[58vh] overflow-y-auto">
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="header" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="header"></span><strong class="text-sm text-slate-800 block">리포트 제목·기준일</strong><small class="text-xs text-slate-500">분석 대상과 자료 기준 정보</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-amber-300 bg-amber-50 cursor-not-allowed"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="disclaimer" checked disabled data-required="true"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="disclaimer"></span><strong class="text-sm text-amber-900 block">활용 안내·면책 고지 <em class="not-italic text-[10px]">(필수 포함)</em></strong><small class="text-xs text-amber-700">현장 확인·책임 범위 안내는 제외할 수 없습니다.</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="summary" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="summary"></span><strong class="text-sm text-slate-800 block">핵심 판단</strong><small class="text-xs text-slate-500">점수·등급·공공자료 확보율</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="map"></span><strong class="text-sm text-slate-800 block">후보지 위치</strong><small class="text-xs text-slate-500">개설 후보지 지도</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="medical"></span><strong class="text-sm text-slate-800 block">의료·경쟁 현황</strong><small class="text-xs text-slate-500">병원·의사·경쟁 약국·영업 시작일</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="density" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="density"></span><strong class="text-sm text-slate-800 block">약국 포화도</strong><small class="text-xs text-slate-500">전국 대비 약국 밀도 비교</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="population" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="population"></span><strong class="text-sm text-slate-800 block">배후 인구</strong><small class="text-xs text-slate-500">인구·가구·주택·연령대</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="market"></span><strong class="text-sm text-slate-800 block">지역 약국 매출 (참고)</strong><small class="text-xs text-slate-500">동 단위 매출·결제 지표</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="profit" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="profit"></span><strong class="text-sm text-slate-800 block">처방·매출 전망</strong><small class="text-xs text-slate-500">처방건수·조제 수입·범위 시나리오</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="investment"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="investment"></span><strong class="text-sm text-slate-800 block">비용·손익</strong><small class="text-xs text-slate-500">투자금·고정비·순이익</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="flow" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="flow"></span><strong class="text-sm text-slate-800 block">동네 유동인구 (참고)</strong><small class="text-xs text-slate-500">요일·시간대 비중</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="legal" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="legal"></span><strong class="text-sm text-slate-800 block">약국 개설 법적 확인사항</strong><small class="text-xs text-slate-500">약사법 개설 제한·건물 용도·절차</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="briefing" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="briefing"></span><strong class="text-sm text-slate-800 block">현장 확인사항</strong><small class="text-xs text-slate-500">계약 전 직접 확인할 항목</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="compare"><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="compare"></span><strong class="text-sm text-slate-800 block">후보지 비교</strong><small class="text-xs text-slate-500">비교함에 담은 후보지 나란히 보기</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="glossary" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="glossary"></span><strong class="text-sm text-slate-800 block">용어 풀이</strong><small class="text-xs text-slate-500">리포트에 나오는 용어 설명</small></span></label>
-                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="footer" checked><span><span class="pdf-grade-badge block text-[10px] font-black mb-0.5" data-grade-for="footer"></span><strong class="text-sm text-slate-800 block">출처·기준일</strong><small class="text-xs text-slate-500">자료 출처와 생성 시점</small></span></label>
+                <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[58vh] overflow-y-auto">
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="header" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="header"></span><strong class="text-[15px] text-slate-900 block leading-snug">리포트 제목·기준일</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">분석 대상과 자료 기준 정보</small></span></label>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-amber-300 bg-amber-50 cursor-not-allowed"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="disclaimer" checked disabled data-required="true"><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="disclaimer"></span><strong class="text-sm text-amber-900 block">활용 안내·면책 고지 <em class="not-italic text-[10px]">(필수 포함)</em></strong><small class="text-xs text-amber-700">현장 확인·책임 범위 안내는 제외할 수 없습니다.</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="summary" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="summary"></span><strong class="text-[15px] text-slate-900 block leading-snug">핵심 판단</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">점수·등급·공공자료 확보율</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="map" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="map"></span><strong class="text-[15px] text-slate-900 block leading-snug">후보지 위치</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">개설 후보지 지도</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="medical" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="medical"></span><strong class="text-[15px] text-slate-900 block leading-snug">의료·경쟁 현황</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">병원·의사·경쟁 약국·영업 시작일</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="density" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="density"></span><strong class="text-[15px] text-slate-900 block leading-snug">약국 포화도</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">전국 대비 약국 밀도 비교</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="population" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="population"></span><strong class="text-[15px] text-slate-900 block leading-snug">배후 인구</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">인구·가구·주택·연령대</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="market" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="market"></span><strong class="text-[15px] text-slate-900 block leading-snug">지역 약국 매출 (참고)</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">동 단위 매출·결제 지표</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="profit" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="profit"></span><strong class="text-[15px] text-slate-900 block leading-snug">처방·매출 전망</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">처방건수·조제 수입·범위 시나리오</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="investment"><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="investment"></span><strong class="text-[15px] text-slate-900 block leading-snug">비용·손익</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">투자금·고정비·순이익</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="flow" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="flow"></span><strong class="text-[15px] text-slate-900 block leading-snug">동네 유동인구 (참고)</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">요일·시간대 비중</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="legal" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="legal"></span><strong class="text-[15px] text-slate-900 block leading-snug">약국 개설 법적 확인사항</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">약사법 개설 제한·건물 용도·절차</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="briefing" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="briefing"></span><strong class="text-[15px] text-slate-900 block leading-snug">현장 확인사항</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">계약 전 직접 확인할 항목</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="compare"><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="compare"></span><strong class="text-[15px] text-slate-900 block leading-snug">후보지 비교</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">비교함에 담은 후보지 나란히 보기</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="glossary" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="glossary"></span><strong class="text-[15px] text-slate-900 block leading-snug">용어 풀이</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">리포트에 나오는 용어 설명</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="footer" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="footer"></span><strong class="text-[15px] text-slate-900 block leading-snug">출처·기준일</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">자료 출처와 생성 시점</small></span></label>
                 
                 </div>
 
@@ -1405,6 +1433,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v6.9.0] 인쇄 시 전체 접기 펼침, 어두운 카드 밝게 전환, PDF 모달 가독성 개선.
         // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
         // [v6.7.0] 인쇄 글자 확대, 지도 박스 고정, 개설 절차 삭제, 의존도 이동, 용어 풀이 선택 연동.
         // [v6.6.0] 인쇄본 여백·간격 전면 재조정, 작업용 진단 문구 제외, 섹션 등급 배지 도입.
@@ -1429,7 +1458,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "6.8.0";
+        const SYSTEM_VERSION = "6.9.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -3197,66 +3226,66 @@
             const costsReady = Boolean(m.costsConfirmed);
             const guides = {};
 
-            guides.header = { grade: 'share', note: '분석 주소와 자료 기준일만 담깁니다.' };
-            guides.disclaimer = { grade: 'share', note: '반드시 함께 나가야 하는 안내입니다.' };
-            guides.glossary = { grade: 'share', note: '용어 설명이라 문의를 줄여 줍니다.' };
-            guides.legal = { grade: 'share', note: '약사법 개설 제한과 개설 절차 안내입니다.' };
+            guides.header = { grade: 'share', note: '주소와 기준일' };
+            guides.disclaimer = { grade: 'share', note: '필수 안내' };
+            guides.glossary = { grade: 'share', note: '용어 설명' };
+            guides.legal = { grade: 'share', note: '약사법 개설 제한' };
 
             guides.map = d.nearbySearchReal
-                ? { grade: 'share', note: '카카오 지도 실제 위치입니다.' }
-                : { grade: 'empty', note: '지도를 불러오지 못했습니다.' };
+                ? { grade: 'share', note: '실제 위치' }
+                : { grade: 'empty', note: '지도 없음' };
 
             guides.medical = !d.isRealData
-                ? { grade: 'empty', note: `심평원 ${GLOBAL_DATA_DIAGNOSTICS.hira?.short || '조회 실패'} · 병원·의사 수가 비어 있습니다.` }
+                ? { grade: 'empty', note: `병원·의사 수 없음` }
                 : d.hiraDetailReal
-                    ? { grade: 'share', note: '심평원 신고 진료과목까지 확인된 실제 자료입니다.' }
-                    : { grade: 'explain', note: '일부 진료과는 기관명으로 분류했다고 설명해 주십시오.' };
+                    ? { grade: 'share', note: '진료과목까지 확인' }
+                    : { grade: 'explain', note: '일부 진료과는 기관명 분류' };
 
             // [v6.1.0] 인구와 매출은 자료 성격이 달라 등급을 따로 판정합니다.
             guides.population = d.sgisReal
-                ? { grade: 'share', note: '국가데이터처 SGIS 실제 통계입니다. 전국 어디든 동일합니다.' }
-                : { grade: 'empty', note: 'SGIS 인구 자료를 불러오지 못했습니다.' };
+                ? { grade: 'share', note: 'SGIS 실제 통계' }
+                : { grade: 'empty', note: '인구 자료 없음' };
 
             guides.market = d.seoulCommercialApplied
-                ? { grade: 'explain', note: '서울시 공식 추정매출입니다. "동 단위 추정이며 특정 약국 매출이 아니다"라고 함께 말씀해 주십시오.' }
-                : { grade: 'internal', note: '서울 외 지역은 공개 자료가 없어 내부 추정입니다. 외부 공유 시 제외를 권장합니다.' };
+                ? { grade: 'explain', note: '서울시 공식 추정 · 동 단위' }
+                : { grade: 'internal', note: '서울 외는 내부 추정' };
 
             guides.summary = !d.isRealData
-                ? { grade: 'empty', note: '병원 자료가 없어 점수와 등급이 산출되지 않았습니다.' }
+                ? { grade: 'empty', note: '점수 산출 불가' }
                 : gateReady
-                    ? { grade: 'explain', note: '등급은 참고 순위입니다. 절대 평가가 아니라고 설명해 주십시오.' }
-                    : { grade: 'share', note: '현재 판단 보류 상태라 추정 수치가 나가지 않습니다.' };
+                    ? { grade: 'explain', note: '등급은 참고 순위' }
+                    : { grade: 'share', note: '추정 수치 없음' };
 
             guides.profit = !gateReady
-                ? { grade: 'empty', note: '처방 입력을 확인하지 않아 계산 보류 상태입니다. 빼고 보내셔도 됩니다.' }
-                : { grade: 'internal', note: '처방건수가 가정값이라 오차가 큽니다. 외부 공유 시 제외를 권장합니다.' };
+                ? { grade: 'empty', note: '계산 보류' }
+                : { grade: 'internal', note: '처방건수가 가정값' };
 
             guides.investment = !costsReady
-                ? { grade: 'empty', note: '비용을 입력·확인하지 않아 내용이 비어 있습니다.' }
-                : { grade: 'internal', note: '투자·고정비는 내부 검토 정보입니다.' };
+                ? { grade: 'empty', note: '비용 미입력' }
+                : { grade: 'internal', note: '내부 검토 정보' };
 
             guides.flow = d.seoulCommercialApplied
-                ? { grade: 'explain', note: '서울시 공식 추정 생활인구입니다. 후보지 앞 보행자 수가 아닙니다.' }
-                : { grade: 'internal', note: '서울 외 지역은 내부 보정값이라 그대로 보내면 오해를 부릅니다.' };
+                ? { grade: 'explain', note: '서울 공식 · 동 단위' }
+                : { grade: 'internal', note: '서울 외는 내부 보정값' };
 
             guides.briefing = !d.isRealData
-                ? { grade: 'empty', note: '판정 보류 상태의 안내만 담깁니다.' }
+                ? { grade: 'empty', note: '판정 보류' }
                 : gateReady
-                    ? { grade: 'internal', note: '요약 카드에 예상 처방·매출 수치가 함께 나갑니다.' }
-                    : { grade: 'share', note: '계산 보류 상태라 추정 수치 없이 근거와 확인사항만 나갑니다.' };
+                    ? { grade: 'internal', note: '예상 처방·매출 포함' }
+                    : { grade: 'share', note: '근거·확인사항만' };
 
             guides.density = d.densityReal
-                ? { grade: 'share', note: '심평원 약국·의사 수와 SGIS 인구로 계산한 실제 자료입니다. 서울 외 지역도 동일합니다.' }
+                ? { grade: 'share', note: '실제 자료 · 전국 동일' }
                 : d.densityPartial
-                    ? { grade: 'explain', note: '신설 행정구역이라 인구 지표가 빠져 있습니다. 약국·의사 수는 실제 집계입니다.' }
-                    : { grade: 'empty', note: '전국 약국 포화도 자료를 불러오지 못했습니다.' };
+                    ? { grade: 'explain', note: '신설 구 · 인구 지표 제외' }
+                    : { grade: 'empty', note: '자료 없음' };
             const compareCount = readComparison().length;
             guides.compare = !compareCount
-                ? { grade: 'empty', note: '비교함에 담긴 후보지가 없습니다.' }
+                ? { grade: 'empty', note: '담긴 후보지 없음' }
                 : readComparison().some(item => item.gateReady)
-                    ? { grade: 'internal', note: `${compareCount}곳 비교표에 예상 처방·매출이 함께 나갑니다.` }
-                    : { grade: 'share', note: `${compareCount}곳 비교표. 계산 보류 상태라 추정 수치는 나가지 않습니다.` };
-            guides.footer = { grade: 'share', note: '자료 출처와 생성 시점입니다.' };
+                    ? { grade: 'internal', note: `${compareCount}곳 · 예상 처방·매출 포함` }
+                    : { grade: 'share', note: `${compareCount}곳 · 추정 수치 없음` };
+            guides.footer = { grade: 'share', note: '출처와 생성 시점' };
             return guides;
         }
 
@@ -3280,14 +3309,14 @@
             const banner = document.getElementById('pdf-guide-banner');
             if (!banner) return;
             const messages = [];
-            if (emptyCount) messages.push(`<strong>내용이 비어 있는 항목이 ${emptyCount}개</strong> 있습니다. 빈 페이지가 인쇄되지 않도록 제외하시길 권합니다.`);
-            if (internalCount) messages.push(`<strong>내부 검토용 항목이 ${internalCount}개</strong> 있습니다. 약사님께 보내실 자료라면 빼시는 편이 안전합니다.`);
+            if (emptyCount) messages.push(`<strong>내용 없음 ${emptyCount}개</strong>`);
+            if (internalCount) messages.push(`<strong>내부 검토용 ${internalCount}개</strong>`);
             if (messages.length) {
                 banner.className = 'text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border bg-amber-50 border-amber-200 text-amber-900';
-                banner.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> ${messages.join(' ')} <span class="block mt-1 font-medium">위 <strong>약사님 공유용</strong> 버튼을 누르면 한 번에 정리됩니다.</span>`;
+                banner.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1.5"></i>${messages.join(' · ')} — <strong>약사님 공유용</strong> 버튼으로 한 번에 정리됩니다.`;
             } else {
                 banner.className = 'text-[11px] leading-relaxed rounded-lg px-3 py-2.5 border bg-emerald-50 border-emerald-200 text-emerald-900';
-                banner.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> 선택 가능한 항목이 모두 정상 상태입니다.';
+                banner.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5"></i>모든 항목 정상입니다.';
             }
         }
 
@@ -3628,7 +3657,8 @@
 
         function applyPrintSectionVisibility(selectedSections) {
             const selected = new Set(selectedSections);
-            const reportDetails = Array.from(document.querySelectorAll('#report-card details.report-details'));
+            // [v6.9.0] report-details 클래스가 없는 접기(입지 참고점수 등)도 함께 펼칩니다.
+            const reportDetails = Array.from(document.querySelectorAll('#report-card details'));
             PRE_PRINT_STATE = {
                 investmentOpen: !document.getElementById('investment-input-panel').classList.contains('hidden'),
                 detailOpenStates: reportDetails.map(element => element.open)
