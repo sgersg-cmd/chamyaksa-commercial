@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v6.4.1</title>
+    <title>약국 개설 전용 상권분석 시스템 v6.5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -94,7 +94,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 7mm 7mm 8mm;
+            margin: 6mm 5mm 7mm;   /* [v6.5.0] 좌우 공백이 과해 본문 폭을 넓혔습니다 */
         }
         
         @media print {
@@ -146,6 +146,17 @@
             #report-card [data-numbered="true"] .rounded-2xl { border-color: #94a3b8 !important; }
             #report-card table { border: 1pt solid #94a3b8 !important; }
             #report-card svg { max-width: 100% !important; height: auto !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+            /* [v6.5.0] 인쇄에서 그래프 막대·수치가 접히지 않도록 고정합니다. */
+            #report-card .tabular-nums { font-variant-numeric: tabular-nums !important; }
+            #age-chart > div, #concentration-chart > div { break-inside: avoid !important; page-break-inside: avoid !important; }
+            #report-card [style*="background:#"] { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            #age-chart .bg-emerald-500, #age-chart .bg-slate-400,
+            #concentration-chart .bg-red-500, #concentration-chart .bg-amber-500,
+            #concentration-chart .bg-emerald-500, #concentration-chart .bg-slate-400 {
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            }
+            /* 지도는 인쇄 시 높이를 고정해 중심이 흔들리지 않게 합니다. */
+            #kakao-map { height: 68mm !important; width: 100% !important; }
             #scenario-chart-wrap, #density-gauge-wrap { break-inside: avoid !important; page-break-inside: avoid !important; }
             #report-card thead { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             #report-card th, #report-card td { border-bottom: 0.6pt solid #cbd5e1 !important; }
@@ -176,17 +187,21 @@
                 break-after: avoid !important;
                 margin-bottom: 2mm !important;
             }
-            #report-card .p-8, #report-card .md\:p-10 { padding: 4mm !important; }
-            #report-card .p-6 { padding: 3.5mm !important; }
-            #report-card .p-5 { padding: 3mm !important; }
-            #report-card .p-4 { padding: 2.5mm !important; }
+            /* [v6.5.0] 바깥 래퍼의 좌우 패딩까지 겹쳐 본문이 좁아지던 문제를 해소합니다. */
+            #report-card { padding-left: 0 !important; padding-right: 0 !important; }
+            #report-card .p-8, #report-card .md\:p-10 { padding: 3mm 0 !important; }
+            #report-card .p-6 { padding: 3mm 3mm !important; }
+            #report-card .p-5 { padding: 2.8mm 3mm !important; }
+            #report-card .p-4 { padding: 2.4mm 2.8mm !important; }
             #report-card .gap-5 { gap: 3mm !important; }
             #report-card .gap-4 { gap: 2.5mm !important; }
             #report-card .gap-3 { gap: 2mm !important; }
-            #report-card .space-y-9 > :not([hidden]) ~ :not([hidden]) { margin-top: 3mm !important; }
-            #report-card .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 2.3mm !important; }
-            #report-card .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.8mm !important; }
-            #report-card .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.3mm !important; }
+            #report-card .space-y-9 > :not([hidden]) ~ :not([hidden]) { margin-top: 4.5mm !important; }
+            #report-card .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 3.4mm !important; }
+            #report-card .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 2.8mm !important; }
+            #report-card .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 2mm !important; }
+            #report-card p { line-height: 1.55 !important; }
+            #report-card th, #report-card td { padding: 1.9mm 2.2mm !important; }
             #report-card .print-metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
             #report-card #lbl-ai-summary-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
             /* Chrome 인쇄에서 CSS Grid 전체가 다음 페이지로 밀리며 큰 공백이 생기는 현상 방지 */
@@ -311,7 +326,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v6.4.1] 광주광역시 시도 표기 보정, 신설 행정구역 인구 미제공 대응.
+            // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
+        // [v6.4.1] 광주광역시 시도 표기 보정, 신설 행정구역 인구 미제공 대응.
         // [v6.4.0] 연령대 분포·진료과군 비중 시각화, 핵심 판단 한 줄 요약 추가.
         // [v6.3.0] PDF 항목 구분 강화, 산정 기준 일괄 펼치기, 텍스트를 대체하는 SVG 지표 3종 추가.
         // [v6.2.0] 심평원·SGIS·카카오 지역명 표기 차이 보정 (약국 포화도 매칭률 개선).
@@ -335,7 +351,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.4.1</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v6.5.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -385,8 +401,9 @@
 
         <!-- 리포트 스킨 출력 구역 -->
         <div id="report-zone" class="hidden space-y-6">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 no-print bg-slate-800 text-white p-4 rounded-xl shadow-sm">
-                <span id="lbl-data-status-bar" class="text-sm font-medium sm:pl-1 text-slate-200 flex-1"></span>
+            <div class="no-print bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div id="lbl-data-status-bar" class="px-4 py-3 border-b border-slate-100"></div>
+                <div class="flex flex-wrap items-center justify-end gap-2 px-4 py-3 bg-slate-50">
                 <button onclick="toggleAllReportDetails()" id="btn-toggle-details" class="no-print bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 border border-slate-300">
                     <i class="fa-solid fa-chevron-down text-slate-500" id="icon-toggle-details"></i> <span id="lbl-toggle-details">산정 기준 모두 보기</span>
                 </button>
@@ -396,6 +413,7 @@
                 <button onclick="openPdfSelection()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0">
                     <i class="fa-solid fa-list-check"></i> PDF 항목 선택
                 </button>
+                </div>
             </div>
 
             <div id="report-card" class="bg-white rounded-2xl border border-slate-200 p-8 md:p-10 space-y-9 bg-white card-shadow">
@@ -411,9 +429,7 @@
 
                 <div data-print-section="header" class="text-center border-b border-slate-200 pb-6 print-keep-together">
                     <h2 class="text-2xl font-black text-slate-900 tracking-tight" id="report-title">약국 개설 후보지 상권분석 리포트 []</h2>
-                    <div class="text-xs text-slate-500 mt-3 font-semibold space-y-1">
-                        <p id="report-sync-line" class="text-blue-600 font-bold"></p>
-                    </div>
+                    <p id="report-title-sub" class="text-[11px] text-slate-500 mt-2 font-semibold"></p>
                 </div>
 
                 <!-- 1. 핵심 판단 -->
@@ -461,7 +477,7 @@
                 <!-- 1-2. 지도 인터페이스 -->
                 <section data-print-section="map" data-numbered="true" class="space-y-3 page-break-map">
                     <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide uppercase"><span class="section-no"></span>후보지 위치</h3>
-                    <div id="kakao-map" class="w-full h-80 rounded-2xl border border-slate-300 bg-slate-100 shadow-inner overflow-hidden shadow-md"></div>
+                    <div id="kakao-map" class="w-full h-80 rounded-2xl border border-slate-300 bg-slate-100 shadow-inner overflow-hidden shadow-md mx-auto"></div>
                     <div class="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-bold pl-1">
                         <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block"></span> 후보지</span>
                         <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span> 병원·의원</span>
@@ -1178,7 +1194,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.4.1</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v6.5.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1197,10 +1213,11 @@
                     <div class="footer-source-strip mx-4 mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
                         <p><strong class="text-slate-700">구성:</strong> 공식·실측(심평원·카카오·건축HUB·SGIS) · 공식 추정(서울 상권데이터) · 확인 입력/근거형 계산(처방·조제·비용)</p>
                         <p id="report-data-basis" class="mt-1">기준: 분석 실행 후 표시됩니다.</p>
+                        <p id="report-sync-line" class="mt-1.5 leading-relaxed text-slate-500"></p>
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.4.1</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v6.5.0</span></p>
                     </div>
                 </div>
 
@@ -1305,6 +1322,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v6.5.0] 자료 상태 격자 재설계, 출처줄 하단 이동, 인쇄 여백·간격 조정, 지도 중심 보정, 그래프 정렬.
         // [v6.4.1] 광주광역시 시도 표기 보정, 신설 행정구역 인구 미제공 대응.
         // [v6.4.0] 연령대 분포·진료과군 비중 시각화, 핵심 판단 한 줄 요약 추가.
         // [v6.3.0] PDF 항목 구분 강화, 산정 기준 일괄 펼치기, 텍스트를 대체하는 SVG 지표 3종 추가.
@@ -1325,7 +1343,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "6.4.1";
+        const SYSTEM_VERSION = "6.5.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2009,6 +2027,8 @@
             const hiraAppliedLabel = hiraDiagnostic.code === 'snapshot-fallback'
                 ? `마지막 정상자료 대체 (${formatSnapshotDate(GLOBAL_CALC_DATA.hiraSnapshotAt)})`
                 : (hiraDiagnostic.code === 'snapshot' ? `검증 저장자료 적용 (${formatSnapshotDate(GLOBAL_CALC_DATA.hiraSnapshotAt)})` : '실시간 조회 완료');
+            const titleSub = document.getElementById('report-title-sub');
+            if (titleSub) titleSub.innerText = document.getElementById('input-address').value.trim() || address;
             document.getElementById('report-sync-line').innerText = isReal
                 ? `※ 의료기관 기본정보 ${hiraAppliedLabel} · 실제 진료과목 상세조회 진행 중 · SGIS/서울/건축HUB 연동 조회 중`
                 : `※ 의료기관 기본정보 미적용 (${medicalUnavailableLabel}) · 임의 추정 의료데이터를 표시하지 않습니다`;
@@ -2029,10 +2049,7 @@
                 ? `35점 + 의료공급 ${supplyPoints.toFixed(1)}점 + 의사/약국 균형 ${balancePoints.toFixed(1)}점 - 경쟁위험 ${competitionPenalty.toFixed(1)}점 ${dataAdjustment >= 0 ? '+' : '-'} 데이터보정 ${Math.abs(dataAdjustment)}점 = ${baseScore}점`
                 : `건강보험심사평가원 의료기관 기본목록을 적용하지 못해 입지 모형점수를 산출하지 않았습니다. 원인: ${medicalUnavailableLabel}. 임의 추정값을 대신 표시하지 않습니다.`;
 
-            const statusBar = document.getElementById('lbl-data-status-bar');
-            statusBar.innerHTML = isReal
-                ? `<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 의료기관 기본목록 조회 성공 · 실제 진료과목 상세조회 대기`
-                : `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 의료기관 데이터 미적용 · ${escapeHtml(medicalUnavailableLabel)} · 임의 추정값 없음`;
+            renderDataSourceStrip();
 
             resetNearbyRadiusUi();
             resetHiraDetailUi();
@@ -2315,6 +2332,13 @@
                     circle500.setMap(mapInstance);
                     circle300.setMap(mapInstance);
                     GLOBAL_KAKAO_OVERLAYS.push(circle500, circle300);
+                    /* [v6.5.0] 리포트 영역이 나타난 직후 지도를 만들면 컨테이너 크기가 확정되지 않아
+                       중심이 틀어집니다. 레이아웃 재계산 후 중심을 다시 잡아 줍니다. */
+                    const recenterMap = () => { mapInstance.relayout(); mapInstance.setCenter(centerLatLng); };
+                    setTimeout(recenterMap, 150);
+                    setTimeout(recenterMap, 600);
+                    window.addEventListener('resize', recenterMap);
+                    window.addEventListener('beforeprint', recenterMap);
                     loadKakaoNearbyPlaces(centerLatLng, mapInstance);
                 };
 
@@ -2508,13 +2532,8 @@
                 : ((d.hiraDataSource === 'verified-snapshot' || d.hiraDataSource === 'edge-cache')
                     ? `검증 저장자료 (${formatSnapshotDate(d.hiraSnapshotAt)})`
                     : '실시간 정상 조회');
-            const statusBar = document.getElementById('lbl-data-status-bar');
             // v2.10.1: 매 호출마다 상태바를 반드시 초기화해 하위 레이어 문구가 중복 누적되지 않도록 합니다.
-            if (d.hiraDetailReal && d.nearbySearchReal) statusBar.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> 심평원 ${escapeHtml(hiraAppliedLabel)} + 카카오 반경 장소 실데이터 적용`;
-            else if (d.isRealData && d.nearbySearchReal) statusBar.innerHTML = `<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 심평원 ${escapeHtml(hiraAppliedLabel)} + 카카오 반경 장소 조회 성공 · 진료과 상세는 추가 검증 필요`;
-            else if (d.nearbySearchReal) statusBar.innerHTML = `<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 카카오 반경 장소 실데이터 적용 · 심평원 ${escapeHtml(hiraUnavailableLabel)}`;
-            else if (d.isRealData) statusBar.innerHTML = `<i class="fa-solid fa-circle-check text-blue-400 mr-1"></i> 심평원 ${escapeHtml(hiraAppliedLabel)} · 카카오 반경 장소 조회 대기`;
-            else statusBar.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> 심평원 ${escapeHtml(hiraUnavailableLabel)} · 임의 추정값 없음`;
+            renderDataSourceStrip();
             const footerStatus = document.getElementById('report-footer-data-status');
             const kakaoAppliedLabel = d.kakaoSnapshotFallback
                 ? `마지막 정상자료 대체 (${formatSnapshotDate(d.kakaoSnapshotAt)})`
@@ -3215,12 +3234,13 @@
                 const width = Math.max(1.5, (value / max) * 100);
                 const share = total ? (value / total) * 100 : 0;
                 const priority = PRIORITY_AGE_LABELS.has(row.label);
-                return `<div class="flex items-center gap-1.5 mb-1">
-                    <span class="text-[9px] font-bold text-slate-500 w-8 shrink-0">${escapeHtml(row.label)}</span>
-                    <div class="flex-1 h-3 bg-slate-100 rounded-sm overflow-hidden border border-slate-200">
+                return `<div class="flex items-center gap-2 mb-1">
+                    <span class="text-[10px] font-bold text-slate-500 w-9 shrink-0 whitespace-nowrap">${escapeHtml(row.label)}</span>
+                    <div class="flex-1 h-3.5 bg-slate-100 rounded-sm overflow-hidden border border-slate-200 min-w-0">
                         <div class="h-full ${priority ? 'bg-emerald-500' : 'bg-slate-400'}" style="width:${width.toFixed(1)}%"></div>
                     </div>
-                    <span class="text-[9px] font-bold ${priority ? 'text-emerald-700' : 'text-slate-500'} w-16 text-right shrink-0">${value.toLocaleString()} · ${share.toFixed(0)}%</span>
+                    <span class="text-[10px] font-bold ${priority ? 'text-emerald-700' : 'text-slate-500'} w-14 text-right shrink-0 whitespace-nowrap tabular-nums">${value.toLocaleString()}</span>
+                    <span class="text-[10px] font-semibold text-slate-400 w-8 text-right shrink-0 whitespace-nowrap tabular-nums">${share.toFixed(0)}%</span>
                 </div>`;
             }).join('') + '<p class="text-[9px] text-slate-400 mt-1"><span class="inline-block w-2 h-2 bg-emerald-500 rounded-sm align-middle mr-1"></span>초록은 약국 이용이 잦은 50대 이상입니다.</p>';
             wrap.classList.remove('hidden');
@@ -3243,8 +3263,8 @@
 
             box.innerHTML = `<div class="flex h-5 rounded-md overflow-hidden border border-slate-300">`
                 + segments.map(seg => `<div style="width:${seg.share.toFixed(1)}%;background:${seg.color}" title="${seg.label}"></div>`).join('')
-                + `</div><div class="flex flex-wrap gap-x-4 gap-y-1 mt-2">`
-                + segments.map(seg => `<span class="text-[10px] font-bold text-slate-600"><span class="inline-block w-2.5 h-2.5 rounded-sm align-middle mr-1" style="background:${seg.color}"></span>${seg.label} ${seg.value}건 (${seg.share.toFixed(0)}%)</span>`).join('')
+                + `</div><div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-2.5">`
+                + segments.map(seg => `<span class="text-[10px] font-bold text-slate-600 whitespace-nowrap"><span class="inline-block w-2.5 h-2.5 rounded-sm align-middle mr-1.5" style="background:${seg.color}"></span>${seg.label} <span class="tabular-nums">${seg.value}건 (${seg.share.toFixed(0)}%)</span></span>`).join('')
                 + `</div>`;
             wrap.classList.remove('hidden');
         }
@@ -3348,20 +3368,15 @@
             if (!data || !data.available) { box.innerHTML = ''; return; }
             const percent = Math.round(data.topRatio * 100);
             const tone = data.level === 'high' ? 'bg-red-500' : data.level === 'mid' ? 'bg-amber-500' : 'bg-emerald-500';
-            box.innerHTML = `<div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold text-slate-500 w-16 shrink-0">상위 1곳</span>
-                <div class="flex-1 h-4 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
-                    <div class="h-full ${tone}" style="width:${percent}%"></div>
+            const bar = (label, width, color, valueClass) => `<div class="flex items-center gap-2 mb-1.5">
+                <span class="text-[10px] font-bold text-slate-500 w-20 shrink-0 whitespace-nowrap">${label}</span>
+                <div class="flex-1 h-4 bg-slate-200 rounded-full overflow-hidden border border-slate-300 min-w-0">
+                    <div class="h-full ${color}" style="width:${width}%"></div>
                 </div>
-                <span class="text-[11px] font-black text-slate-800 w-12 text-right shrink-0">${percent}%</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold text-slate-500 w-16 shrink-0">나머지 ${Math.max(0, data.count - 1)}곳</span>
-                <div class="flex-1 h-4 bg-slate-200 rounded-full overflow-hidden border border-slate-300">
-                    <div class="h-full bg-slate-400" style="width:${100 - percent}%"></div>
-                </div>
-                <span class="text-[11px] font-black text-slate-600 w-12 text-right shrink-0">${100 - percent}%</span>
+                <span class="text-[11px] font-black ${valueClass} w-10 text-right shrink-0 whitespace-nowrap tabular-nums">${width}%</span>
             </div>`;
+            box.innerHTML = bar('상위 1곳', percent, tone, 'text-slate-800')
+                + bar(`나머지 ${Math.max(0, data.count - 1)}곳`, 100 - percent, 'bg-slate-400', 'text-slate-600');
         }
 
         function getReportDetails() {
@@ -3389,6 +3404,42 @@
         document.addEventListener('toggle', event => {
             if (event.target && event.target.tagName === 'DETAILS' && event.target.closest('#report-card')) syncToggleDetailsLabel();
         }, true);
+
+        /* [v6.5.0] 자료 연동 상태 표시 재설계
+           기존에는 5개 모듈이 문자열을 이어붙여 길이가 제각각이고 줄바꿈이 지저분했습니다.
+           항목·상태가 고정된 격자로 그려 한눈에 스캔되도록 바꿉니다. */
+        function renderDataSourceStrip() {
+            const box = document.getElementById('lbl-data-status-bar');
+            if (!box) return;
+            const d = GLOBAL_CALC_DATA;
+            const diag = (key) => GLOBAL_DATA_DIAGNOSTICS[key]?.short || '미확인';
+
+            const items = [
+                { name: '의료기관', ok: d.isRealData,
+                  text: d.isRealData ? (d.hiraDetailReal ? '진료과목까지 확인' : '기본목록 확인') : diag('hira') },
+                { name: '주변 병원·약국', ok: d.nearbySearchReal,
+                  text: d.nearbySearchReal ? `반경 300·500m 확인` : diag('kakao') },
+                { name: '배후 인구', ok: d.sgisReal,
+                  text: d.sgisReal ? `SGIS ${d.sgisYear || ''}년 ${d.sgisScopeLevel || ''}` : diag('sgis') },
+                { name: '지역 매출·유동', ok: d.seoulCommercialApplied, warn: !isSeoulAddressContext(),
+                  text: d.seoulCommercialApplied ? `서울 ${formatQuarterLabel(d.seoulQuarter)} 공식` : (isSeoulAddressContext() ? diag('seoul') : '서울 외 · 참고 가정값') },
+                { name: '약국 포화도', ok: d.densityReal, warn: Boolean(d.densityPartial),
+                  text: d.densityReal ? '전국 시군구 비교' : (d.densityPartial ? '인구 통계 미제공' : '미적용') },
+                { name: '건물 정보', ok: d.buildingLedgerReal || d.buildingPermitReal, warn: Boolean(d.buildingPermitReal && !d.buildingLedgerReal),
+                  text: d.buildingLedgerReal ? `건축물대장 · ${d.buildingLedgerRadius || 100}m 판정` : (d.buildingPermitReal ? '건축인허가 계획정보' : diag('building')) }
+            ];
+
+            const dot = (item) => item.ok && !item.warn ? 'bg-emerald-500' : item.warn ? 'bg-amber-500' : 'bg-slate-300';
+            const tone = (item) => item.ok && !item.warn ? 'text-slate-700' : item.warn ? 'text-amber-700' : 'text-slate-400';
+
+            box.innerHTML = '<div class="grid grid-cols-2 md:grid-cols-3 gap-x-5 gap-y-1.5">'
+                + items.map(item => `<div class="flex items-baseline gap-2 min-w-0">
+                        <span class="w-1.5 h-1.5 rounded-full ${dot(item)} shrink-0 translate-y-[-1px]"></span>
+                        <span class="text-[11px] font-bold text-slate-500 w-20 shrink-0">${item.name}</span>
+                        <span class="text-[11px] font-semibold ${tone(item)} truncate" title="${escapeHtml(item.text)}">${escapeHtml(item.text)}</span>
+                    </div>`).join('')
+                + '</div>';
+        }
 
         function renumberSections() {
             const sections = Array.from(document.querySelectorAll('#report-card [data-numbered="true"]'));
@@ -4641,10 +4692,6 @@
             V26_UPDATE_REPORT_STATUS_FOR_SGIS();
             const d = GLOBAL_CALC_DATA;
             const sgisLabel = GLOBAL_DATA_DIAGNOSTICS.sgis?.short || '미확인';
-            const statusBar = document.getElementById('lbl-data-status-bar');
-            if (statusBar) statusBar.innerHTML += d.sgisReal
-                ? ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-people-group text-emerald-400 mr-1"></i>SGIS ${d.sgisYear}년 ${d.sgisScopeLevel} 통계 적용`
-                : ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>SGIS ${escapeHtml(sgisLabel)}`;
             const footerStatus = document.getElementById('report-footer-data-status');
             if (footerStatus) footerStatus.innerText += ` · SGIS ${d.sgisReal ? `${d.sgisYear}년 ${d.sgisScopeLevel}` : sgisLabel}`;
         };
@@ -5048,12 +5095,6 @@
         updateReportDataStatus = function() {
             V27_UPDATE_REPORT_STATUS_FOR_SEOUL();
             const d = GLOBAL_CALC_DATA;
-            const statusBar = document.getElementById('lbl-data-status-bar');
-            if (statusBar) {
-                if (d.seoulCommercialApplied) statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-chart-line text-sky-400 mr-1"></i>서울 행정동 공식 추정매출·생활인구 적용`;
-                else if (!isSeoulAddressContext()) statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-chart-simple text-amber-400 mr-1"></i>서울 외 매출·유동 내부모형`;
-                else statusBar.innerHTML += ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>서울 데이터 ${escapeHtml(GLOBAL_DATA_DIAGNOSTICS.seoul?.short || '미확인')}`;
-            }
             const footerStatus = document.getElementById('report-footer-data-status');
             if (footerStatus) footerStatus.innerText += ` · 매출/생활인구 ${d.seoulCommercialApplied
                 ? `서울 ${d.seoulQuarter} 공식 추정`
@@ -5335,10 +5376,6 @@
             V28_UPDATE_REPORT_STATUS_FOR_BUILDING();
             const d = GLOBAL_CALC_DATA;
             const buildingLabel = GLOBAL_DATA_DIAGNOSTICS.building?.short || '미확인';
-            const statusBar = document.getElementById('lbl-data-status-bar');
-            if (statusBar) statusBar.innerHTML += d.buildingLedgerReal
-                ? ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-city text-cyan-400 mr-1"></i>건축물대장 ${d.buildingLedgerRadius}m 판정`
-                : ` <span class="text-slate-500 mx-1">·</span> <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>건축정보 ${escapeHtml(buildingLabel)}`;
             const footerStatus = document.getElementById('report-footer-data-status');
             if (footerStatus) footerStatus.innerText += ` · 건축물대장 ${d.buildingLedgerReal ? '적용' : buildingLabel}`;
             const sync = document.getElementById('report-sync-line');
@@ -5621,8 +5658,6 @@
         updateReportDataStatus = function() {
             V29_UPDATE_REPORT_STATUS_FOR_PERMIT();
             if (!GLOBAL_CALC_DATA.buildingPermitReal) return;
-            const statusBar = document.getElementById('lbl-data-status-bar');
-            if (statusBar) statusBar.innerHTML = statusBar.innerHTML.replace(/건축정보[^<]*$/, `건축인허가 계획 ${GLOBAL_CALC_DATA.buildingPermitRadius || 100}m 판정`);
             const footerStatus = document.getElementById('report-footer-data-status');
             if (footerStatus) footerStatus.innerText = footerStatus.innerText.replace(/건축물대장\s+[^·]+$/, '건축인허가 계획정보 적용');
             const sync = document.getElementById('report-sync-line');
