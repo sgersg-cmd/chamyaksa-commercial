@@ -201,16 +201,23 @@ const SIDO_FULL_NAME = {
   '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시',
   '경기': '경기도', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
   '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
-  '제주': '제주특별자치도'
+  '제주': '제주특별자치도',
+  // 심평원은 광주광역시를 과거 전남 소속 코드 체계에 따라 "전남광주"로 표기합니다.
+  '전남광주': '광주광역시'
 };
 
 const trimSidoSuffix = (value) => String(value || '').replace(/(특별자치도|특별자치시|특별시|광역시|도)$/, '');
 const compactName = (value) => String(value || '').replace(/\s+/g, '');
 
+/** 심평원 표기를 SGIS 정식 시도명으로 변환합니다. */
+function resolveSidoFullName(value) {
+  const short = trimSidoSuffix(value);
+  return SIDO_FULL_NAME[short] || value;
+}
+
 function sidoMatches(hiraSido, sgisSido) {
-  const short = trimSidoSuffix(hiraSido);
-  if (SIDO_FULL_NAME[short] === sgisSido) return true;
-  return trimSidoSuffix(sgisSido) === short;
+  if (resolveSidoFullName(hiraSido) === sgisSido) return true;
+  return trimSidoSuffix(sgisSido) === trimSidoSuffix(hiraSido);
 }
 
 /** SGIS "성남시 분당구" → ["성남시분당구", "성남분당구", "분당구"] */
@@ -222,12 +229,15 @@ function sgisNameAliases(sggu) {
   return aliases;
 }
 
-/** 심평원 "대구남구"(시도 접두) → ["대구남구", "남구"] */
+/* 심평원 "대구남구"(시도 접두) → ["대구남구", "남구"]
+   "전남광주 광주서구"처럼 시도 표기와 접두가 다른 경우도 함께 처리합니다. */
 function hiraNameAliases(sido, sggu) {
   const name = compactName(sggu);
-  const short = trimSidoSuffix(sido);
   const aliases = new Set([name]);
-  if (short && name.startsWith(short) && name.length > short.length) aliases.add(name.slice(short.length));
+  const prefixes = new Set([trimSidoSuffix(sido), trimSidoSuffix(resolveSidoFullName(sido))]);
+  for (const prefix of prefixes) {
+    if (prefix && name.startsWith(prefix) && name.length > prefix.length) aliases.add(name.slice(prefix.length));
+  }
   return aliases;
 }
 
