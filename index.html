@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v7.1.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v7.7.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -193,14 +193,23 @@
             }
             /* [v6.8.0] 큰 블록까지 통째로 묶으면 페이지 끝에 큰 공백이 생기고 장수가 늘어납니다.
                제목·표의 행·작은 카드만 묶고, 섹션과 긴 블록은 자연스럽게 나뉘도록 풉니다. */
-            #report-card .print-keep-together,
+            /* [v7.2.0] 큰 카드까지 통째로 묶으면 들어갈 자리가 없을 때 통째로 다음 장으로 넘어가
+               앞 페이지에 절반이 넘는 빈칸이 생깁니다. 작은 단위만 묶습니다. */
             #report-card .print-atomic,
             #report-card h2,
             #report-card h3,
             #report-card h4,
-            #report-card tr {
+            #report-card tr,
+            #report-card .grade-badge,
+            #scenario-chart-wrap, #density-gauge-wrap,
+            #age-chart > div, #concentration-chart > div {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+            }
+            #report-card .print-keep-together,
+            #report-card .print-card {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
             }
             #report-card [data-print-section],
             #report-card [data-numbered="true"],
@@ -251,8 +260,21 @@
             }
             #report-card h2, #report-card h3, #report-card strong { text-wrap: balance; }
             #report-card p { line-height: 1.7 !important; }
-            #report-card th, #report-card td { padding: 3mm 3.2mm !important; }
+            /* [v7.4.0] 표와 입력값이 화면용 13px를 그대로 써서 인쇄에서만 작게 나오던 문제를 보완합니다. */
+            #report-card th, #report-card td { padding: 3mm 3.2mm !important; font-size: 10.5pt !important; }
+            #report-card h4 { font-size: 12pt !important; }
+            #report-card input[type="number"], #report-card input[type="text"] {
+                font-size: 10.5pt !important; min-height: 0 !important;
+                border: 0.6pt solid #94a3b8 !important; padding: 1mm 2mm !important;
+            }
             #report-card .grid { gap: 5mm !important; }
+            /* [v7.2.0] 격자 안의 칸이 페이지를 넘어갈 수 있도록 열어 두면 빈칸이 크게 줄어듭니다. */
+            #report-card .grid, #report-card .grid > * {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            /* 페이지 맨 위에 온 섹션은 위쪽 여백을 접어 첫 줄이 종이 위쪽에서 시작하게 합니다. */
+            #report-card [data-numbered="true"] { break-before: auto !important; }
             /* [v6.7.0] 결론·비교·용어 풀이 등 후반부 블록이 촘촘하던 문제를 함께 해소합니다. */
             /* [v6.9.0] 어두운 카드는 인쇄하면 페이지 끝에 검은 여백이 크게 남고 잉크도 많이 씁니다.
                인쇄본에서는 밝은 배경으로 바꿔 문서답게 보이도록 합니다. */
@@ -317,27 +339,18 @@
                 page-break-inside: auto !important;
                 break-inside: auto !important;
             }
-            #report-card .footer-print-grid {
-                display: grid !important;
-                grid-template-columns: minmax(0, 1.45fr) minmax(0, .95fr) !important;
-                gap: 2.5mm !important;
-            }
-            #report-card .footer-print-grid > *,
-            #report-card .footer-source-strip {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
+            /* [v7.3.0] 출처 영역을 다시 2열로 되돌리던 규칙을 제거했습니다. 인쇄에서는 1열입니다. */
+            #report-card .footer-source-strip { page-break-inside: auto !important; break-inside: auto !important; }
             #report-card table.min-w-\[760px\] { min-width: 0 !important; width: 100% !important; }
             #report-card .basis-note { padding: 2.6mm 3mm !important; font-size: 9.5pt !important; line-height: 1.5 !important; }
-            #report-card .report-details { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+            #report-card .report-details { display: block !important; break-inside: auto !important; page-break-inside: auto !important; }
             #report-card .report-details > summary { display: flex !important; padding: 2.4mm 3mm !important; font-size: 10pt !important; cursor: default !important; }
             #report-card .report-details > summary::after { display: none !important; }
             #report-card .report-details-content { display: block !important; padding: 2.6mm 3mm !important; font-size: 9.5pt !important; line-height: 1.5 !important; }
-            #report-card .text-\[9px\], #report-card .text-\[10px\], #report-card .text-\[11px\], #report-card .text-xs { font-size: 9.5pt !important; line-height: 1.5 !important; }
-            #report-card .text-sm { font-size: 10.5pt !important; line-height: 1.5 !important; }
-            #report-card h3 { font-size: 12pt !important; line-height: 1.35 !important; }
-            #report-card h4 { font-size: 11pt !important; line-height: 1.4 !important; }
-            #report-card th, #report-card td { font-size: 9.5pt !important; line-height: 1.45 !important; }
+            /* [v7.3.0] 글자 크기 규칙이 앞쪽 선언과 중복되어 확대분을 되돌리고 있었습니다.
+               크기 지정은 앞쪽 한 곳으로만 유지합니다. */
+            #report-card h4 { line-height: 1.4 !important; }
+            #report-card th, #report-card td { line-height: 1.45 !important; }
             /* [v6.6.0] 인쇄본에서 조회 진행 상태·건수 같은 작업용 문구를 제거합니다.
                "조회 성공", "40/40개 성공", "검증 저장자료" 등은 화면에서 확인하는 정보이고,
                자료 출처와 기준일은 이미 문서 맨 아래에 정리되어 있습니다. */
@@ -376,15 +389,15 @@
             #report-card .rounded-2xl, #report-card .rounded-xl { border-radius: 2mm !important; }
             #report-card .grade-badge { font-size: 9pt !important; padding: 1mm 3mm !important; }
             #report-card .print-only { display: inline-block !important; }
-            #report-card .card-shadow, #report-card .shadow-sm, #report-card .shadow-md, #report-card .shadow-inner { box-shadow: none !important; }
-            #report-card p, #report-card li { orphans: 2; widows: 2; }
+            #report-card p, #report-card li { orphans: 2 !important; widows: 2 !important; }
             #investment-input-panel { display: block !important; }
             #investment-collapsed-summary { display: none !important; }
             .page-break-map { margin-bottom: 0 !important; }
-            #kakao-map { 
-                border: 1px solid #cbd5e1 !important; 
-                height: 165px !important;
-                min-height: 165px !important;
+            /* [v7.2.0] 인쇄에서 높이를 165px로 줄이던 옛 규칙을 제거했습니다.
+               크기를 바꾸면 카카오 지도가 좌상단 기준으로 재배치해 후보지가 중앙에서 벗어납니다.
+               화면과 같은 672×320px 그대로 인쇄합니다. */
+            #kakao-map {
+                border: 1px solid #cbd5e1 !important;
                 display: block !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
@@ -442,10 +455,8 @@
         const CONFIG = {
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
             API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
-            NET_MARGIN_RATE: 0.45,
-            COST_STAFF: 2500000,   
-            COST_FULL_PHARM: 6000000,
-            COST_HALF_PHARM: 3000000,
+            // [v7.6.0] 단일 마진율(0.45)은 조제·매약 이익률 분리로 대체했습니다.
+            // [v7.7.0] 인건비 단가는 화면 입력값으로 이관했습니다.
             // API 키를 브라우저에 직접 넣지 말고, Firebase Functions/Cloud Run 등 서버 엔드포인트를 연결하십시오.
             HIRA_DETAIL_MAX_FACILITIES: 40,
             HIRA_DETAIL_CONCURRENCY: 5,
@@ -458,7 +469,13 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v7.1.0] 중복·빈 항목 제거 (핵심 근거·확보율 카드·현장 확인 중복·건물 판정·용어 4종).
+            // [v7.7.0] 인건비 단가 입력화(코드·문구 이중관리 해소), 투자 회수기간 화면 표시.
+        // [v7.6.0] 조제·매약 이익률 분리 (단일 45% 적용으로 순이익이 크게 어긋나던 문제 수정).
+        // [v7.5.0] 연속 분석 시 이전 후보지 상태가 남던 문제 수정 (초기화 누락 60여 개).
+        // [v7.4.0] 인쇄에서 표·입력값 글자 크기 보완, 미사용 참조 정리.
+        // [v7.3.0] 인쇄 스타일 중복 규칙 정리 (글자 크기·출처 레이아웃 되돌림 현상 제거).
+        // [v7.2.0] 인쇄 지도 높이 강제 규칙 제거, 페이지 빈칸 해소.
+        // [v7.1.0] 중복·빈 항목 제거 (핵심 근거·확보율 카드·현장 확인 중복·건물 판정·용어 4종).
         // [v7.0.0] 인쇄 색상 팔레트 통일, 섹션 간격 확대, 안내 문구 축약.
         // [v6.9.0] 인쇄 시 전체 접기 펼침, 어두운 카드 밝게 전환, PDF 모달 가독성 개선.
         // [v6.8.0] 지도 중심 보정(인쇄 미디어 훅), 페이지 공백 해소, 출처 영역 정리.
@@ -489,7 +506,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v7.1.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v7.7.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1040,6 +1057,7 @@
                             <div class="grid grid-cols-2 gap-2 text-xs border-t border-slate-700 pt-3">
                                 <div><span class="text-slate-400 block text-[10px]">손익분기 처방</span><strong id="lbl-break-even-prescriptions" class="text-white">0건 / 일</strong></div>
                                 <div><span class="text-slate-400 block text-[10px]">처방 안전마진</span><strong id="lbl-safety-margin-prescriptions" class="text-emerald-300">0건 / 일</strong></div>
+                                <div><span class="text-slate-400 block text-[10px]">투자 회수기간</span><strong id="lbl-payback-months" class="text-amber-300">산출 대기</strong></div>
                             </div>
                         </div>
                         <div id="cost-analysis-guidance" class="print-card border border-dashed border-blue-300 rounded-xl p-5 bg-blue-50 flex flex-col justify-center">
@@ -1052,6 +1070,8 @@
                         <div class="report-details-content space-y-1.5">
                             <p>예상 처방 = 의사 수 × 일 처방 가정 × 병원·경쟁 약국별 점유율</p>
                             <p>월 조제수입 = 예상 처방 × 건당 조제수입 × 월 운영일수</p>
+                            <p>순이익 = 조제 수입 × 조제 이익률 + 매약 매출 × 매약 이익률 − 월 고정비</p>
+                            <p>이익률 기본값(조제 85% · 매약 35%)은 <strong>공식 통계가 아닌 참고값</strong>이며 비용 입력란에서 수정할 수 있습니다.</p>
                             <p>실제 비용 입력 시에만 순이익·손익분기점·회수기간을 제공합니다.</p>
                         </div>
                     </details>
@@ -1123,23 +1143,25 @@
                                 <p class="text-xs font-bold text-slate-500 flex items-center gap-1 pl-1"><i class="fa-solid fa-circle-minus text-slate-400"></i> ② 매월 고정 운영 지출비 계산기</p>
                                 <div class="border border-slate-200 rounded-xl bg-white p-4 space-y-3 shadow-inner">
                                     <div class="flex justify-between items-center text-xs border-b pb-2">
-                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">전산원 / 일반 직원 수</span><span class="text-[10px] text-slate-400">1인당 월 250만 원</span></div>
+                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">전산원 / 일반 직원 수</span><span class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">1인당 월 <input type="number" id="pay-staff" value="250" min="0" step="10" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-14 text-right font-bold border border-slate-300 rounded px-1 py-0.5 text-slate-700">만 원</span></div>
                                         <div class="flex items-center gap-2 no-print"><button onclick="adjustStaff('staff', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button><span id="count-staff" class="w-6 text-center font-black text-slate-800">1</span><button onclick="adjustStaff('staff', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button></div>
                                         <span class="hidden print:inline font-black text-slate-800" id="count-staff-print"></span>
                                     </div>
                                     <div class="flex justify-between items-center text-xs border-b pb-2">
-                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">풀타임 근무 약사 수</span><span class="text-[10px] text-slate-400">1인당 월 600만 원</span></div>
+                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">풀타임 근무 약사 수</span><span class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">1인당 월 <input type="number" id="pay-full-pharm" value="600" min="0" step="10" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-14 text-right font-bold border border-slate-300 rounded px-1 py-0.5 text-slate-700">만 원</span></div>
                                         <div class="flex items-center gap-2 no-print"><button onclick="adjustStaff('full-pharm', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button><span id="count-full-pharm" class="w-6 text-center font-black text-slate-800">1</span><button onclick="adjustStaff('full-pharm', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button></div>
                                         <span class="hidden print:inline font-black text-slate-800" id="count-full-pharm-print"></span>
                                     </div>
                                     <div class="flex justify-between items-center text-xs border-b pb-2">
-                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">하프타임 근무 약사 수</span><span class="text-[10px] text-slate-400">1인당 월 300만 원</span></div>
+                                        <div class="flex flex-col"><span class="text-slate-600 font-bold">하프타임 근무 약사 수</span><span class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">1인당 월 <input type="number" id="pay-half-pharm" value="300" min="0" step="10" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-14 text-right font-bold border border-slate-300 rounded px-1 py-0.5 text-slate-700">만 원</span></div>
                                         <div class="flex items-center gap-2 no-print"><button onclick="adjustStaff('half-pharm', -1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">-</button><span id="count-half-pharm" class="w-6 text-center font-black text-slate-800">0</span><button onclick="adjustStaff('half-pharm', 1)" class="w-6 h-6 bg-slate-200 hover:bg-slate-300 rounded-md font-bold text-xs">+</button></div>
                                         <span class="hidden print:inline font-black text-slate-800" id="count-half-pharm-print"></span>
                                     </div>
                                     <div class="flex justify-between items-center text-xs border-b pb-2"><span class="text-slate-600 font-semibold">상가 임대료 월 단가</span><div class="flex items-center gap-1"><input type="number" id="fixed-rent-cost" value="350" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span></div></div>
                                     <div class="flex justify-between items-center text-xs border-b pb-2"><span class="text-slate-600 font-semibold">상가 건물 운영 관리비</span><div class="flex items-center gap-1"><input type="number" id="fixed-maintenance-cost" value="22" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span></div></div>
                                     <div class="flex justify-between items-center text-xs border-b pb-1"><span class="text-slate-600 font-semibold">통신망 / 기본 소모품 / 공과금</span><div class="flex items-center gap-1"><input type="number" id="fixed-utility-cost" value="80" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">만 원</span></div></div>
+                                    <div class="flex justify-between items-center text-xs border-b pb-1"><span class="text-slate-600 font-semibold">조제 수입 이익률 <em class="not-italic text-[9px] text-amber-600 font-bold">참고값</em></span><div class="flex items-center gap-1"><input type="number" id="margin-presc-rate" value="85" min="0" max="100" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-amber-300 bg-amber-50 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">%</span></div></div>
+                                    <div class="flex justify-between items-center text-xs border-b pb-1"><span class="text-slate-600 font-semibold">매약 이익률 <em class="not-italic text-[9px] text-amber-600 font-bold">참고값</em></span><div class="flex items-center gap-1"><input type="number" id="margin-otc-rate" value="35" min="0" max="100" oninput="markCostsEdited(); reCalculateProfit()" class="number-input-compact w-16 text-right font-bold border border-amber-300 bg-amber-50 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-400 font-bold">%</span></div></div>
                                     <div class="flex justify-between items-center font-bold text-xs bg-red-50 p-2.5 rounded-lg text-red-900"><span>월 총 고정 운영비 합계 (BEP)</span><span id="calc-total-fixed-cost" class="text-sm font-black text-red-600">0원</span></div>
                                 </div>
                             </div>
@@ -1309,7 +1331,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v7.1.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v7.7.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1328,7 +1350,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v7.1.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v7.7.0</span></p>
                     </div>
                 </div>
 
@@ -1432,6 +1454,12 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v7.7.0] 인건비 단가 입력화(코드·문구 이중관리 해소), 투자 회수기간 화면 표시.
+        // [v7.6.0] 조제·매약 이익률 분리 (단일 45% 적용으로 순이익이 크게 어긋나던 문제 수정).
+        // [v7.5.0] 연속 분석 시 이전 후보지 상태가 남던 문제 수정 (초기화 누락 60여 개).
+        // [v7.4.0] 인쇄에서 표·입력값 글자 크기 보완, 미사용 참조 정리.
+        // [v7.3.0] 인쇄 스타일 중복 규칙 정리 (글자 크기·출처 레이아웃 되돌림 현상 제거).
+        // [v7.2.0] 인쇄 지도 높이 강제 규칙 제거, 페이지 빈칸 해소.
         // [v7.1.0] 중복·빈 항목 제거 (핵심 근거·확보율 카드·현장 확인 중복·건물 판정·용어 4종).
         // [v7.0.0] 인쇄 색상 팔레트 통일, 섹션 간격 확대, 안내 문구 축약.
         // [v6.9.0] 인쇄 시 전체 접기 펼침, 어두운 카드 밝게 전환, PDF 모달 가독성 개선.
@@ -1459,7 +1487,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "7.1.0";
+        const SYSTEM_VERSION = "7.7.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -1532,7 +1560,54 @@
             otcMonthlyRevenue: { low: 6000000, mid: 9000000, high: 16000000, unit: '원 / 월' },
             avgTicket:         { low: 15000,   mid: 19500,   high: 25000,    unit: '원 / 건' }
         };
-        let GLOBAL_CALC_DATA = { mainMedical: 0, mainDoctors: 0, subMedical1: 0, subDoctors1: 0, subMedical2: 0, subDoctors2: 0, isSeoul: false, monthOtcRevenue: 0, baseScore: 0, existingPharmacy: 0, existingPharmacyAdminDong: 0, competitionEquivalent: 0, nearbySearchReal: false, nearbyHospitals300: 0, nearbyHospitals500: 0, nearbyPharmacies300: 0, nearbyPharmacies500: 0, isRealData: false, hiraDetailReal: false, hiraDetailCoverage: 0, hiraDetailScope: "", hiraFacilities: [], hiraSubjectSummary: [], address: "", potentialCustomers: 0, residentCount: 0, computedMonthRev: 0 };
+        let /* [v7.5.0] 분석 상태 초기화
+               v5.8.0 이후 추가된 상태값(포화도·서울·SGIS·건축·확보율)이 초기화 목록에 빠져 있어,
+               다른 주소를 연속으로 분석하면 앞 후보지의 판정이 남았습니다.
+               예) 서울 후보지 → 지방 후보지 분석 시 서울 매출 적용 상태가 유지되어
+                   PDF 등급 배지와 자료 상태 표시가 잘못 나왔습니다. */
+            GLOBAL_CALC_DATA = {
+                mainMedical: 0, mainDoctors: 0, subMedical1: 0, subDoctors1: 0, subMedical2: 0, subDoctors2: 0,
+                isSeoul: false, monthOtcRevenue: 0, baseScore: 0, confidence: 0,
+                existingPharmacy: 0, existingPharmacyAdminDong: 0, competitionEquivalent: 0,
+                nearbySearchReal: false, nearbyHospitals300: 0, nearbyHospitals500: 0,
+                nearbyPharmacies300: 0, nearbyPharmacies500: 0,
+                isRealData: false, hiraDetailReal: false, hiraDetailCoverage: 0, hiraDetailScope: "",
+                hiraFacilities: [], hiraSubjectSummary: [], address: "",
+                potentialCustomers: 0, residentCount: 0, computedMonthRev: 0,
+                // 심평원 기본목록 조회 범위
+                hiraBasisSidoCd: "", hiraBasisTotalCount: 0, hiraBasisTruncated: false,
+                hiraBasisRadiusApplied: false, hiraBasisFetched: 0, hiraBasisOutOfRange: 0, hiraBasisNoCoordinate: 0,
+                // SGIS 배후 인구
+                sgisReal: false, sgisYear: null, sgisScopeLevel: "", sgisStaticApplied: false, sgisStaticGeneratedAt: null,
+                // 서울 매출·생활인구
+                seoulCommercialApplied: false, seoulQuarter: "", marketDataType: "", flowDataType: "",
+                flowFallbackApplied: false, seoulStaticApplied: false, seoulStaticGeneratedAt: null,
+                // 약국 포화도
+                densityReal: false, densityPartial: false, densityDistrict: "",
+                densityPopulationPercentile: null, densityGeneratedAt: null,
+                // 건축물대장·인허가
+                buildingLedgerReal: false, buildingPermitReal: false, buildingLedgerPurpose: "",
+                buildingPermitPurpose: "", buildingLedgerRadius: 100, buildingPermitRadius: 100, buildingDataSource: "",
+                // 데이터 출처·스냅샷 상태
+                hiraDataSource: "", hiraSnapshotAt: null, hiraSnapshotFallback: false,
+                kakaoDataSource: "", kakaoSnapshotAt: null, kakaoSnapshotFallback: false,
+                // 서울 상세 지표
+                seoulAdminCode: "", seoulAdminName: "", seoulAvgTicket: 0,
+                seoulMonthlyAreaSales: 0, seoulMonthlyAreaCount: 0,
+                seoulWeekdayRate: 0, seoulWeekendRate: 0,
+                // 유동인구 시간대
+                morning: 0, lunch: 0, evening: 0, night: 0, flowFallbackAssumption: null,
+                // 유효 범위·경쟁
+                effectiveRadius: 100, directCompetitionCount: 0, hiraBasisRadius: 500, aptCount: null,
+                // 서울 점포·생활인구 상세
+                seoulPerStoreSales: 0, seoulPerStoreCount: 0, seoulPharmacyStoreCount: 0,
+                seoulTotalFlowPopulation: 0, seoulTimeRates: null, seoulStaticMatchedBy: "",
+                // SGIS 상세
+                sgisAdmCd: "", sgisAdmName: "", sgisAgeGroups: [], sgisUnder15: 0, sgisOver65: 0,
+                totalHouseholds: null, villaHouseholds: null,
+                // 매약·처방 확인 상태
+                otcRevenueEdited: false
+            };
         let GLOBAL_KAKAO_MAP = null;
         let GLOBAL_KAKAO_CENTER = null;
         let GLOBAL_KAKAO_OVERLAYS = [];
@@ -2763,9 +2838,20 @@
             reCalculateProfit();
         }
 
+        /* [v7.7.0] 투자 회수기간은 계산만 하고 화면에 표시하지 않고 있었습니다.
+           초기 투자금과 순이익이 모두 확인된 경우에만 개월 수를 보여줍니다. */
         function updatePaybackMetrics() {
             const m = GLOBAL_ANALYSIS_METRICS;
             m.paybackMonths = m.netProfit > 0 && m.totalInvestment > 0 ? m.totalInvestment / m.netProfit : Infinity;
+            const el = document.getElementById('lbl-payback-months');
+            if (!el) return;
+            if (!m.costsConfirmed) { el.innerText = '비용 확인 필요'; el.className = 'text-slate-400'; return; }
+            if (!(m.totalInvestment > 0)) { el.innerText = '투자금 미입력'; el.className = 'text-slate-400'; return; }
+            if (!(m.netProfit > 0)) { el.innerText = '적자 · 회수 불가'; el.className = 'text-red-300'; return; }
+            const months = Math.ceil(m.paybackMonths);
+            const years = Math.floor(months / 12);
+            el.innerText = years > 0 ? `${months}개월 (약 ${years}년 ${months % 12}개월)` : `${months}개월`;
+            el.className = months <= 36 ? 'text-emerald-300' : months <= 60 ? 'text-amber-300' : 'text-red-300';
         }
 
         function formatWonCompact(value) {
@@ -3772,7 +3858,6 @@
         /* =========================
            v2.8.0 데이터 기반 후보지 판정·신규부지 시뮬레이션
            ========================= */
-        const V25_AGGREGATE_DETAIL = aggregateDetailedMedicalData;
 
         function normalizeBuildingAddress(value) {
             // [v3.1.0] 한글 앞뒤에서 \b(워드 바운더리)가 정상 동작하지 않아 층·호·동 표기가 제거되지 않던 문제를 수정합니다.
@@ -4283,14 +4368,15 @@
             html += row('한 달 총매출', '조제 + 매약', cases.map(c => won(c.prescRev + otc)));
 
             if (costsConfirmed && fixedCost > 0) {
-                const nets = cases.map(c => Math.round(((c.prescRev + otc) * CONFIG.NET_MARGIN_RATE) - fixedCost));
+                const rates = getMarginRates();
+                const nets = cases.map(c => Math.round(computeGrossProfit(c.prescRev, otc) - fixedCost));
                 html += row('한 달 예상 순이익', '입력하신 비용 기준', nets.map(v => v >= 0 ? won(v) : `-${Math.abs(v).toLocaleString()}원`), true);
 
                 scenarioBreakEven = 0;
                 const breakEven = cases.map(c => {
-                    const requiredTotal = fixedCost / CONFIG.NET_MARGIN_RATE;
-                    const requiredPresc = Math.max(0, requiredTotal - otc);
-                    return c.weightedCost > 0 ? Math.ceil(requiredPresc / c.weightedCost / c.operatingDays) : 0;
+                    const requiredPrescGross = Math.max(0, fixedCost - (otc * rates.otc));
+                    const perCase = c.weightedCost * rates.prescription;
+                    return perCase > 0 ? Math.ceil(requiredPrescGross / perCase / c.operatingDays) : 0;
                 });
                 scenarioBreakEven = breakEven[1] || breakEven[0] || 0;
                 html += row('손익분기 처방건수', '이만큼은 나와야 본전', breakEven.map(v => `${v.toLocaleString()}건`));
@@ -4311,6 +4397,31 @@
                 if (!costsConfirmed) message += ' 비용을 입력하고 확인하시면 순이익과 손익분기까지 함께 비교할 수 있습니다.';
                 note.innerText = message;
             }
+        }
+
+        /* [v7.6.0] 이익률 분리
+           기존에는 (조제 수입 + 매약 매출)에 45%를 한 번에 곱했습니다.
+           그런데 조제 수입은 약값을 뺀 순수 조제료라 원가가 거의 없고(참고 85%),
+           매약은 매입 원가가 있어 이익률이 낮습니다(참고 35%).
+           같은 비율을 쓰면 순이익이 실제와 크게 어긋나므로 항목별로 나눕니다.
+           두 값 모두 공식 통계가 아니라 참고값이며 사용자가 수정할 수 있습니다. */
+        const MARGIN_REFERENCE = { prescription: 85, otc: 35 };
+
+        function getMarginRates() {
+            const read = (id, fallback) => {
+                const raw = Number(document.getElementById(id)?.value);
+                return Number.isFinite(raw) && raw >= 0 && raw <= 100 ? raw / 100 : fallback / 100;
+            };
+            return {
+                prescription: read('margin-presc-rate', MARGIN_REFERENCE.prescription),
+                otc: read('margin-otc-rate', MARGIN_REFERENCE.otc)
+            };
+        }
+
+        // 매출총이익 = 조제 수입 × 조제 이익률 + 매약 매출 × 매약 이익률
+        function computeGrossProfit(prescRev, otcRev) {
+            const rates = getMarginRates();
+            return (prescRev * rates.prescription) + (otcRev * rates.otc);
         }
 
         function isPrescriptionConfirmed() {
@@ -4466,6 +4577,11 @@
             document.getElementById('rx-stable-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.stable.perDoctor; document.getElementById('rx-stable-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.stable.unitFee;
             document.getElementById('rx-support-per-doctor').value = PRESCRIPTION_MODEL_DEFAULTS.support.perDoctor; document.getElementById('rx-support-unit-fee').value = PRESCRIPTION_MODEL_DEFAULTS.support.unitFee;
             document.getElementById('input-operating-days').value = 25;
+            const prescMargin = document.getElementById('margin-presc-rate'); if (prescMargin) prescMargin.value = MARGIN_REFERENCE.prescription;
+            const otcMargin = document.getElementById('margin-otc-rate'); if (otcMargin) otcMargin.value = MARGIN_REFERENCE.otc;
+            [['pay-staff', 250], ['pay-full-pharm', 600], ['pay-half-pharm', 300]].forEach(([id, value]) => {
+                const el = document.getElementById(id); if (el) el.value = value;
+            });
             // [v5.3.0] 새 분석마다 확인 상태를 해제해 이전 후보지의 확인이 이어지지 않게 합니다.
             const confirmBox = document.getElementById('input-prescription-confirmed');
             if (confirmBox) confirmBox.checked = false;
@@ -4504,8 +4620,23 @@
             const totalRev = result.prescRev + GLOBAL_CALC_DATA.monthOtcRevenue;
             const staffCount = parseInt(document.getElementById('count-staff').innerText || 0); const fullPharmCount = parseInt(document.getElementById('count-full-pharm').innerText || 0); const halfPharmCount = parseInt(document.getElementById('count-half-pharm').innerText || 0);
             const rent = parseFloat(document.getElementById('fixed-rent-cost').value || 0) * 10000; const maint = parseFloat(document.getElementById('fixed-maintenance-cost').value || 0) * 10000; const utility = parseFloat(document.getElementById('fixed-utility-cost').value || 0) * 10000;
-            const humanCost = (staffCount * CONFIG.COST_STAFF) + (fullPharmCount * CONFIG.COST_FULL_PHARM) + (halfPharmCount * CONFIG.COST_HALF_PHARM); const totalFixedCost = rent + maint + utility + humanCost;
-            const netProfit = Math.round((totalRev * CONFIG.NET_MARGIN_RATE) - totalFixedCost); const requiredTotalRevenue = totalFixedCost / CONFIG.NET_MARGIN_RATE; const requiredPrescriptionRevenue = Math.max(0, requiredTotalRevenue - GLOBAL_CALC_DATA.monthOtcRevenue); const breakEvenPrescriptions = result.weightedCost > 0 ? Math.ceil(requiredPrescriptionRevenue / result.weightedCost / result.operatingDays) : 0; const safetyMarginPrescriptions = result.myShare - breakEvenPrescriptions; const costsConfirmed = document.getElementById('input-costs-confirmed').checked && gate.ready;
+            /* [v7.7.0] 인건비 단가가 코드 상수와 화면 문구 두 곳에 따로 있어
+               한쪽만 바꾸면 어긋났습니다. 입력값 하나로 통일하고 수정 가능하게 합니다. */
+            const payOf = (id, fallback) => {
+                const raw = Number(document.getElementById(id)?.value);
+                return (Number.isFinite(raw) && raw >= 0 ? raw : fallback) * 10000;
+            };
+            const humanCost = (staffCount * payOf('pay-staff', 250))
+                + (fullPharmCount * payOf('pay-full-pharm', 600))
+                + (halfPharmCount * payOf('pay-half-pharm', 300)); const totalFixedCost = rent + maint + utility + humanCost;
+            const rates = getMarginRates();
+            const grossProfit = computeGrossProfit(result.prescRev, GLOBAL_CALC_DATA.monthOtcRevenue);
+            const netProfit = Math.round(grossProfit - totalFixedCost);
+            // 손익분기: 매약 이익으로 못 채운 고정비를 조제 이익으로 메우는 데 필요한 처방건수
+            const otcGross = GLOBAL_CALC_DATA.monthOtcRevenue * rates.otc;
+            const requiredPrescriptionGross = Math.max(0, totalFixedCost - otcGross);
+            const prescGrossPerCase = result.weightedCost * rates.prescription;
+            const breakEvenPrescriptions = prescGrossPerCase > 0 ? Math.ceil(requiredPrescriptionGross / prescGrossPerCase / result.operatingDays) : 0; const safetyMarginPrescriptions = result.myShare - breakEvenPrescriptions; const costsConfirmed = document.getElementById('input-costs-confirmed').checked && gate.ready;
             Object.assign(GLOBAL_ANALYSIS_METRICS, { totalGross: result.totalGross, myShare: result.myShare, prescRev: result.prescRev, totalRev, totalFixedCost, netProfit, breakEvenPrescriptions, safetyMarginPrescriptions, weightedCost: result.weightedCost, marketShareRate: result.captureRate * 100, operatingDays: result.operatingDays, rent, maint, utility, humanCost, staffCount, fullPharmCount, halfPharmCount, costsConfirmed, categoryResults: result.categoryResults });
             document.getElementById('input-market-share-rate').value = (result.captureRate * 100).toFixed(1); document.getElementById('lbl-effective-capture-rate').innerText = result.totalGross > 0 ? `${(result.captureRate * 100).toFixed(1)}%` : '-';
             const modeBasis = GLOBAL_SITE_CONTEXT.mode === 'new-simulation' ? '신규부지 가정 시나리오' : GLOBAL_SITE_CONTEXT.mode === 'new-planned' ? '입점 예정정보' : GLOBAL_SITE_CONTEXT.mode === 'existing-manual' ? '수동 보정 병원정보' : `${GLOBAL_SITE_CONTEXT.effectiveRadius}m 처방 유입 거리 병원별 배분`;
