@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v7.7.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v7.9.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -456,7 +456,9 @@
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
             API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
             // [v7.6.0] 단일 마진율(0.45)은 조제·매약 이익률 분리로 대체했습니다.
-            // [v7.7.0] 인건비 단가는 화면 입력값으로 이관했습니다.
+            // [v7.9.0] 스냅샷 대체 자료를 실데이터와 구분해 표시 (PDF 등급·자료 상태 반영).
+        // [v7.8.0] 총투자금에 보증금·권리금 추가 (회수기간이 실제의 절반 이하로 나오던 문제 수정).
+        // [v7.7.0] 인건비 단가는 화면 입력값으로 이관했습니다.
             // API 키를 브라우저에 직접 넣지 말고, Firebase Functions/Cloud Run 등 서버 엔드포인트를 연결하십시오.
             HIRA_DETAIL_MAX_FACILITIES: 40,
             HIRA_DETAIL_CONCURRENCY: 5,
@@ -469,7 +471,9 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v7.7.0] 인건비 단가 입력화(코드·문구 이중관리 해소), 투자 회수기간 화면 표시.
+            // [v7.9.0] 스냅샷 대체 자료를 실데이터와 구분해 표시 (PDF 등급·자료 상태 반영).
+        // [v7.8.0] 총투자금에 보증금·권리금 추가 (회수기간이 실제의 절반 이하로 나오던 문제 수정).
+        // [v7.7.0] 인건비 단가 입력화(코드·문구 이중관리 해소), 투자 회수기간 화면 표시.
         // [v7.6.0] 조제·매약 이익률 분리 (단일 45% 적용으로 순이익이 크게 어긋나던 문제 수정).
         // [v7.5.0] 연속 분석 시 이전 후보지 상태가 남던 문제 수정 (초기화 누락 60여 개).
         // [v7.4.0] 인쇄에서 표·입력값 글자 크기 보완, 미사용 참조 정리.
@@ -506,7 +510,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v7.7.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v7.9.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1108,7 +1112,7 @@
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-right shrink-0">
-                            <div class="bg-white border border-slate-200 rounded-lg px-3 py-2"><span class="text-[9px] text-slate-400 block">시설 투자 가정</span><strong id="lbl-investment-preview" class="text-xs text-blue-700">0원</strong></div>
+                            <div class="bg-white border border-slate-200 rounded-lg px-3 py-2"><span class="text-[9px] text-slate-400 block">총 투자금 가정</span><strong id="lbl-investment-preview" class="text-xs text-blue-700">0원</strong></div>
                             <div class="bg-white border border-slate-200 rounded-lg px-3 py-2"><span class="text-[9px] text-slate-400 block">월 고정비 가정</span><strong id="lbl-fixed-preview" class="text-xs text-red-600">0원</strong></div>
                         </div>
                     </div>
@@ -1120,8 +1124,16 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 print-investment-grid">
                             <div class="space-y-2 print-card">
-                                <p class="text-xs font-bold text-slate-500 flex items-center gap-1 pl-1"><i class="fa-solid fa-wallet text-slate-400"></i> ① 개설 초기 시설 투자금 계획 <span class="text-[10px] text-slate-400">(보증금·권리금 제외)</span></p>
+                                <p class="text-xs font-bold text-slate-500 flex items-center gap-1 pl-1"><i class="fa-solid fa-wallet text-slate-400"></i> ① 개설 초기 투자금 계획</p>
                                 <div class="border border-slate-200 rounded-xl bg-white p-4 space-y-3 shadow-inner">
+                                    <div class="flex justify-between items-center text-xs border-b pb-2">
+                                        <span class="text-slate-600 font-medium">임대 보증금</span>
+                                        <div class="flex items-center gap-1"><input type="number" id="budget-deposit" value="0" min="0" step="500" oninput="markCostsEdited(); reCalculateBudget()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-500 font-bold">만 원</span></div>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs border-b pb-2">
+                                        <span class="text-slate-600 font-medium">권리금</span>
+                                        <div class="flex items-center gap-1"><input type="number" id="budget-premium" value="0" min="0" step="500" oninput="markCostsEdited(); reCalculateBudget()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-500 font-bold">만 원</span></div>
+                                    </div>
                                     <div class="flex justify-between items-center text-xs border-b pb-2">
                                         <span class="text-slate-600 font-medium">인테리어 시공 단가(평당)</span>
                                         <div class="flex items-center gap-1"><input type="number" id="budget-interior-unit" value="350" oninput="markCostsEdited(); reCalculateBudget()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-blue-600"><span class="text-slate-500 font-bold">만 원</span></div>
@@ -1135,7 +1147,7 @@
                                         <span class="text-slate-600 font-medium">자동화 솔루션 기기(ATC) 및 전산</span>
                                         <div class="flex items-center gap-1"><input type="number" id="budget-atc" value="2000" oninput="markCostsEdited(); reCalculateBudget()" class="number-input-compact w-16 text-right font-bold border border-slate-300 rounded px-1.5 py-0.5 text-slate-800"><span class="text-slate-500 font-bold">만 원</span></div>
                                     </div>
-                                    <div class="flex justify-between items-center font-bold text-xs bg-blue-50 p-2.5 rounded-lg text-blue-900"><span>최소 시설 필요 자금 합계</span><span id="calc-total-invest" class="text-sm font-black text-blue-700">0원</span></div>
+                                    <div class="flex justify-between items-center font-bold text-xs bg-blue-50 p-2.5 rounded-lg text-blue-900"><span>총 투자금 합계</span><span id="calc-total-invest" class="text-sm font-black text-blue-700">0원</span></div>
                                 </div>
                             </div>
 
@@ -1170,7 +1182,8 @@
                     <details class="basis-note report-details text-[11px] text-slate-600 leading-relaxed">
                         <summary><span><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> 비용 적용 기준</span></summary>
                         <div class="report-details-content space-y-1.5">
-                            <p>시설 투자금은 인테리어·초도 의약품·ATC·전산비를 합산하며 보증금·권리금은 제외합니다.</p>
+                            <p>총 투자금 = 임대 보증금 + 권리금 + 인테리어(평당 단가 × 실평수) + 초도 의약품 + ATC·전산비</p>
+                            <p>보증금·권리금은 <strong>직접 입력해야 회수기간에 반영</strong>됩니다. 미입력 시 0원으로 계산되어 회수기간이 짧게 나옵니다.</p>
                             <p>기본값은 참고 가정입니다. 실제 값을 입력하고 ‘실제 비용 정보 반영’을 선택해야 손익 판단에 사용할 수 있습니다.</p>
                         </div>
                     </details>
@@ -1331,7 +1344,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v7.7.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v7.9.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1350,7 +1363,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 1차 검토용이며 실제 처방·매출 또는 수익 보장값이 아닙니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v7.7.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v7.9.0</span></p>
                     </div>
                 </div>
 
@@ -1454,6 +1467,8 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v7.9.0] 스냅샷 대체 자료를 실데이터와 구분해 표시 (PDF 등급·자료 상태 반영).
+        // [v7.8.0] 총투자금에 보증금·권리금 추가 (회수기간이 실제의 절반 이하로 나오던 문제 수정).
         // [v7.7.0] 인건비 단가 입력화(코드·문구 이중관리 해소), 투자 회수기간 화면 표시.
         // [v7.6.0] 조제·매약 이익률 분리 (단일 45% 적용으로 순이익이 크게 어긋나던 문제 수정).
         // [v7.5.0] 연속 분석 시 이전 후보지 상태가 남던 문제 수정 (초기화 누락 60여 개).
@@ -1487,7 +1502,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "7.7.0";
+        const SYSTEM_VERSION = "7.9.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2757,8 +2772,12 @@
             const interiorUnit = parseFloat(document.getElementById('budget-interior-unit').value || 350);
             const medUnit = parseFloat(document.getElementById('budget-medicine').value || 5000);
             const atcUnit = parseFloat(document.getElementById('budget-atc').value || 2000);
+            /* [v7.8.0] 보증금·권리금이 총투자금에서 빠져 있어 회수기간이 실제의 절반 이하로 나왔습니다.
+               두 항목은 약국 개설에서 가장 큰 비중을 차지하므로 반드시 포함해야 합니다. */
+            const deposit = parseFloat(document.getElementById('budget-deposit')?.value || 0);
+            const premium = parseFloat(document.getElementById('budget-premium')?.value || 0);
             const interiorTotal = pyeong * interiorUnit * 10000;
-            const finalSum = interiorTotal + (medUnit * 10000) + (atcUnit * 10000);
+            const finalSum = interiorTotal + ((medUnit + atcUnit + deposit + premium) * 10000);
 
             document.getElementById('lbl-total-interior-computed').innerText = `${interiorTotal.toLocaleString()}원 (${pyeong}평 × ${interiorUnit}만원)`;
             document.getElementById('calc-total-invest').innerText = `${finalSum.toLocaleString()}원`;
@@ -3318,15 +3337,21 @@
             guides.glossary = { grade: 'share', note: '용어 설명' };
             guides.legal = { grade: 'share', note: '약사법 개설 제한' };
 
-            guides.map = d.nearbySearchReal
-                ? { grade: 'share', note: '실제 위치' }
-                : { grade: 'empty', note: '지도 없음' };
+            /* [v7.9.0] 실시간 조회에 실패해 저장분으로 대체한 경우, 최대 7일 지난 자료입니다.
+               그 사이 병원·약국이 바뀌었을 수 있어 '실제 자료'로 단정하지 않습니다. */
+            guides.map = !d.nearbySearchReal
+                ? { grade: 'empty', note: '지도 없음' }
+                : d.kakaoSnapshotFallback
+                    ? { grade: 'explain', note: `저장분 대체 (${formatSnapshotDate(d.kakaoSnapshotAt)})` }
+                    : { grade: 'share', note: '실제 위치' };
 
             guides.medical = !d.isRealData
                 ? { grade: 'empty', note: `병원·의사 수 없음` }
-                : d.hiraDetailReal
-                    ? { grade: 'share', note: '진료과목까지 확인' }
-                    : { grade: 'explain', note: '일부 진료과는 기관명 분류' };
+                : d.hiraSnapshotFallback
+                    ? { grade: 'explain', note: `저장분 대체 (${formatSnapshotDate(d.hiraSnapshotAt)})` }
+                    : d.hiraDetailReal
+                        ? { grade: 'share', note: '진료과목까지 확인' }
+                        : { grade: 'explain', note: '일부 진료과는 기관명 분류' };
 
             // [v6.1.0] 인구와 매출은 자료 성격이 달라 등급을 따로 판정합니다.
             guides.population = d.sgisReal
@@ -3663,10 +3688,10 @@
             const diag = (key) => GLOBAL_DATA_DIAGNOSTICS[key]?.short || '미확인';
 
             const items = [
-                { name: '의료기관', ok: d.isRealData,
-                  text: d.isRealData ? (d.hiraDetailReal ? '진료과목까지 확인' : '기본목록 확인') : diag('hira') },
-                { name: '주변 병원·약국', ok: d.nearbySearchReal,
-                  text: d.nearbySearchReal ? `반경 300·500m 확인` : diag('kakao') },
+                { name: '의료기관', ok: d.isRealData, warn: Boolean(d.hiraSnapshotFallback),
+                  text: d.hiraSnapshotFallback ? `저장분 대체 (${formatSnapshotDate(d.hiraSnapshotAt)})` : (d.isRealData ? (d.hiraDetailReal ? '진료과목까지 확인' : '기본목록 확인') : diag('hira')) },
+                { name: '주변 병원·약국', ok: d.nearbySearchReal, warn: Boolean(d.kakaoSnapshotFallback),
+                  text: d.kakaoSnapshotFallback ? `저장분 대체 (${formatSnapshotDate(d.kakaoSnapshotAt)})` : (d.nearbySearchReal ? `반경 300·500m 확인` : diag('kakao')) },
                 { name: '배후 인구', ok: d.sgisReal,
                   text: d.sgisReal ? `SGIS ${d.sgisYear || ''}년 ${d.sgisScopeLevel || ''}` : diag('sgis') },
                 { name: '지역 매출·유동', ok: d.seoulCommercialApplied, warn: !isSeoulAddressContext(),
@@ -4579,7 +4604,7 @@
             document.getElementById('input-operating-days').value = 25;
             const prescMargin = document.getElementById('margin-presc-rate'); if (prescMargin) prescMargin.value = MARGIN_REFERENCE.prescription;
             const otcMargin = document.getElementById('margin-otc-rate'); if (otcMargin) otcMargin.value = MARGIN_REFERENCE.otc;
-            [['pay-staff', 250], ['pay-full-pharm', 600], ['pay-half-pharm', 300]].forEach(([id, value]) => {
+            [['pay-staff', 250], ['pay-full-pharm', 600], ['pay-half-pharm', 300], ['budget-deposit', 0], ['budget-premium', 0]].forEach(([id, value]) => {
                 const el = document.getElementById(id); if (el) el.value = value;
             });
             // [v5.3.0] 새 분석마다 확인 상태를 해제해 이전 후보지의 확인이 이어지지 않게 합니다.
