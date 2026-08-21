@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v9.5.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v9.8.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -55,6 +55,9 @@
         #report-card [class*="justify-between"] p,
         #report-card [class*="items-center"] p { text-align: left; }
         .print-only { display: none; }
+        /* [v9.8.0] 산정서는 법정 서면이라 화면에서는 접어두고 필요할 때만 출력합니다. */
+        .no-print-default { display: none; }
+        .no-print-default.is-visible { display: block; }
         .section-no:empty { display: none; }
         .grade-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; border: 1px solid; white-space: nowrap; }
         .grade-real  { background:#ecfdf5; border-color:#6ee7b7; color:#047857; }
@@ -85,6 +88,9 @@
         .source-model { color: #b45309; background: #fffbeb; border: 1px solid #fde68a; }
         .source-input { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; }
         .print-only { display: none; }
+        /* [v9.8.0] 산정서는 법정 서면이라 화면에서는 접어두고 필요할 때만 출력합니다. */
+        .no-print-default { display: none; }
+        .no-print-default.is-visible { display: block; }
         .nearby-place-list { max-height: 9.5rem; overflow-y: auto; }
         .nearby-place-list::-webkit-scrollbar { width: 5px; }
         .nearby-place-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
@@ -531,7 +537,8 @@
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
             API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
             // [v7.6.0] 단일 마진율(0.45)은 조제·매약 이익률 분리로 대체했습니다.
-            // [v9.5.0] 산정 기준 자동 펼침, 처방·매출 등급 상향, 접기 내 텍스트 잘림 수정.
+            // [v9.8.0] 조제료 차등수가 반영, 법정 매출범위(1.7배) 산출, 예상매출액 산정서 추가.
+        // [v9.5.0] 산정 기준 자동 펼침, 처방·매출 등급 상향, 접기 내 텍스트 잘림 수정.
         // [v9.4.0] 비용 확인 반영 오류 수정, 매약 기본값 500만원, 입력칸 폭·버튼 호버·지도 축척 조정.
         // [v9.3.0] 처방건수를 심평원 공식 통계 기반으로 전환 (65/45/30 → 45/34/26). PDF 등급 상향.
         // [v9.2.0] 면책 안내를 문서 말미로 이동(앞에는 한 줄 요약), 인쇄 시 입력칸 박스 완전 제거.
@@ -565,7 +572,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v9.5.0] 산정 기준 자동 펼침, 처방·매출 등급 상향, 접기 내 텍스트 잘림 수정.
+            // [v9.8.0] 조제료 차등수가 반영, 법정 매출범위(1.7배) 산출, 예상매출액 산정서 추가.
+        // [v9.5.0] 산정 기준 자동 펼침, 처방·매출 등급 상향, 접기 내 텍스트 잘림 수정.
         // [v9.4.0] 비용 확인 반영 오류 수정, 매약 기본값 500만원, 입력칸 폭·버튼 호버·지도 축척 조정.
         // [v9.3.0] 처방건수를 심평원 공식 통계 기반으로 전환 (65/45/30 → 45/34/26). PDF 등급 상향.
         // [v9.2.0] 면책 안내를 문서 말미로 이동(앞에는 한 줄 요약), 인쇄 시 입력칸 박스 완전 제거.
@@ -621,7 +629,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.5.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.8.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -676,6 +684,9 @@
                 <div class="flex flex-wrap items-center justify-end gap-2 px-4 py-3 bg-slate-50">
                 <button onclick="toggleAllReportDetails()" id="btn-toggle-details" class="no-print bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 border border-slate-300">
                     <i class="fa-solid fa-chevron-down text-slate-500" id="icon-toggle-details"></i> <span id="lbl-toggle-details">산정 기준 모두 보기</span>
+                </button>
+                <button onclick="toggleEstimateSection()" id="btn-toggle-estimate" class="no-print bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 border border-slate-300">
+                    <i class="fa-solid fa-file-contract text-blue-600"></i> 예상매출액 산정서
                 </button>
                 <button onclick="addCurrentToComparison()" class="bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 border border-slate-300">
                     <i class="fa-solid fa-layer-group text-blue-600"></i> 비교함에 담기 <span id="compare-count-badge" class="ml-0.5 text-[10px] font-black bg-blue-600 text-white rounded-full px-1.5 py-0.5">0</span>
@@ -1153,6 +1164,7 @@
                         </div>
                     </div>
 
+                    <div id="tier-notice" class="hidden"></div>
                     <div id="group-mix-wrap" class="hidden border border-slate-200 rounded-xl bg-white px-4 py-3.5 print-keep-together">
                         <p class="text-[10px] font-bold text-slate-500 mb-2">진료과군별 처방 기여 비중</p>
                         <div id="group-mix-chart"></div>
@@ -1433,7 +1445,86 @@
                     </div>
                 </section>
 
-                                <details data-print-section="glossary" class="border border-slate-200 rounded-2xl bg-white overflow-hidden print-keep-together">
+                                <section data-print-section="estimate" data-numbered="true" class="space-y-3 no-print-default">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 class="text-sm font-extrabold text-blue-900 border-l-4 border-blue-600 pl-2 tracking-wide"><span class="section-no"></span>예상매출액 산정서</h3>
+                        <span class="grade-badge print-only" data-grade-badge-for="estimate"></span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-50 border border-blue-100 rounded-lg px-4 py-3">
+                        「가맹사업거래의 공정화에 관한 법률」 제9조 제5항 및 같은 법 시행령 제9조에 따른 예상매출액의 범위입니다.<br>
+                        <strong>가맹희망자에게 계약 체결 전 서면으로 제공하고, 서명본을 5년간 보관</strong>하셔야 합니다.
+                    </p>
+
+                    <div class="border border-slate-300 rounded-xl bg-white overflow-hidden print-keep-together">
+                        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                            <p class="text-xs font-extrabold text-slate-800">1. 점포 예정지</p>
+                        </div>
+                        <div class="px-4 py-3 text-[11px] space-y-1.5">
+                            <div class="flex justify-between gap-3"><span class="text-slate-500 font-medium">소재지</span><strong id="est-address" class="text-slate-800 text-right">-</strong></div>
+                            <div class="flex justify-between gap-3"><span class="text-slate-500 font-medium">전용면적</span><strong id="est-area" class="text-slate-800 text-right">-</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="border border-blue-300 rounded-xl bg-white overflow-hidden print-keep-together">
+                        <div class="px-4 py-3 bg-blue-50 border-b border-blue-200">
+                            <p class="text-xs font-extrabold text-blue-900">2. 예상 매출액의 범위 <span class="font-medium text-slate-600">— 영업개시일부터 1년간</span></p>
+                        </div>
+                        <div class="p-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="border border-slate-200 rounded-lg p-3 text-center">
+                                    <p class="text-[10px] text-slate-500 font-bold">최저액</p>
+                                    <p id="est-min" class="text-lg font-black text-slate-800 mt-1">-</p>
+                                </div>
+                                <div class="border border-slate-200 rounded-lg p-3 text-center">
+                                    <p class="text-[10px] text-slate-500 font-bold">최고액</p>
+                                    <p id="est-max" class="text-lg font-black text-slate-800 mt-1">-</p>
+                                </div>
+                            </div>
+                            <p id="est-ratio" class="text-[10px] text-slate-500 mt-2.5 text-center"></p>
+                        </div>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-xl bg-white overflow-hidden print-keep-together">
+                        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                            <p class="text-xs font-extrabold text-slate-800">3. 산출 방식 및 근거</p>
+                        </div>
+                        <div class="px-4 py-3 text-[11px] text-slate-700 leading-relaxed space-y-2">
+                            <p class="font-bold text-slate-900">조제 매출 = 예상 처방건수 × 조제수입 단가 × 차등지수 × 연간 운영일수</p>
+                            <p class="font-bold text-slate-900">매약 매출 = 지역 평균 매약 매출 × 12개월</p>
+                            <div class="border-t border-slate-100 pt-2 mt-2 space-y-1.5">
+                                <div class="flex gap-3"><span class="text-slate-500 font-medium w-24 shrink-0">예상 처방건수</span><span>심평원 의원 표시과목별 원외처방전수(2025년 심사분) ÷ 표시과목별 의원 수(2026년 2분기) ÷ 연간 진료일 285일 ÷ 의원당 평균 의사 1.45명</span></div>
+                                <div class="flex gap-3"><span class="text-slate-500 font-medium w-24 shrink-0">의료기관 현황</span><span>심평원 요양기관 개설 정보 (조회 시점 실측)</span></div>
+                                <div class="flex gap-3"><span class="text-slate-500 font-medium w-24 shrink-0">조제수입 단가</span><span>국민건강보험공단 약국 환산지수 × 심평원 약국 상대가치점수 (공식 산식)</span></div>
+                                <div class="flex gap-3"><span class="text-slate-500 font-medium w-24 shrink-0">차등지수</span><span>보건복지부 고시 약국 조제료 차등수가 (약사 1인당 1일 조제건수 기준)</span></div>
+                                <div class="flex gap-3"><span class="text-slate-500 font-medium w-24 shrink-0">범위 설정</span><span id="est-range-basis">진료과군별 처방건수의 통계 범위(하한·상한)를 적용</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-amber-200 rounded-xl bg-amber-50 px-4 py-3 text-[11px] text-amber-900 leading-relaxed print-keep-together">
+                        <p class="font-extrabold mb-1.5">4. 유의사항</p>
+                        <p>본 산정서는 공공기관 통계에 근거한 <strong>예상 매출액의 범위</strong>이며, 실제 매출을 보장하지 않습니다.</p>
+                        <p class="mt-1">개별 의료기관의 진료 규모·처방 성향, 경쟁 약국의 운영 방식, 계약 조건에 따라 실제 매출은 위 범위를 벗어날 수 있습니다.</p>
+                        <p class="mt-1">산출 근거 자료는 가맹본부 사무소에 비치되어 있으며 열람하실 수 있습니다.</p>
+                    </div>
+
+                    <div class="border border-slate-300 rounded-xl bg-white px-4 py-4 text-[11px] print-keep-together">
+                        <p class="font-extrabold text-slate-800 mb-3">5. 확인</p>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-slate-500 font-medium mb-6">가맹본부</p>
+                                <p class="border-b border-slate-400 pb-1">주식회사 참약사</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500 font-medium mb-6">가맹희망자 (서명)</p>
+                                <p class="border-b border-slate-400 pb-1">&nbsp;</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-500 font-medium mt-4">교부일자 <span id="est-date" class="text-slate-800 font-bold">-</span></p>
+                    </div>
+                </section>
+
+                <details data-print-section="glossary" class="border border-slate-200 rounded-2xl bg-white overflow-hidden print-keep-together">
                     <summary class="px-5 py-3 bg-slate-50 text-xs font-extrabold text-slate-800 cursor-pointer select-none">
                         <i class="fa-solid fa-circle-question text-blue-500 mr-1"></i> 이 리포트에 나오는 용어 풀이
                         <span class="block font-medium text-[10px] text-slate-500 mt-0.5">처음 보셔도 바로 이해하실 수 있게 정리했습니다.</span>
@@ -1470,7 +1561,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.5.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.8.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1489,7 +1580,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 검토용 참고자료이며 실제 처방·매출 또는 수익을 보장하지 않습니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.5.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.8.0</span></p>
                     </div>
                 </div>
 
@@ -1569,6 +1660,7 @@
                     <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="legal" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="legal"></span><strong class="text-[15px] text-slate-900 block leading-snug">약국 개설 법적 확인사항</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">약사법 개설 제한·건물 용도·절차</small></span></label>
                     <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="briefing" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="briefing"></span><strong class="text-[15px] text-slate-900 block leading-snug">현장 확인사항</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">계약 전 직접 확인할 항목</small></span></label>
                     <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="compare"><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="compare"></span><strong class="text-[15px] text-slate-900 block leading-snug">후보지 비교</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">비교함에 담은 후보지 나란히 보기</small></span></label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="estimate"><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="estimate"></span><strong class="text-[15px] text-slate-900 block leading-snug">예상매출액 산정서</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">가맹사업법 법정 서면 · 별도 출력</small></span></label>
                     <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="glossary" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="glossary"></span><strong class="text-[15px] text-slate-900 block leading-snug">용어 풀이</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">리포트에 나오는 용어 설명</small></span></label>
                     <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:bg-blue-50 cursor-pointer"><input type="checkbox" class="pdf-section-checkbox mt-0.5" value="footer" checked><span><span class="pdf-grade-badge block text-[11px] font-black mb-1" data-grade-for="footer"></span><strong class="text-[15px] text-slate-900 block leading-snug">출처·기준일</strong><small class="text-[12px] text-slate-500 leading-snug block mt-0.5">자료 출처와 생성 시점</small></span></label>
                 
@@ -1592,6 +1684,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v9.8.0] 조제료 차등수가 반영, 법정 매출범위(1.7배) 산출, 예상매출액 산정서 추가.
         // [v9.5.0] 산정 기준 자동 펼침, 처방·매출 등급 상향, 접기 내 텍스트 잘림 수정.
         // [v9.4.0] 비용 확인 반영 오류 수정, 매약 기본값 500만원, 입력칸 폭·버튼 호버·지도 축척 조정.
         // [v9.3.0] 처방건수를 심평원 공식 통계 기반으로 전환 (65/45/30 → 45/34/26). PDF 등급 상향.
@@ -1646,7 +1739,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "9.5.0";
+        const SYSTEM_VERSION = "9.8.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -3409,6 +3502,10 @@
             guides.notice = { grade: 'share', note: '필수 안내' };
             guides.glossary = { grade: 'share', note: '용어 설명' };
             guides.legal = { grade: 'share', note: '약사법 개설 제한' };
+            /* [v9.8.0] 산정서는 법정 서면이라 별도 판단이 필요합니다. */
+            guides.estimate = !gateReady
+                ? { grade: 'empty', note: '처방·매약 확인 필요' }
+                : { grade: 'explain', note: '법정 서면 · 서명 후 5년 보관' };
             guides.footer = { grade: 'share', note: '출처와 생성 시점' };
 
             guides.map = !d.nearbySearchReal
@@ -3729,6 +3826,14 @@
             document.querySelectorAll('[data-print-section]').forEach(element => {
                 /* [v9.2.0] 상단 한 줄 안내는 체크박스가 없는 필수 항목이므로 항상 출력합니다. */
                 if (element.dataset.printSection === 'notice') { element.classList.remove('print-excluded'); return; }
+                /* [v9.8.0] 산정서는 화면에서 접혀 있어도 선택하면 인쇄되어야 합니다. */
+                if (element.dataset.printSection === 'estimate') {
+                    const picked = selected.has('estimate');
+                    element.classList.toggle('is-visible', picked);
+                    element.classList.toggle('print-excluded', !picked);
+                    if (picked) renderEstimateCertificate();
+                    return;
+                }
                 element.classList.toggle('print-excluded', !selected.has(element.dataset.printSection));
             });
             preparePrintCoreCandidateLists();
@@ -4434,6 +4539,152 @@
             });
         }
 
+        /* [v9.6.0] 약국 조제료 차등수가 (보건복지부 고시)
+           약사 1인당 1일 조제건수가 75건을 넘으면 초과분의 조제료가 차감됩니다.
+             75건 이하        100%
+             75건 초과 ~100건   90%
+             100건 초과~150건   75%
+             150건 초과        50%
+           고시에 명시된 차등지수 산식을 그대로 사용합니다.
+           개설 약사 1명은 항상 포함하며, 하프타임 근무약사는 고시대로 0.5인으로 셉니다. */
+        const PHARMACY_TIER_BASIS = {
+            label: '약국 조제료 차등수가',
+            source: '보건복지부 고시 「건강보험 행위 급여·비급여 목록표 및 급여 상대가치점수」',
+            tiers: [
+                { limit: 75,  rate: 1.00, label: '75건 이하' },
+                { limit: 100, rate: 0.90, label: '75건 초과 ~ 100건' },
+                { limit: 150, rate: 0.75, label: '100건 초과 ~ 150건' },
+                { limit: Infinity, rate: 0.50, label: '150건 초과' }
+            ]
+        };
+
+        function computeTierIndex(perPharmacistDaily) {
+            const n = Number(perPharmacistDaily) || 0;
+            if (n <= 0) return 1;
+            if (n <= 75) return 1;
+            if (n <= 100) return (75 * 1.00 + (n - 75) * 0.90) / n;
+            if (n <= 150) return (75 * 1.00 + 25 * 0.90 + (n - 100) * 0.75) / n;
+            return (75 * 1.00 + 25 * 0.90 + 50 * 0.75 + (n - 150) * 0.50) / n;
+        }
+
+        // 차등수가 산정 대상 약사 수 (개설약사 1 + 풀타임 + 하프타임 0.5)
+        function countPharmacists() {
+            const full = Math.max(0, parseInt(document.getElementById('count-full-pharm')?.innerText || '0', 10) || 0);
+            const half = Math.max(0, parseInt(document.getElementById('count-half-pharm')?.innerText || '0', 10) || 0);
+            return 1 + full + (half * 0.5);
+        }
+
+        function describeTierIndex(dailyPrescriptions) {
+            const pharmacists = countPharmacists();
+            const perHead = pharmacists > 0 ? dailyPrescriptions / pharmacists : dailyPrescriptions;
+            const index = computeTierIndex(perHead);
+            return {
+                pharmacists, perHead, index,
+                cutRate: (1 - index) * 100,
+                applied: index < 1
+            };
+        }
+
+        // 차등수가 적용 결과를 화면에 표시합니다.
+        /* [v9.7.0] 예상매출액 산정서용 최저·최고액
+           가맹사업법 시행령 제9조 5항: 최고액은 최저액의 1.7배를 초과할 수 없습니다.
+           범위 시나리오(적을 때/많을 때)를 그대로 쓰되, 비율이 1.7배를 넘으면
+           최고액을 최저액×1.7로 낮춰 법정 기준을 맞춥니다. */
+        const REVENUE_RANGE_MAX_RATIO = 1.7;
+
+        // 산정서 값을 채웁니다.
+        function toggleEstimateSection() {
+            const section = document.querySelector('[data-print-section="estimate"]');
+            const button = document.getElementById('btn-toggle-estimate');
+            if (!section) return;
+            const show = !section.classList.contains('is-visible');
+            section.classList.toggle('is-visible', show);
+            if (button) button.innerHTML = show
+                ? '<i class="fa-solid fa-file-contract text-blue-600"></i> 산정서 접기'
+                : '<i class="fa-solid fa-file-contract text-blue-600"></i> 예상매출액 산정서';
+            if (show) { renderEstimateCertificate(); renumberSections(); section.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            else renumberSections();
+        }
+
+        function renderEstimateCertificate() {
+            const section = document.querySelector('[data-print-section="estimate"]');
+            if (!section) return;
+            const set = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
+            const won = (v) => `${Math.round(v).toLocaleString()}원`;
+
+            set('est-address', GLOBAL_CALC_DATA.address || GLOBAL_SITE_CONTEXT.targetAddress || '-');
+            const pyeong = Number(document.getElementById('input-pyeong')?.value || 0);
+            set('est-area', pyeong > 0 ? `${pyeong}평 (${(pyeong * 3.3058).toFixed(1)}㎡)` : '미입력');
+            set('est-date', new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long' }).format(new Date()));
+
+            const range = computeStatutoryRevenueRange();
+            if (!range) {
+                set('est-min', '산출 보류'); set('est-max', '산출 보류');
+                set('est-ratio', '처방건수와 매약 매출을 확인하시면 산출됩니다.');
+                return;
+            }
+            set('est-min', won(range.minAmount));
+            set('est-max', won(range.maxAmount));
+            const ratioEl = document.getElementById('est-ratio');
+            if (ratioEl) {
+                ratioEl.innerHTML = range.capped
+                    ? `산출 비율 ${range.rawRatio.toFixed(2)}배가 법정 상한을 넘어 <strong>최고액을 최저액의 1.7배로 조정</strong>했습니다. (시행령 제9조 5항)`
+                    : `최고액은 최저액의 <strong>${range.ratio.toFixed(2)}배</strong>로 법정 상한 1.7배 이내입니다.`;
+            }
+            set('est-range-basis', `진료과군별 처방건수 하한·상한 적용 — 하루 ${range.lowDaily}건 ~ ${range.highDaily}건 기준, 매약 매출 연 ${Math.round(range.otcYear / 10000).toLocaleString()}만원 포함`);
+        }
+
+        function computeStatutoryRevenueRange() {
+            const m = GLOBAL_ANALYSIS_METRICS;
+            if (!m.prescriptionGate || !m.prescriptionGate.ready) return null;
+
+            const models = getActiveSourceModels();
+            const low  = calculateModelResult(models, true, { main: PRESCRIPTION_REFERENCE.main.low,  stable: PRESCRIPTION_REFERENCE.stable.low,  support: PRESCRIPTION_REFERENCE.support.low });
+            const high = calculateModelResult(models, true, { main: PRESCRIPTION_REFERENCE.main.high, stable: PRESCRIPTION_REFERENCE.stable.high, support: PRESCRIPTION_REFERENCE.support.high });
+            if (!low || !high) return null;
+
+            const otcYear = GLOBAL_CALC_DATA.monthOtcRevenue * 12;
+            const yearly = (result) => {
+                const tier = describeTierIndex(result.myShare);
+                return Math.round(result.prescRev * tier.index * 12) + otcYear;
+            };
+            let minAmount = yearly(low);
+            let maxAmount = yearly(high);
+            if (minAmount > maxAmount) { const t = minAmount; minAmount = maxAmount; maxAmount = t; }
+
+            const rawRatio = minAmount > 0 ? maxAmount / minAmount : 0;
+            const capped = rawRatio > REVENUE_RANGE_MAX_RATIO;
+            if (capped) maxAmount = Math.round(minAmount * REVENUE_RANGE_MAX_RATIO);
+
+            return {
+                minAmount, maxAmount, rawRatio, capped,
+                ratio: minAmount > 0 ? maxAmount / minAmount : 0,
+                lowDaily: Math.round(low.myShare), highDaily: Math.round(high.myShare),
+                otcYear
+            };
+        }
+
+        function renderTierNotice(tier, cutAmount) {
+            const box = document.getElementById('tier-notice');
+            if (!box) return;
+            if (!tier) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+            box.classList.remove('hidden');
+            const head = `약사 <strong>${tier.pharmacists}명</strong> 기준 1인당 하루 <strong>${tier.perHead.toFixed(1)}건</strong>`;
+            if (!tier.applied) {
+                box.className = 'border border-emerald-200 bg-emerald-50 rounded-xl px-4 py-3 text-[11px] text-emerald-900 leading-relaxed print-keep-together';
+                box.innerHTML = `<p class="font-extrabold mb-1"><i class="fa-solid fa-circle-check mr-1"></i> 조제료 차등수가 — 감액 없음</p>`
+                    + `<p>${head} 으로 기준선 75건 이하입니다. 조제료를 100% 받습니다.</p>`;
+                return;
+            }
+            const needed = Math.max(0, Math.ceil(tier.perHead * tier.pharmacists / 75) - tier.pharmacists);
+            box.className = 'border border-amber-200 bg-amber-50 rounded-xl px-4 py-3 text-[11px] text-amber-900 leading-relaxed print-keep-together';
+            box.innerHTML = `<p class="font-extrabold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 조제료 차등수가 — ${tier.cutRate.toFixed(1)}% 감액</p>`
+                + `<p>${head} 으로 기준선 75건을 넘어, 초과분 조제료가 차감됩니다. `
+                + `월 <strong>${Math.round(cutAmount).toLocaleString()}원</strong>이 줄어듭니다.</p>`
+                + (needed > 0 ? `<p class="mt-1">근무약사를 <strong>${needed}명</strong> 더 두시면 감액이 사라집니다.</p>` : '')
+                + `<p class="mt-1 text-[10px] text-amber-700">보건복지부 고시 기준 — 75건 이하 100% · 100건까지 90% · 150건까지 75% · 초과 50%</p>`;
+        }
+
         function isPrescriptionConfirmed() {
             return Boolean(document.getElementById('input-prescription-confirmed')?.checked);
         }
@@ -4637,13 +4888,21 @@
                 document.getElementById('lbl-effective-capture-rate').innerText = '-';
                 document.getElementById('lbl-month-otc-rev').innerText = '입력 확인 필요';
                 renderPrescriptionConcentration(false); renderLegalBuildingPurpose(); renderScenarioRange(false);
-                renderGroupMixChart(null); renderOneLineSummary();
+                renderGroupMixChart(null); renderOneLineSummary(); renderTierNotice(null); renderEstimateCertificate();
                 updateOptionalCostUi(); renderScenarioCards();
                 if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
                 return;
             }
 
             result.categoryResults.forEach(row => { const el = document.getElementById(row.outputId); if (el) el.innerText = `${Math.round(row.myShare).toLocaleString()}건`; });
+            /* [v9.6.0] 조제료 차등수가 반영
+               약사 1인당 일 조제건수가 75건을 넘으면 초과분 조제료가 차감됩니다.
+               조제건수는 그대로 두고 조제 '수입'만 차등지수만큼 조정합니다. */
+            const tier = describeTierIndex(result.myShare);
+            result.prescRevBeforeTier = result.prescRev;
+            result.prescRev = Math.round(result.prescRev * tier.index);
+            result.tierInfo = tier;
+            renderTierNotice(tier, result.prescRevBeforeTier - result.prescRev);
             const totalRev = result.prescRev + GLOBAL_CALC_DATA.monthOtcRevenue;
             const staffCount = parseInt(document.getElementById('count-staff').innerText || 0); const fullPharmCount = parseInt(document.getElementById('count-full-pharm').innerText || 0); const halfPharmCount = parseInt(document.getElementById('count-half-pharm').innerText || 0);
             const rent = parseFloat(document.getElementById('fixed-rent-cost').value || 0) * 10000; const maint = parseFloat(document.getElementById('fixed-maintenance-cost').value || 0) * 10000; const utility = parseFloat(document.getElementById('fixed-utility-cost').value || 0) * 10000;
@@ -4674,7 +4933,7 @@
             document.getElementById('calc-total-fixed-cost').innerText = `${totalFixedCost.toLocaleString()}원`; document.getElementById('lbl-fixed-preview').innerText = formatWonCompact(totalFixedCost); document.getElementById('count-staff-print').innerText = `${staffCount}명`; document.getElementById('count-full-pharm-print').innerText = `${fullPharmCount}명`; document.getElementById('count-half-pharm-print').innerText = `${halfPharmCount}명`;
             renderPrescriptionConcentration(true); renderLegalBuildingPurpose(); renderScenarioRange(true); renumberSections();
             toggleAllReportDetails(true);   // [v9.5.0] 분석이 끝나면 산정 기준을 모두 펼쳐 둡니다.
-            renderGroupMixChart(result.categoryResults); renderOneLineSummary();
+            renderGroupMixChart(result.categoryResults); renderOneLineSummary(); renderEstimateCertificate();
             updatePaybackMetrics(); updateOptionalCostUi(); renderScenarioCards(); if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
         };
 
