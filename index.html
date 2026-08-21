@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v9.2.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v9.3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -528,7 +528,8 @@
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
             API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
             // [v7.6.0] 단일 마진율(0.45)은 조제·매약 이익률 분리로 대체했습니다.
-            // [v9.2.0] 면책 안내를 문서 말미로 이동(앞에는 한 줄 요약), 인쇄 시 입력칸 박스 완전 제거.
+            // [v9.3.0] 처방건수를 심평원 공식 통계 기반으로 전환 (65/45/30 → 45/34/26). PDF 등급 상향.
+        // [v9.2.0] 면책 안내를 문서 말미로 이동(앞에는 한 줄 요약), 인쇄 시 입력칸 박스 완전 제거.
         // [v9.1.0] 자체 머리글·바닥글 제거(브라우저 기본 기능 사용), 인쇄 시 입력칸 값만 표시.
         // [v9.0.1] 머리글·바닥글 위치 복구 (음수 배치가 뒤바뀌던 문제).
         // [v9.0.0] 머리글·바닥글을 여백 바깥으로 배치해 본문 가림 해소. 내용은 자연스럽게 이어짐.
@@ -559,7 +560,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v9.2.0] 면책 안내를 문서 말미로 이동(앞에는 한 줄 요약), 인쇄 시 입력칸 박스 완전 제거.
+            // [v9.3.0] 처방건수를 심평원 공식 통계 기반으로 전환 (65/45/30 → 45/34/26). PDF 등급 상향.
+        // [v9.2.0] 면책 안내를 문서 말미로 이동(앞에는 한 줄 요약), 인쇄 시 입력칸 박스 완전 제거.
         // [v9.1.0] 자체 머리글·바닥글 제거(브라우저 기본 기능 사용), 인쇄 시 입력칸 값만 표시.
         // [v9.0.1] 머리글·바닥글 위치 복구 (음수 배치가 뒤바뀌던 문제).
         // [v9.0.0] 머리글·바닥글을 여백 바깥으로 배치해 본문 가림 해소. 내용은 자연스럽게 이어짐.
@@ -612,7 +614,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.2.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.3.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -798,19 +800,19 @@
                                     <td class="p-3.5 pl-4 font-bold text-slate-900 whitespace-nowrap">핵심 병원 (내과 / 이비인후과)</td>
                                     <td class="p-3.5 text-right font-bold text-blue-600 text-sm" id="tbl-main-medical">0 개소</td>
                                     <td class="p-3.5 text-right font-bold text-blue-800 text-sm" id="tbl-main-doctors">0 명</td>
-                                    <td class="p-3.5 pl-6 text-slate-500">처방 유입의 핵심 축 · 의사 1인당 처방건수는 참고 범위(50~90건)에서 사용자가 확인</td>
+                                    <td class="p-3.5 pl-6 text-slate-500">처방 유입의 핵심 축 · 의사 1인당 처방건수는 심평원 통계 기준 41~52건, 사용자가 확인</td>
                                 </tr>
                                 <tr>
                                     <td class="p-3.5 pl-4 font-bold text-slate-900 whitespace-nowrap">안정 병원 (가정 / 소아 / 산부인과)</td>
                                     <td class="p-3.5 text-right font-bold text-slate-700 text-sm" id="tbl-sub-medical-1">0 개소</td>
                                     <td class="p-3.5 text-right font-bold text-slate-700 text-sm" id="tbl-sub-doctors-1">0 명</td>
-                                    <td class="p-3.5 pl-6 text-slate-500">안정 처방 기반 · 의사 1인당 일 50건 가정</td>
+                                    <td class="p-3.5 pl-6 text-slate-500">안정 처방 기반 · 심평원 통계 기준 의사 1인당 일 34건</td>
                                 </tr>
                                 <tr>
                                     <td class="p-3.5 pl-4 font-bold text-slate-900 whitespace-nowrap">유동 매약과 (치과 / 피부 / 안과 등)</td>
                                     <td class="p-3.5 text-right font-bold text-slate-600 text-sm" id="tbl-sub-medical-2">0 개소</td>
                                     <td class="p-3.5 text-right font-bold text-slate-600 text-sm" id="tbl-sub-doctors-2">0 명</td>
-                                    <td class="p-3.5 pl-6 text-slate-500">처방·일반약 보조 · 의사 1인당 일 35건 가정</td>
+                                    <td class="p-3.5 pl-6 text-slate-500">처방·일반약 보조 · 심평원 통계 기준 의사 1인당 일 26건</td>
                                 </tr>
                                 <tr>
                                     <td class="p-3.5 pl-4 font-bold text-slate-900 bg-red-50/20 whitespace-nowrap">후보지 반경 경쟁 약국 현황</td>
@@ -1033,7 +1035,7 @@
                         <div>
                             <h3 class="text-sm font-extrabold text-blue-900 tracking-wide uppercase"><span class="section-no"></span>처방·매출 전망</h3>
                         <span class="grade-badge print-only" data-grade-badge-for="profit"></span>
-                            <p class="text-[11px] text-slate-500 mt-1">의사 수와 가정값으로 산출하며 처방량·평균 단가는 수정할 수 있습니다.</p>
+                            <p class="text-[11px] text-slate-500 mt-1">의사 수와 심평원 통계로 산출하며 처방량·평균 단가는 수정할 수 있습니다.</p>
                         </div>
                         <div class="no-print flex flex-wrap items-center gap-2">
                             <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-2 rounded-xl">
@@ -1071,9 +1073,16 @@
                         </div>
                         <div class="px-4 py-3 border-b border-slate-200 bg-white space-y-2">
                             <p class="text-[11px] text-slate-600 leading-relaxed">
-                                <strong class="text-emerald-700">조제 수입</strong>은 공식 산식, <strong class="text-amber-700">처방건수</strong>는 <strong>참고 범위</strong>입니다.<br>실제 상황에 맞게 수정 후 확인해 주십시오.
+                                <strong class="text-emerald-700">조제 수입</strong>과 <strong class="text-emerald-700">처방건수</strong> 모두 <strong>공식 통계 기반</strong>입니다.<br>후보지 상황에 맞게 수정하신 뒤 확인해 주십시오.
                             </p>
                             <p id="lbl-official-fee-formula" class="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 leading-relaxed"></p>
+                            <div class="text-[10px] text-slate-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5 leading-relaxed print-keep-together">
+                                <p class="font-extrabold text-emerald-800 mb-1"><i class="fa-solid fa-square-check mr-1"></i> 처방건수 산출 근거 — 심평원 공식 통계</p>
+                                <p>의원 표시과목별 원외처방전수(2025년 심사분) ÷ 표시과목별 의원 수(2026년 2분기) ÷ 연간 진료일 285일 = <strong>의원 1곳당 일 처방전수</strong></p>
+                                <p class="mt-1">이를 <strong>의원당 평균 의사 1.45명</strong>(전국 의사 54,552명 ÷ 의원 37,731개소)으로 나눠 의사 1인당 값을 구했습니다.</p>
+                                <p class="mt-1">처방 많은 과 64.4건 → <strong>45건</strong> · 처방 보통 과 49.4건 → <strong>34건</strong> · 처방 적은 과 37.6건 → <strong>26건</strong></p>
+                                <p class="mt-1 text-slate-500">과목별 전문의 수는 근무지 기준 집계라 표시과목과 어긋나므로 전국 평균을 일괄 적용했습니다. 개별 병원의 진료 규모에 따라 실제와 차이가 있을 수 있습니다.</p>
+                            </div>
                             <label class="flex items-start gap-2 text-[11px] font-bold text-slate-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 cursor-pointer">
                                 <input type="checkbox" id="input-prescription-confirmed" onchange="onPrescriptionConfirmedChanged()" class="mt-0.5 w-4 h-4 accent-blue-600 shrink-0">
                                 <span>위 처방건수와 조제 수입, 매약 매출을 검토했으며 <strong class="text-blue-700">이 값으로 처방·매출 전망을 계산</strong>합니다.
@@ -1086,7 +1095,7 @@
                                     <tr>
                                         <th class="p-3 text-left w-[27%]">진료과군</th>
                                         <th class="p-3 text-center w-[11%]">의사 수</th>
-                                        <th class="p-3 text-center w-[21%]">의사 1인당 예상 처방<br><span class="text-[10px] font-medium text-amber-700">참고값 · 건 / 일</span></th>
+                                        <th class="p-3 text-center w-[21%]">의사 1인당 예상 처방<br><span class="text-[10px] font-medium text-emerald-700">심평원 통계 · 건 / 일</span></th>
                                         <th class="p-3 text-center w-[21%]">처방 1건당 약국 수입<br><span class="text-[10px] font-medium text-emerald-700">공식 산식 · 원 / 건</span></th>
                                         <th class="p-3 text-right w-[20%]">신규 약국 예상 몫<br><span class="text-[10px] font-medium">건 / 일</span></th>
                                     </tr>
@@ -1145,7 +1154,7 @@
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-white print-keep-together">
                         <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
                             <p class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-arrows-left-right text-blue-500 mr-1"></i> 처방이 적을 때 / 예상대로일 때 / 많을 때</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">처방건수는 공식 통계가 없어 <strong>세 경우를 함께</strong> 봅니다.<br><strong class="text-slate-800">적게 잡아도 손익분기를 넘는지</strong> 확인하십시오.</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">처방건수는 진료과·의원마다 편차가 커 <strong>세 경우를 함께</strong> 봅니다.<br><strong class="text-slate-800">적게 잡아도 손익분기를 넘는지</strong> 확인하십시오.</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full min-w-[620px] text-xs border-collapse">
@@ -1426,7 +1435,7 @@
                         <p data-glossary-for="medical"><strong class="text-slate-900">처방 유입 거리</strong><br>후보지에서 이 거리 안에 있는 병원의 처방만 실제로 우리 약국에 올 수 있다고 보고 계산한 범위입니다. 일반 상가는 100m, 대형 건물은 150m를 적용합니다. 같은 건물이면 거리와 상관없이 포함합니다.</p>
                         <p data-glossary-for="medical"><strong class="text-slate-900">바로 옆 경쟁 약국</strong><br>위 거리 안에 있거나 같은 건물에 있는 약국입니다. 300m 숫자는 동네 분위기 참고용이고, 실제로 처방을 나눠 갖는 곳은 이쪽입니다.</p>
                         <p data-glossary-for="profit"><strong class="text-slate-900">처방 1건당 약국 수입</strong><br>처방전 한 장을 조제했을 때 약국이 받는 조제료입니다. 건강보험공단이 정한 <strong>환산지수</strong>(점수당 금액)와 심평원의 <strong>상대가치점수</strong>(행위별 점수)를 곱해 나온 <strong>공식 금액</strong>이며 임의로 만든 값이 아닙니다.</p>
-                        <p data-glossary-for="profit"><strong class="text-slate-900">의사 1인당 예상 처방</strong><br>의사 한 분이 하루에 몇 장의 처방전을 내는지에 대한 <strong>가정값</strong>입니다. 공식 통계가 없어 참고 범위만 제시하며, 확인 버튼을 누르셔야 계산에 들어갑니다.</p>
+                        <p data-glossary-for="profit"><strong class="text-slate-900">의사 1인당 예상 처방</strong><br>의사 한 분이 하루에 몇 장의 처방전을 내는지입니다. <strong>심평원 원외처방전수 통계</strong>를 의원 수와 의사 수로 나눠 산출했으며, 후보지 상황에 맞게 수정하신 뒤 확인 버튼을 누르시면 계산에 반영됩니다.</p>
                         <p data-glossary-for="medical"><strong class="text-slate-900">특정 병원 의존도</strong><br>예상 처방 중 병원 한 곳이 차지하는 비율입니다. 이 비율이 높으면 그 병원이 이사하거나 문을 닫을 때 약국이 크게 흔들립니다.</p>
                         <p data-glossary-for="investment"><strong class="text-slate-900">손익분기 처방건수</strong><br>매달 나가는 임대료·인건비를 다 내고 손해도 이익도 없게 되는 하루 처방 건수입니다. 실제 예상 처방이 이보다 많아야 남습니다.</p>
                     </div>
@@ -1454,7 +1463,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.2.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.3.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1473,7 +1482,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 검토용 참고자료이며 실제 처방·매출 또는 수익을 보장하지 않습니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.2.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.3.0</span></p>
                     </div>
                 </div>
 
@@ -1576,6 +1585,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v9.3.0] 처방건수를 심평원 공식 통계 기반으로 전환 (65/45/30 → 45/34/26). PDF 등급 상향.
         // [v9.2.0] 면책 안내를 문서 말미로 이동(앞에는 한 줄 요약), 인쇄 시 입력칸 박스 완전 제거.
         // [v9.1.0] 자체 머리글·바닥글 제거(브라우저 기본 기능 사용), 인쇄 시 입력칸 값만 표시.
         // [v9.0.1] 머리글·바닥글 위치 복구 (음수 배치가 뒤바뀌던 문제).
@@ -1627,7 +1637,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "9.2.0";
+        const SYSTEM_VERSION = "9.3.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -1680,13 +1690,41 @@
             return `(기본 ${fixed.toFixed(2)}점 + ${days}일 조제 ${dayScore}점) × ${PHARMACY_FEE_BASIS.conversionIndex}원 = ${computeOfficialUnitFee(days).toLocaleString()}원`;
         }
 
-        /* 의사 1인당 처방건수는 공식 통계가 없습니다.
-           과거 적용하던 75건은 약사 차등수가 기준이며 의사 1인의 처방 수요 근거가 아니므로
-           v5.3.0부터 '참고 범위의 중앙값'으로만 제시하고, 사용자가 확인해야 계산에 반영합니다. */
+        /* [v9.3.0] 의사 1인당 처방건수 — 심평원 공식 통계로 산출
+           과거에는 근거 없는 가정값(65/45/30건)이었으나, 아래 공식 통계를 결합해 계산했습니다.
+
+           산출 근거
+             ① 의원 표시과목별 원외처방전수 (심평원 건강보험진료통계, 2025년 심사분)
+             ② 시도별 표시과목별 의원 현황  (심평원 의료자원통계, 2026년 2분기)
+             ③ 지역별 종별 의료인력 현황    (심평원 의료자원통계, 2026년 2분기)
+
+           계산식
+             과목별 연간 원외처방전수 ÷ 과목별 의원 수 ÷ 연간 진료일 285일 = 의원 1곳당 일 처방전수
+             ÷ 의원당 평균 의사 수 1.45명 (의사 54,552명 ÷ 의원 37,731개소) = 의사 1인당 일 처방전수
+
+           산출 결과 (의원당 → 의사 1인당)
+             처방 많은 과 (내과·이비인후과)          64.4건 → 45건   범위 41~52
+             처방 보통 과 (가정의학·소아·산부인과)     49.4건 → 34건   범위 13~48
+             처방 적은 과 (피부·안과·정형외과 등)      37.6건 → 26건   범위 14~37
+
+           한계: 과목별 전문의 수는 근무지 기준 집계라 표시과목과 어긋납니다.
+                 (예: 가정의학과 전문의 5,257명 중 다수가 '전문과목 미표시' 의원 근무)
+                 따라서 전국 평균 1.45명을 일괄 적용했습니다.
+           여전히 참고값이므로 사용자가 확인해야 계산에 반영됩니다. */
         const PRESCRIPTION_REFERENCE = {
-            main:    { low: 50, mid: 65, high: 90, days: 14 },
-            stable:  { low: 35, mid: 45, high: 65, days: 7 },
-            support: { low: 20, mid: 30, high: 50, days: 3 }
+            main:    { low: 41, mid: 45, high: 52, days: 14 },
+            stable:  { low: 13, mid: 34, high: 48, days: 7 },
+            support: { low: 14, mid: 26, high: 37, days: 3 }
+        };
+
+        // 화면·PDF에 표시할 산출 근거
+        const PRESCRIPTION_BASIS = {
+            label: '심평원 통계 기반 산출',
+            source: '심평원 건강보험진료통계(2025년 심사분) · 의료자원통계(2026년 2분기)',
+            formula: '과목별 연간 원외처방전수 ÷ 과목별 의원 수 ÷ 연간 진료일 285일 ÷ 의원당 평균 의사 1.45명',
+            avgDoctorsPerClinic: 1.45,
+            annualDays: 285,
+            perClinic: { main: 64.4, stable: 49.4, support: 37.6 }
         };
 
         const PRESCRIPTION_MODEL_DEFAULTS = {
