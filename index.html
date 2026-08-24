@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v9.11.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v9.12.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -553,7 +553,8 @@
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
             API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
             // [v7.6.0] 단일 마진율(0.45)은 조제·매약 이익률 분리로 대체했습니다.
-            // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
+            // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
+        // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
         // [v9.9.0] 인쇄 입력칸 박스 제거(CSS 주석 오류), 지도 말풍선·간격 수정, 페이지 공백 최소화.
         // [v9.8.0] 조제료 차등수가 반영, 법정 매출범위(1.7배) 산출, 예상매출액 산정서 추가.
@@ -591,7 +592,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
+            // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
+        // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
         // [v9.9.0] 인쇄 입력칸 박스 제거(CSS 주석 오류), 지도 말풍선·간격 수정, 페이지 공백 최소화.
         // [v9.8.0] 조제료 차등수가 반영, 법정 매출범위(1.7배) 산출, 예상매출액 산정서 추가.
@@ -651,7 +653,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.11.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.12.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1584,7 +1586,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.11.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.12.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1603,7 +1605,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 검토용 참고자료이며 실제 처방·매출 또는 수익을 보장하지 않습니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.11.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.12.0</span></p>
                     </div>
                 </div>
 
@@ -1707,6 +1709,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
         // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
         // [v9.9.0] 인쇄 입력칸 박스 제거(CSS 주석 오류), 지도 말풍선·간격 수정, 페이지 공백 최소화.
@@ -1765,7 +1768,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "9.11.0";
+        const SYSTEM_VERSION = "9.12.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -1863,7 +1866,7 @@
 
         // 참고 시장가격: 공식 통계가 없어 사용자가 확인·수정해야 하는 값입니다.
         const MARKET_REFERENCE = {
-            otcMonthlyRevenue: { low: 3000000, mid: 5000000, high: 7000000, unit: '원 / 월' },   /* [v9.4.0] 하루 20만원 × 월 25일 = 500만원 */
+            otcMonthlyRevenue: { low: 5000000, mid: 5000000, high: 5000000, unit: '원 / 월' },   /* [v9.4.0] 하루 20만원 × 월 25일 = 500만원 */
             avgTicket:         { low: 15000,   mid: 19500,   high: 25000,    unit: '원 / 건' }
         };
         let /* [v7.5.0] 분석 상태 초기화
@@ -2481,6 +2484,18 @@
                 supplyPoints, balancePoints, competitionPenalty, dataAdjustment, ...hiraRequestMeta
             };
 
+            /* [v9.12.0] 초기화 전에 조회가 끝났다면 건물 상태를 되살립니다. */
+            const keptBuilding = GLOBAL_SITE_CONTEXT.buildingLedgerData || GLOBAL_SITE_CONTEXT.buildingPermitData;
+            if (keptBuilding) {
+                Object.assign(GLOBAL_CALC_DATA, {
+                    buildingLedgerReal: Boolean(GLOBAL_SITE_CONTEXT.buildingLedgerData),
+                    buildingPermitReal: Boolean(GLOBAL_SITE_CONTEXT.buildingPermitData),
+                    buildingLedgerRadius: keptBuilding.radius || 100,
+                    buildingLedgerPurpose: (keptBuilding.purposes || []).join(' · '),
+                    buildingDataSource: GLOBAL_SITE_CONTEXT.buildingLedgerData ? 'ledger' : 'permit'
+                });
+            }
+
             const hiraDiagnostic = GLOBAL_DATA_DIAGNOSTICS.hira || diagnoseDataFailure(new Error('원인 미상'), '건강보험심사평가원');
             const medicalUnavailableLabel = hiraDiagnostic.code === 'no-data' ? '등록자료 없음' : hiraDiagnostic.short;
 
@@ -2783,13 +2798,23 @@
                     const mapInstance = new kakao.maps.Map(mapContainer, { center: centerLatLng, level: 5 });   // 생성 직후 아래에서 말풍선 여유분만큼 다시 잡습니다
                     GLOBAL_KAKAO_MAP = mapInstance;
                     GLOBAL_KAKAO_CENTER = centerLatLng;
-                    const marker = new kakao.maps.Marker({ map: mapInstance, position: centerLatLng });
+                    const marker = new kakao.maps.Marker({ map: mapInstance, position: centerLatLng, zIndex: 5 });
                     /* [v9.9.0] 고정폭 150px 안에 글자가 다 들어가지 않아 잘려 보였습니다.
                        내용 길이에 맞게 늘어나도록 두고 여백만 지정합니다. */
-                    const infoWindow = new kakao.maps.InfoWindow({
-                        content: '<div style="padding:6px 12px; font-size:12px; font-weight:700; color:#0f172a; white-space:nowrap;">개설 후보지</div>'
+                    /* [v9.12.0] 말풍선 개선
+                       - 좌우·위아래 여백을 같은 비율로 맞춰 균형을 잡습니다.
+                       - 기본 InfoWindow 는 마커와 겹쳐 글자가 가려지므로
+                         CustomOverlay 로 바꿔 마커 위쪽에 띄우고 zIndex 를 올립니다. */
+                    const infoWindow = new kakao.maps.CustomOverlay({
+                        position: centerLatLng,
+                        yAnchor: 2.3,
+                        zIndex: 10,
+                        content: '<div style="padding:7px 14px; background:#fff; border:1.5px solid #1e3a8a;'
+                            + ' border-radius:8px; box-shadow:0 2px 8px rgba(15,23,42,.25);'
+                            + ' font-size:12px; font-weight:800; line-height:1.2; color:#0f172a;'
+                            + ' white-space:nowrap; text-align:center;">개설 후보지</div>'
                     });
-                    infoWindow.open(mapInstance, marker);
+                    infoWindow.setMap(mapInstance);
                     GLOBAL_KAKAO_OVERLAYS.push(marker, infoWindow);
 
                     /* [v9.4.0] 기준을 반경 300m로 통일했고, 500m 원은 지도 밖으로 잘려 보였습니다.
@@ -2805,7 +2830,7 @@
                     /* [v9.10.0] 말풍선은 마커 위쪽에 그려지므로, 후보지를 지도 정중앙에 두면
                        말풍선 윗부분이 지도 밖으로 잘립니다. 중심을 약간 위로 올려
                        (= 후보지가 화면에서 아래로 내려가) 말풍선 공간을 확보합니다. */
-                    const bubbleOffsetLat = 0.00055;
+                    const bubbleOffsetLat = 0.00075;   // 말풍선이 위로 더 떠서 여유를 늘립니다
                     const viewCenter = new kakao.maps.LatLng(centerLatLng.getLat() + bubbleOffsetLat, centerLatLng.getLng());
                     const recenterMap = () => { mapInstance.relayout(); mapInstance.setCenter(viewCenter); };
                     setTimeout(recenterMap, 150);
@@ -4973,7 +4998,10 @@
             if (costsConfirmed) { document.getElementById('lbl-net-profit').innerText = netProfit >= 0 ? `월 약 ${netProfit.toLocaleString()}원` : `월 약 -${Math.abs(netProfit).toLocaleString()}원`; document.getElementById('lbl-break-even-prescriptions').innerText = `${breakEvenPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').innerText = `${safetyMarginPrescriptions >= 0 ? '+' : ''}${safetyMarginPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').className = safetyMarginPrescriptions >= 0 ? 'text-emerald-700' : 'text-red-700'; }
             document.getElementById('calc-total-fixed-cost').innerText = `${totalFixedCost.toLocaleString()}원`; document.getElementById('lbl-fixed-preview').innerText = formatWonCompact(totalFixedCost); document.getElementById('count-staff-print').innerText = `${staffCount}명`; document.getElementById('count-full-pharm-print').innerText = `${fullPharmCount}명`; document.getElementById('count-half-pharm-print').innerText = `${halfPharmCount}명`;
             renderPrescriptionConcentration(true); renderLegalBuildingPurpose(); renderScenarioRange(true); renumberSections();
-            toggleAllReportDetails(true);   // [v9.5.0] 분석이 끝나면 산정 기준을 모두 펼쳐 둡니다.
+            /* [v9.12.0] 다른 모듈이 나중에 렌더를 마치면서 다시 접히던 문제가 있어
+               렌더가 모두 끝난 뒤 한 번 더 펼칩니다. */
+            toggleAllReportDetails(true);
+            setTimeout(() => toggleAllReportDetails(true), 900);
             renderGroupMixChart(result.categoryResults); renderOneLineSummary(); renderEstimateCertificate();
             updatePaybackMetrics(); updateOptionalCostUi(); renderScenarioCards(); if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
         };
@@ -5986,6 +6014,7 @@
                 });
                 Object.assign(GLOBAL_CALC_DATA, { buildingLedgerReal: true, buildingLedgerRadius: data.radius, buildingLedgerPurpose: data.purposes.join(' · ') });
                 renderBuildingLedgerData(data);
+            renderPdfSectionGuides();   // 조회 결과를 PDF 등급에 즉시 반영
                 reapplyEffectiveFacilitiesAfterBuilding();
             } catch (error) {
                 if (token !== GLOBAL_BUILDING_REQUEST_TOKEN) return;
@@ -6000,7 +6029,13 @@
         setTargetContext = function(rawAddress, geocoderRow = null) {
             V28_SET_TARGET_CONTEXT_FOR_BUILDING(rawAddress, geocoderRow);
             GLOBAL_SITE_CONTEXT.buildingLedgerQuery = extractBuildingLedgerQuery(geocoderRow);
-            setTimeout(loadBuildingLedgerForCurrentAddress, 60);
+            /* [v9.12.0] 건물정보가 PDF에서 '내용 없음'으로 나오던 문제
+               건물 조회(60ms) 도중 renderFinalDashboard 가 GLOBAL_CALC_DATA 를 초기화하면서
+               buildingLedgerReal 플래그를 지워버렸습니다. 화면에는 값이 남아 있는데
+               플래그만 사라져 PDF 등급 판정이 '자료 없음'이 됐습니다.
+               지연을 늘리는 것만으로는 응답 속도에 따라 다시 어긋날 수 있어,
+               조회 결과를 GLOBAL_SITE_CONTEXT 에 보관하고 초기화 뒤 되살립니다. */
+            setTimeout(loadBuildingLedgerForCurrentAddress, 320);
         };
 
         // [v3.0.0] 건축물대장 신뢰도 가산은 computeReportConfidence() 단일 함수로 통합했습니다.
@@ -6222,6 +6257,7 @@
                 buildingDataSource: 'permit'
             });
             renderBuildingPermitData(data);
+            renderPdfSectionGuides();   // 조회 결과를 PDF 등급에 즉시 반영
             reapplyEffectiveFacilitiesAfterBuilding();
             return data;
         }
