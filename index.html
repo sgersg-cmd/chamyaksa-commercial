@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v9.13.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v9.14.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -559,7 +559,8 @@
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
             API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
             // [v7.6.0] 단일 마진율(0.45)은 조제·매약 이익률 분리로 대체했습니다.
-            // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
+            // [v9.14.0] 브라우저 저장소 자동 정리 (만료 캐시 누적 방지).
+        // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
         // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
         // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
@@ -599,7 +600,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
+            // [v9.14.0] 브라우저 저장소 자동 정리 (만료 캐시 누적 방지).
+        // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
         // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
         // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
@@ -661,7 +663,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.13.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.14.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1594,7 +1596,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.13.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.14.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1613,7 +1615,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 검토용 참고자료이며 실제 처방·매출 또는 수익을 보장하지 않습니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.13.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.14.0</span></p>
                     </div>
                 </div>
 
@@ -1717,6 +1719,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v9.14.0] 브라우저 저장소 자동 정리 (만료 캐시 누적 방지).
         // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
         // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
         // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
@@ -1777,7 +1780,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "9.13.0";
+        const SYSTEM_VERSION = "9.14.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -1791,6 +1794,7 @@
             if (footerVersion) footerVersion.innerText = VERSION_DISPLAY_FULL;
         }
         applySystemVersion();
+        cleanupLocalStorage();   // [v9.14.0] 오래된 캐시를 정리해 저장 한도 초과를 막습니다.
 
         // [v3.0.0] 아래 함수들은 단일 정의만 존재하며, 뒤쪽 모듈 블록에서 대입 방식으로 정의됩니다.
         // 암묵적 전역 생성을 막기 위해 선언만 미리 둡니다.
@@ -2100,6 +2104,55 @@
                 if (value.url !== canonicalApiUrl(url) || !value.savedAt || Date.now() - value.savedAt > maxAgeMs || !value.text) return null;
                 return { ...value, key };
             } catch(e) { return null; }
+        }
+
+        /* [v9.14.0] 저장소 정리
+           만료된 캐시가 키만 남아 계속 쌓였습니다. (심평원 진료과 캐시 91개 등)
+           브라우저 저장 한도는 약 5MB이므로 넘치기 전에 오래된 것부터 비웁니다.
+           이 시스템이 만든 키만 건드리며, 다른 시스템(참메이트 등) 값은 손대지 않습니다. */
+        const STORAGE_CLEANUP_BUDGET = 3000000;
+        const STORAGE_CLEANUP_RULES = [
+            { prefix: 'hira-subject-v2.8:',          ttlMs: 7  * 24 * 3600 * 1000, keep: 60 },
+            { prefix: 'chamyaksa-api-snapshot-v1:',  ttlMs: 45 * 24 * 3600 * 1000, keep: 80 },
+            { prefix: 'chamyaksa-kakao-snapshot-v1:', ttlMs: 7 * 24 * 3600 * 1000, keep: 20 },
+            { prefix: 'seoul-industry-v280:',        ttlMs: 30 * 24 * 3600 * 1000, keep: 40 },
+            { prefix: 'seoul-flow-v280:',            ttlMs: 30 * 24 * 3600 * 1000, keep: 40 },
+            { prefix: 'building-ledger-v290:',       ttlMs: 60 * 24 * 3600 * 1000, keep: 40 },
+            { prefix: 'building-permit-v2100:',      ttlMs: 30 * 24 * 3600 * 1000, keep: 40 }
+        ];
+
+        function cleanupLocalStorage() {
+            let expired = 0, overflow = 0, bytes = 0;
+            try {
+                const now = Date.now();
+                const survivors = [];
+                STORAGE_CLEANUP_RULES.forEach(rule => {
+                    const items = [];
+                    Object.keys(localStorage).forEach(key => {
+                        if (!key.startsWith(rule.prefix)) return;
+                        const raw = localStorage.getItem(key) || '';
+                        let savedAt = 0;
+                        try { savedAt = Number(JSON.parse(raw)?.savedAt) || 0; } catch(e) {}
+                        if (savedAt && now - savedAt > rule.ttlMs) {
+                            localStorage.removeItem(key); expired += 1; return;
+                        }
+                        items.push({ key, savedAt, size: raw.length });
+                    });
+                    items.sort((a, b) => b.savedAt - a.savedAt);
+                    items.slice(rule.keep).forEach(item => { localStorage.removeItem(item.key); overflow += 1; });
+                    items.slice(0, rule.keep).forEach(item => { bytes += item.size; survivors.push(item); });
+                });
+                if (bytes > STORAGE_CLEANUP_BUDGET) {
+                    survivors.sort((a, b) => a.savedAt - b.savedAt);
+                    for (const item of survivors) {
+                        if (bytes <= STORAGE_CLEANUP_BUDGET) break;
+                        localStorage.removeItem(item.key);
+                        bytes -= item.size; overflow += 1;
+                    }
+                }
+                if (expired || overflow) console.log(`저장소 정리: 만료 ${expired}건 · 초과 ${overflow}건 · 사용 ${Math.round(bytes / 1024)}KB`);
+            } catch(error) { console.warn('저장소 정리 실패:', error); }
+            return { expired, overflow, bytes };
         }
 
         function pruneApiSnapshots() {
