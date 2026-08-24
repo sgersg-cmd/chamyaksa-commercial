@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v9.12.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v9.13.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -302,8 +302,14 @@
                 padding: 0 !important; margin: 0 !important;
                 text-align: right !important; font-weight: 800 !important;
                 color: #0f172a !important; -webkit-text-fill-color: #0f172a !important;
-                width: auto !important; min-width: 0 !important; max-width: none !important;
+                /* [v9.13.0] width:auto 를 주면 input 기본 폭(약 170px)으로 오히려 넓어집니다.
+                   숫자 길이에 맞는 좁은 고정폭으로 두고, 테두리가 없으니 박스도 보이지 않습니다. */
+                width: 11ch !important; min-width: 0 !important; max-width: 11ch !important;
+                display: inline !important; vertical-align: baseline !important;
+                height: auto !important; line-height: inherit !important;
             }
+            /* 브라우저가 입력칸에 넣는 기본 테두리·배경까지 확실히 제거합니다. */
+            #report-card input { -webkit-appearance: none !important; }
             #report-card input[type="number"], #report-card input[type="text"] {
                 font-size: 10.5pt !important; min-height: 0 !important;
                 border: 0.6pt solid #94a3b8 !important; padding: 1mm 2mm !important;
@@ -553,7 +559,8 @@
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
             API_PROXY_BASE: "https://chamyaksa-api.sgersg.workers.dev",
             // [v7.6.0] 단일 마진율(0.45)은 조제·매약 이익률 분리로 대체했습니다.
-            // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
+            // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
+        // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
         // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
         // [v9.9.0] 인쇄 입력칸 박스 제거(CSS 주석 오류), 지도 말풍선·간격 수정, 페이지 공백 최소화.
@@ -592,7 +599,8 @@
             // [v4.0.0] GitHub Actions가 분기 1회 수집해 저장소에 커밋하는 정적 데이터입니다.
             //          브라우저는 이 파일만 읽으므로 공개 CORS 프록시를 거치지 않습니다.
             SEOUL_STATIC_DATA_URL: "data/seoul-commercial.json",
-            // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
+            // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
+        // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
         // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
         // [v9.9.0] 인쇄 입력칸 박스 제거(CSS 주석 오류), 지도 말풍선·간격 수정, 페이지 공백 최소화.
@@ -653,7 +661,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.12.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.13.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1586,7 +1594,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.12.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.13.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1605,7 +1613,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 검토용 참고자료이며 실제 처방·매출 또는 수익을 보장하지 않습니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.12.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.13.0</span></p>
                     </div>
                 </div>
 
@@ -1709,6 +1717,7 @@
          * [v4.1.1] 무한 로딩 원인 함수 복구, 분석 오류 회수·시간 제한,
          *            주소 입력 Enter 실행, 버전 표시 단일화
          */
+        // [v9.13.0] 인쇄 입력칸 폭 고정(width:auto가 오히려 박스를 키우던 문제), 산정기준 펼침 시점 이동.
         // [v9.12.0] 건물정보 PDF 등급 오류 수정, 매약 500만 고정, 산정기준 펼침, 지도 말풍선 개선.
         // [v9.11.0] 산정서에서 매약 매출 제외 (국가 통계 부재). 조제 매출만 법정 산정.
         // [v9.10.0] 지도 말풍선이 상단에서 잘리던 문제 수정 (중심 위도 보정).
@@ -1768,7 +1777,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "9.12.0";
+        const SYSTEM_VERSION = "9.13.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -2598,6 +2607,12 @@
 
             finishAnalysisLoading();
             document.getElementById('report-zone').classList.remove('hidden');
+            /* [v9.13.0] 산정 기준은 분석이 끝나면 항상 펼쳐 둡니다.
+               기존에는 처방 확인을 마쳐야 실행되는 경로에 있어서, 분석 직후에는 접힌 채였습니다.
+               뒤늦게 렌더되는 모듈(SGIS·서울·건축)이 접기를 다시 만들 수 있어 세 번 나눠 실행합니다. */
+            toggleAllReportDetails(true);
+            setTimeout(() => toggleAllReportDetails(true), 800);
+            setTimeout(() => toggleAllReportDetails(true), 2500);
             
             setTimeout(() => { drawKakaoMapCandidateOnly(address, kakaoCoordinateObj); }, 150);
             setTimeout(() => { loadHiraDetailedSubjects(kakaoCoordinateObj); }, 250);
@@ -4998,10 +5013,6 @@
             if (costsConfirmed) { document.getElementById('lbl-net-profit').innerText = netProfit >= 0 ? `월 약 ${netProfit.toLocaleString()}원` : `월 약 -${Math.abs(netProfit).toLocaleString()}원`; document.getElementById('lbl-break-even-prescriptions').innerText = `${breakEvenPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').innerText = `${safetyMarginPrescriptions >= 0 ? '+' : ''}${safetyMarginPrescriptions.toLocaleString()}건 / 일`; document.getElementById('lbl-safety-margin-prescriptions').className = safetyMarginPrescriptions >= 0 ? 'text-emerald-700' : 'text-red-700'; }
             document.getElementById('calc-total-fixed-cost').innerText = `${totalFixedCost.toLocaleString()}원`; document.getElementById('lbl-fixed-preview').innerText = formatWonCompact(totalFixedCost); document.getElementById('count-staff-print').innerText = `${staffCount}명`; document.getElementById('count-full-pharm-print').innerText = `${fullPharmCount}명`; document.getElementById('count-half-pharm-print').innerText = `${halfPharmCount}명`;
             renderPrescriptionConcentration(true); renderLegalBuildingPurpose(); renderScenarioRange(true); renumberSections();
-            /* [v9.12.0] 다른 모듈이 나중에 렌더를 마치면서 다시 접히던 문제가 있어
-               렌더가 모두 끝난 뒤 한 번 더 펼칩니다. */
-            toggleAllReportDetails(true);
-            setTimeout(() => toggleAllReportDetails(true), 900);
             renderGroupMixChart(result.categoryResults); renderOneLineSummary(); renderEstimateCertificate();
             updatePaybackMetrics(); updateOptionalCostUi(); renderScenarioCards(); if (GLOBAL_CALC_DATA.baseScore) generateMergedReportReason();
         };
