@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v9.18.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v9.19.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Firebase SDK 연동 -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- [v9.19.0] Firebase SDK 는 PDF 출력 시에만 필요하므로 getDb() 에서 지연 로드합니다. -->
 
     <!-- 카카오 지도 API -->
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=c4428bbe90244befd058e5fd4fb8773f&libraries=services"></script>
@@ -556,12 +554,40 @@
             appId: "1:540804285794:web:0e804c3d713d6476f2583b"
         };
         
-        let db = null;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            console.log("Firestore 연동 성공");
-        } catch(e) { console.error("Firebase 에러:", e); }
+        /* [v9.19.0] Firestore 는 PDF 출력 1건 저장에만 쓰이는데 SDK 2개(약 300KB)를
+           모든 방문자가 내려받고 있었습니다. 첫 호출 시점에만 내려받도록 바꿉니다. */
+        const FIREBASE_SDK_BASE = 'https://www.gstatic.com/firebasejs/10.8.0/';
+        let db = null, firebaseLoading = null;
+
+        function loadExternalScript(src) {
+            return new Promise((resolve, reject) => {
+                const el = document.createElement('script');
+                el.src = src;
+                el.onload = () => resolve();
+                el.onerror = () => reject(new Error(`스크립트 로드 실패: ${src}`));
+                document.head.appendChild(el);
+            });
+        }
+
+        // 실패해도 분석 기능에는 영향이 없도록 null 을 돌려주고 다음 호출에서 재시도합니다.
+        function getDb() {
+            if (db) return Promise.resolve(db);
+            if (!firebaseLoading) {
+                firebaseLoading = (async () => {
+                    await loadExternalScript(FIREBASE_SDK_BASE + 'firebase-app-compat.js');
+                    await loadExternalScript(FIREBASE_SDK_BASE + 'firebase-firestore-compat.js');
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    console.log('Firestore 연동 성공');
+                    return db;
+                })().catch(error => {
+                    console.error('Firebase 에러:', error);
+                    firebaseLoading = null;
+                    return null;
+                });
+            }
+            return firebaseLoading;
+        }
 
         const CONFIG = {
             // [v5.0.0] 공공데이터 API 키는 Cloudflare Worker의 비밀 변수로만 보관합니다.
@@ -677,7 +703,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.18.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.19.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1607,7 +1633,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.18.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.19.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1626,7 +1652,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 검토용 참고자료이며 실제 처방·매출 또는 수익을 보장하지 않습니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.18.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.19.0</span></p>
                     </div>
                 </div>
 
@@ -1794,7 +1820,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "9.18.0";
+        const SYSTEM_VERSION = "9.19.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -4038,6 +4064,8 @@
         }
 
         async function saveReportHistory(selectedSections) {
+            // [v9.19.0] 이 시점에 Firebase SDK 를 처음 내려받습니다. 실패해도 PDF 출력은 계속됩니다.
+            const db = await getDb();
             if (!db) return;
             try {
                 const payload = {
