@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>약국 개설 전용 상권분석 시스템 v9.22.0</title>
+    <title>약국 개설 전용 상권분석 시스템 v9.23.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -731,7 +731,7 @@
     <header class="bg-slate-900 text-white shadow-md px-6 py-5 no-print">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.22.0</span>
+                <span id="lbl-header-version" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">v9.23.0</span>
                 약국 개설 전용 상권분석 시스템
             </h1>
             <span class="text-xs text-slate-400 font-bold">Pharmacy Opening Intelligence</span>
@@ -1675,7 +1675,7 @@
                         <div class="bg-white border border-slate-200 rounded-xl p-3 print-card">
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p class="font-black text-slate-800 text-xs"><i class="fa-solid fa-file-lines text-blue-500 mr-1"></i> 리포트 요약</p>
-                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.22.0</strong></p>
+                                <p class="text-slate-500"><span id="report-print-time-footer"></span> · <strong id="lbl-report-version" class="text-slate-700">v9.23.0</strong></p>
                             </div>
                             <div class="space-y-1 text-slate-500 leading-relaxed">
                                 <p id="report-footer-address"></p>
@@ -1694,7 +1694,7 @@
                     </div>
                     <div class="px-4 py-2 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-between gap-2 text-[9px] text-slate-400 font-semibold">
                         <p>후보지 검토용 참고자료이며 실제 처방·매출 또는 수익을 보장하지 않습니다.</p>
-                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.22.0</span></p>
+                        <p class="whitespace-nowrap">© 2026 참약사 가맹기획본부 · <span id="lbl-footer-version">v9.23.0</span></p>
                     </div>
                 </div>
 
@@ -1862,7 +1862,7 @@
         // [v5.0.2] 리포트 문구·판단근거·각주를 핵심 중심으로 압축했습니다.
         // [v5.0.1] 신규 정적 데이터 파일 커밋 오류 수정, Actions/Node.js 24 전환.
         // [v5.0.0] 공공데이터 호출을 Cloudflare Worker 중계 구조로 전환했습니다.
-        const SYSTEM_VERSION = "9.22.0";
+        const SYSTEM_VERSION = "9.23.0";
         const VERSION_DISPLAY_SHORT = `v${SYSTEM_VERSION}`;
         const VERSION_DISPLAY_FULL = `v${SYSTEM_VERSION}`;
 
@@ -4864,10 +4864,45 @@
             const dongName = String(GLOBAL_CALC_DATA.address || '').split(' ').slice(-2).join(' ');
             document.title = `예상매출액 산정서${dongName ? ` · ${dongName}` : ''}`;
 
+            // 이력 저장은 인쇄를 막지 않습니다. 실패해도 출력은 그대로 진행됩니다.
+            saveEstimateHistory();
+
             document.body.offsetHeight;   // 인쇄 레이아웃 강제 재계산
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => setTimeout(() => window.print(), 220));
             });
+        }
+
+        /* [v9.23.0] 산정서 출력 이력 저장
+           산정서는 서명본을 5년간 보관해야 하는 법정 서면입니다.
+           나중에 "이 후보지에 어떤 금액으로 산정서를 냈는지" 대조할 수 있도록
+           출력 시점의 금액·근거를 별도 컬렉션에 남깁니다.
+           교부 상대방(가맹희망자)은 시스템이 알 수 없으므로 서면에 직접 기재합니다. */
+        async function saveEstimateHistory() {
+            try {
+                const db = await getDb();
+                if (!db) return;
+                const range = computeStatutoryRevenueRange();
+                if (!range) return;
+                const metrics = GLOBAL_ANALYSIS_METRICS || {};
+                await db.collection('estimate_certificates').add({
+                    address: GLOBAL_CALC_DATA.address || GLOBAL_SITE_CONTEXT.targetAddress || '',
+                    areaPyeong: Number(document.getElementById('input-pyeong')?.value || 0),
+                    minAmount: range.minAmount,
+                    maxAmount: range.maxAmount,
+                    ratio: Number(range.ratio.toFixed(3)),
+                    rawRatio: Number(range.rawRatio.toFixed(3)),
+                    ratioCapped: Boolean(range.capped),      // 1.7배 상한으로 조정했는지
+                    lowDailyPrescriptions: range.lowDaily,
+                    highDailyPrescriptions: range.highDaily,
+                    weightedCost: Math.round(Number(metrics.weightedCost) || 0),
+                    operatingDays: Number(metrics.operatingDays) || 0,
+                    otcExcluded: true,                        // 매약은 산정 대상에서 제외
+                    systemVersion: SYSTEM_VERSION,
+                    issuedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log('산정서 출력 이력 저장 완료.');
+            } catch (error) { console.error('산정서 이력 저장 실패:', error); }
         }
 
         // 인쇄 대화상자가 닫히면 화면 상태를 되돌립니다. (취소해도 동일하게 동작합니다)
